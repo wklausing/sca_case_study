@@ -40,8 +40,7 @@ str(margin)
 ```
 
 
-*Aufgabe A*
-A: Erkenntnisgewinn
+*Aufgabe A: Erkenntnisgewinn*
 Ziel der Aufgabe ist der Bericht von etwaigen Erkenntnissen über die Daten, die Sie im Laufe der Projektbearbeitung erlangt haben. Zudem soll gezielt über die in der Fallstudienbeschrei- bung geforderten Punkte berichtet werden. Die Daten sollen angemessen aufbereitet und vi- sualisiert werden. Wenn möglich sollen Handlungsempfehlungen aus den Erkenntnissen ab- geleitet werden. Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
 • Visuelle Exploration
 • Kennzahlen und Reporting
