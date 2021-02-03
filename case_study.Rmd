@@ -7,7 +7,6 @@ output: html_document
 
 Library Packages
 ```{r}
-
 library(readr)
 library(dplyr) 
 library("zoo")
@@ -16,8 +15,6 @@ library("ggplot2")
 library("mosaic")
 library("Metrics")
 library("dummies")
-
-
 ```
 
 ```{r}
@@ -27,9 +24,8 @@ margin <- read.csv("data/margin_by_week_FINAL_20210115.csv")
 head(shipments)
 head(margin)
 ```
-Kommentar
 
-library(ggplot2)
+
 ```{r}
  count_business_model = shipments %>%
   count(business_model)
