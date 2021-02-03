@@ -6,8 +6,8 @@ output: html_document
 ---
 
 ```{r}
-shipments <- read.csv("shipment_FINAL_20210115.csv")
-margin <- read.csv("margin_by_week_FINAL_20210115.csv")
+shipments <- read.csv("data/shipment_FINAL_20210115.csv")
+margin <- read.csv("data/margin_by_week_FINAL_20210115.csv")
 
 head(shipments)
 head(margin)
@@ -20,11 +20,6 @@ library(ggplot2)
 count_business_model
  ggplot(count_business_model ,aes(business_model,n))+
     geom_col()
-```
-
-```{r}
-ggplot(shipments, aes(count(businessmodel)))
-
 ```
 
 
