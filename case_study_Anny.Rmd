@@ -1,20 +1,42 @@
 ---
-title: "case_study_Anny"
+title: "case_study"
+author: "klauwi"
+date: "2/3/2021"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+Library Packages
+```{r}
+library(readr)
+library(dplyr) 
+library("zoo")
+library("forecast")
+library("ggplot2")
+library("mosaic")
+library("Metrics")
+library("dummies")
+```
+
+```{r}
+shipments <- read.csv("data/shipment_FINAL_20210115.csv")
+margin <- read.csv("data/margin_by_week_FINAL_20210115.csv")
+
+head(shipments)
+head(margin)
+```
+Kommentar
+
+library(ggplot2)
+```{r}
+ count_business_model = shipments %>%
+  count(business_model)
+count_business_model
+ ggplot(count_business_model ,aes(business_model,n))+
+    geom_col()
 ```
 
 
-```{r cars}
-summary(cars)
+```{r}
+str(shipments)
+str(margin)
 ```
-
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-
