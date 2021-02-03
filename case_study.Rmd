@@ -5,13 +5,30 @@ date: "2/3/2021"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r}
+shipments <- read.csv("shipment_FINAL_20210115.csv")
+margin <- read.csv("margin_by_week_FINAL_20210115.csv")
+
+head(shipments)
+head(margin)
 ```
 
-## R Markdown
-
-```{r cars}
-summary(cars)
+library(ggplot2)
+```{r}
+ count_business_model = shipments %>%
+  count(business_model)
+count_business_model
+ ggplot(count_business_model ,aes(business_model,n))+
+    geom_col()
 ```
 
+```{r}
+ggplot(shipments, aes(count(businessmodel)))
+
+```
+
+
+```{r}
+str(shipments)
+str(margin)
+```
