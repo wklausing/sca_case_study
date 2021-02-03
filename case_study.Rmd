@@ -5,6 +5,21 @@ date: "2/3/2021"
 output: html_document
 ---
 
+Library Packages
+```{r}
+
+library(readr)
+library(dplyr) 
+library("zoo")
+library("forecast")
+library("ggplot2")
+library("mosaic")
+library("Metrics")
+library("dummies")
+
+
+```
+
 ```{r}
 shipments <- read.csv("shipment_FINAL_20210115.csv")
 margin <- read.csv("margin_by_week_FINAL_20210115.csv")
