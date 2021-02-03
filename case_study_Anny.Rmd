@@ -38,3 +38,19 @@ count_business_model
 str(shipments)
 str(margin)
 ```
+
+
+*Aufgabe A*
+A: Erkenntnisgewinn
+Ziel der Aufgabe ist der Bericht von etwaigen Erkenntnissen über die Daten, die Sie im Laufe der Projektbearbeitung erlangt haben. Zudem soll gezielt über die in der Fallstudienbeschrei- bung geforderten Punkte berichtet werden. Die Daten sollen angemessen aufbereitet und vi- sualisiert werden. Wenn möglich sollen Handlungsempfehlungen aus den Erkenntnissen ab- geleitet werden. Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
+• Visuelle Exploration
+• Kennzahlen und Reporting
+• von Verfahren identifizierte Muster (Saisonalitäten, Trends, ...)
+• Korrelationen
+• Verschiedene Methoden der deskriptiven Statistik (Clustering, ...)
+Versuchen Sie einen möglichst guten Überblick über die Shipment-Daten zu generieren. Ge- hen Sie dabei schon gezielt auf die Marge ein (sowohl die zeitliche Entwicklung als auch iden- tifizierte Zusammenhänge). Achten Sie bei Ihren Interpretationen auf die Gültigkeit von Aus- sagen über Kausalitäten.
+Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche. Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten, die Ihnen besonders wichtig und präsenta- tionswürdig erscheinen. Bereiten Sie gegebenenfalls ein Portfolio im Back-Up Ihrer Präsenta- tion vor, um auf Anschlussfragen reagieren zu können. Sie sollten bei Ihrer Vorstellung dieser Teilaufgabe versuchen Zusammenhänge zu interpretieren und Implikationen abzuleiten, selbst wenn Ihre erarbeiteten Inhalte durch experimentelle Untersuchungen entstanden sind.
+```{r}
+
+```
+
