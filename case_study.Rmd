@@ -27,6 +27,7 @@ margin <- read.csv("data/margin_by_week_FINAL_20210115.csv")
 head(shipments)
 head(margin)
 ```
+Kommentar
 
 library(ggplot2)
 ```{r}
