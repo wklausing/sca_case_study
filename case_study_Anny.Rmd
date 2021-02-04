@@ -41,7 +41,8 @@ str(margin)
 
 
 *Aufgabe A: Erkenntnisgewinn*
-Ziel der Aufgabe ist der Bericht von etwaigen Erkenntnissen über die Daten, die Sie im Laufe der Projektbearbeitung erlangt haben. Zudem soll gezielt über die in der Fallstudienbeschrei- bung geforderten Punkte berichtet werden. Die Daten sollen angemessen aufbereitet und vi- sualisiert werden. Wenn möglich sollen Handlungsempfehlungen aus den Erkenntnissen ab- geleitet werden. Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
+Ziel der Aufgabe ist der Bericht von etwaigen Erkenntnissen über die Daten, die Sie im Laufe der Projektbearbeitung erlangt haben. Zudem soll gezielt über die in der Fallstudienbeschreibung geforderten Punkte berichtet werden. 
+Die Daten sollen angemessen aufbereitet und visualisiert werden. Wenn möglich sollen Handlungsempfehlungen aus den Erkenntnissen abgeleitet werden. Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
 • Visuelle Exploration
 • Kennzahlen und Reporting
 • von Verfahren identifizierte Muster (Saisonalitäten, Trends, ...)
@@ -49,7 +50,82 @@ Ziel der Aufgabe ist der Bericht von etwaigen Erkenntnissen über die Daten, die
 • Verschiedene Methoden der deskriptiven Statistik (Clustering, ...)
 Versuchen Sie einen möglichst guten Überblick über die Shipment-Daten zu generieren. Ge- hen Sie dabei schon gezielt auf die Marge ein (sowohl die zeitliche Entwicklung als auch iden- tifizierte Zusammenhänge). Achten Sie bei Ihren Interpretationen auf die Gültigkeit von Aus- sagen über Kausalitäten.
 Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche. Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten, die Ihnen besonders wichtig und präsenta- tionswürdig erscheinen. Bereiten Sie gegebenenfalls ein Portfolio im Back-Up Ihrer Präsenta- tion vor, um auf Anschlussfragen reagieren zu können. Sie sollten bei Ihrer Vorstellung dieser Teilaufgabe versuchen Zusammenhänge zu interpretieren und Implikationen abzuleiten, selbst wenn Ihre erarbeiteten Inhalte durch experimentelle Untersuchungen entstanden sind.
+
+
+# Visualisieren der Daten aus der Tabelle Shipments
+```{r}
+barplot(table(shipments$shipment_state))
+barplot(table(shipments$shipment_stage))
+
+barplot(table(shipments$custom_rate_shipment))
+barplot(table(shipments$fulfilment_strategy))
+
+barplot(table(shipments$business_model))
+barplot(table(shipments$shipment_stage))
+barplot(table(shipments$custom_rate_shipment))
+barplot(table(shipments$lane_domain))
+barplot(table(shipments$country_lane))
+barplot(table(shipments$stops_count))
+barplot(table(shipments$cancellation_reason))
+barplot(table(shipments$total_revenue))
+barplot(table(shipments$total_cost))
+barplot(table(shipments$transport_price_booked))
+barplot(table(shipments$transport_cost_assigned))
+```
+## Shipments
+# Gegenueberstellung: total_cost und total_revenue
 ```{r}
 
 ```
+
+## Shipments
+# Gegenueberstellung: shipment_state und shipment_stage
+```{r}
+barplot(table(shipments$shipment_state, shipments$shipment_stage), beside=TRUE,
+col=c("darkblue", "darkred"))
+```
+
+## Shipments
+# Gruppierung: fulfilment_strategy + transport_price_booked + transport_cost_assigned 
+```{r}
+group1 = aggregate(transport_price_booked ~ fulfilment_strategy + business_model, data=shipments, sum)
+group2 = aggregate(transport_cost_assigned  ~ fulfilment_strategy + business_model, data=shipments, sum)
+
+differenz = group1[3] - group2[3]
+colnames(differenz) = "differenz"
+differenz
+
+groupbind = cbind(group1, group2[3], differenz)
+groupbind
+```
+
+
+## Margin
+# Wir berechnen hier die Marge und ihre Differenz zu den stornierten Lieferungen
+# Gruppierung: customer_requested_arrival_end_of_window_week + shipment_count_3pl + non_cancelled_shipment _count_3pl
+```{r}
+#group = aggregate(~)
+```
+
+
+# Visualisieren der Daten aus der Tabelle Margin: 
+```{r}
+#ggplot(data = margin, aes(x=shipment_count_3pl, y=first_stop_requested_arrival_to_week, group=1)) 
+      
+#+ geom_line()
+```
+
+# Shipments Daten "last_stop_requested_arrival_to_date" in Wochendatum formatieren, um Margin zu verketten
+"last_stop_requested_arrival_to_date"
+```{r}
+WeekdateFormat = as.Date(shipments$last_stop_requested_arrival_to_date)
+shipments$Weekdate = strftime(WeekdateFormat, format = "%Y-%V") #Y-CalendarWeek
+shipments
+
+# Nach Kalenderwochen gruppieren
+TableBind = data.frame()
+TableBind
+```
+
+
 
