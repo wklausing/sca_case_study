@@ -26,11 +26,28 @@ head(margin)
 ```
 
 
+*Aufgabe A: Erkenntnisgewinn*
+Ziel der Aufgabe ist der Bericht von etwaigen Erkenntnissen über die Daten, 
+die Sie im Laufe der Projektbearbeitung erlangt haben. 
+Zudem soll gezielt über die in der Fallstudienbeschreibung geforderten Punkte berichtet werden. 
+Die Daten sollen angemessen aufbereitet und visualisiert werden. 
+Wenn möglich sollen Handlungsempfehlungen aus den Erkenntnissen abgeleitet werden. 
+Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
+• Visuelle Exploration
+• Kennzahlen und Reporting
+• von Verfahren identifizierte Muster (Saisonalitäten, Trends, ...)
+• Korrelationen
+• Verschiedene Methoden der deskriptiven Statistik (Clustering, ...)
+Versuchen Sie einen möglichst guten Überblick über die Shipment-Daten zu generieren. 
+Gehen Sie dabei schon gezielt auf die *Marge* ein (sowohl die *zeitliche Entwicklung* als auch identifizierte Zusammenhänge). Achten Sie bei Ihren Interpretationen auf die Gültigkeit von Aussagen über Kausalitäten.
+Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche. 
+Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten, die Ihnen besonders wichtig und präsentationswürdig erscheinen. Bereiten Sie gegebenenfalls ein Portfolio im Back-Up Ihrer Präsentation vor, um auf Anschlussfragen reagieren zu können. Sie sollten bei Ihrer Vorstellung dieser Teilaufgabe versuchen Zusammenhänge zu interpretieren und Implikationen abzuleiten, selbst wenn Ihre erarbeiteten Inhalte durch experimentelle Untersuchungen entstanden sind.
+
 ```{r}
  count_business_model = shipments %>%
   count(business_model)
 count_business_model
- ggplot(count_business_model ,aes(business_model,n))+
+ ggplot(count_business_model, aes(business_model,n)) +
     geom_col()
 ```
 
@@ -38,4 +55,28 @@ count_business_model
 ```{r}
 str(shipments)
 str(margin)
+```
+
+
+
+# Shipments Daten "last_stop_requested_arrival_to_date" in Wochendatum formatieren, um mit Margin zu verketten
+```{r}
+# Datum von Shipment Spalte "last_stop_requested_arrival_to_date" umformatieren, sodass Kalenderwoche angezeigt wird
+CalendarWeekFormat = as.Date(shipments$last_stop_requested_arrival_to_date)
+shipments$CalendarWeek = strftime(CalendarWeekFormat, format = "%Y-%V") #Year-CalendarWeek
+
+# Unbennen der ersten Spalte der Tabelle margin
+colnames(margin)[1] = c("CalendarWeek")
+
+# Beide Tabellen "shipments" und "margin" nach "CalendarWeek" mergen
+TableBind = merge(shipments, margin, by = "CalendarWeek")
+head(TableBind)
+```
+
+
+## Margin
+# Berechnung der Marge und ihre Differenz zu den stornierten Lieferungen
+```{r}
+#margin$DifferenceShipmentCount = data.frame(margin$shipment_count_3pl - margin$non_cancelled_shipment_count_3pl)
+#margin
 ```
