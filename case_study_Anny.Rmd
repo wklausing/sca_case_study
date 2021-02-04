@@ -101,29 +101,24 @@ groupbind
 
 
 ## Margin
-# Wir berechnen hier die Marge und ihre Differenz zu den stornierten Lieferungen
-# Gruppierung: customer_requested_arrival_end_of_window_week + shipment_count_3pl + non_cancelled_shipment _count_3pl
+# Berechnung der Marge und ihre Differenz zu den stornierten Lieferungen
 ```{r}
-#group = aggregate(~)
-```
-
-
-# Visualisieren der Daten aus der Tabelle Margin: 
-```{r}
-#ggplot(data = margin, aes(x=shipment_count_3pl, y=first_stop_requested_arrival_to_week, group=1)) 
-      
-#+ geom_line()
+margin$DifferenceShipmentCount = margin$shipment_count_3pl - margin$non_cancelled_shipment_count_3pl
+margin[,c(1,2,3,13)]
 ```
 
 # Shipments Daten "last_stop_requested_arrival_to_date" in Wochendatum formatieren, um Margin zu verketten
 "last_stop_requested_arrival_to_date"
 ```{r}
-WeekdateFormat = as.Date(shipments$last_stop_requested_arrival_to_date)
-shipments$Weekdate = strftime(WeekdateFormat, format = "%Y-%V") #Y-CalendarWeek
-shipments
+# Datum von Shipment Spalte "last_stop_requested_arrival_to_date" so umformatieren, dass Kalenderwoche angezeigt wird
+CalendarWeekFormat = as.Date(shipments$last_stop_requested_arrival_to_date)
+shipments$CalendarWeek = strftime(CalendarWeekFormat, format = "%Y-%V") #Y-CalendarWeek
 
-# Nach Kalenderwochen gruppieren
-TableBind = data.frame()
+# Unbennen der ersten Spalte der Tabelle margin
+colnames(margin)[1] = c("CalendarWeek")
+
+# Beide Tabellen "shipments" und "margin" nach "CalendarWeek" mergen
+TableBind = merge(shipments, margin, by = "CalendarWeek")
 TableBind
 ```
 
