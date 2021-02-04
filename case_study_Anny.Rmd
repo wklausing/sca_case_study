@@ -48,13 +48,13 @@ Die Daten sollen angemessen aufbereitet und visualisiert werden. Wenn möglich s
 • von Verfahren identifizierte Muster (Saisonalitäten, Trends, ...)
 • Korrelationen
 • Verschiedene Methoden der deskriptiven Statistik (Clustering, ...)
-Versuchen Sie einen möglichst guten Überblick über die Shipment-Daten zu generieren. Ge- hen Sie dabei schon gezielt auf die Marge ein (sowohl die zeitliche Entwicklung als auch iden- tifizierte Zusammenhänge). Achten Sie bei Ihren Interpretationen auf die Gültigkeit von Aus- sagen über Kausalitäten.
+Versuchen Sie einen möglichst guten Überblick über die Shipment-Daten zu generieren. Gehen Sie dabei schon gezielt auf die Marge ein (sowohl die zeitliche Entwicklung als auch iden- tifizierte Zusammenhänge). Achten Sie bei Ihren Interpretationen auf die Gültigkeit von Aus- sagen über Kausalitäten.
 Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche. Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten, die Ihnen besonders wichtig und präsenta- tionswürdig erscheinen. Bereiten Sie gegebenenfalls ein Portfolio im Back-Up Ihrer Präsenta- tion vor, um auf Anschlussfragen reagieren zu können. Sie sollten bei Ihrer Vorstellung dieser Teilaufgabe versuchen Zusammenhänge zu interpretieren und Implikationen abzuleiten, selbst wenn Ihre erarbeiteten Inhalte durch experimentelle Untersuchungen entstanden sind.
 
 
 # Visualisieren der Daten aus der Tabelle Shipments
 ```{r}
-barplot(table(shipments$shipment_state))
+barplot(table(shipments$shipment_state)) 
 barplot(table(shipments$shipment_stage))
 
 barplot(table(shipments$custom_rate_shipment))
@@ -63,7 +63,6 @@ barplot(table(shipments$fulfilment_strategy))
 barplot(table(shipments$business_model))
 barplot(table(shipments$shipment_stage))
 barplot(table(shipments$custom_rate_shipment))
-barplot(table(shipments$lane_domain))
 barplot(table(shipments$country_lane))
 barplot(table(shipments$stops_count))
 barplot(table(shipments$cancellation_reason))
@@ -72,10 +71,27 @@ barplot(table(shipments$total_cost))
 barplot(table(shipments$transport_price_booked))
 barplot(table(shipments$transport_cost_assigned))
 ```
+
+```{r}
+barplot(table(shipments$lane_domain))
+```
+
+```{r}
+TableBind
+```
+
 ## Shipments
 # Gegenueberstellung: total_cost und total_revenue
 ```{r}
+# Umsatz aggrerieren
+df_Revenue = data.frame(aggregate(total_revenue ~ business_model + fulfilment_strategy, data=TableBind, sum))
 
+# Kosten aggrerieren
+df_Cost = data.frame(aggregate(total_cost ~ business_model + fulfilment_strategy, data=TableBind, sum))
+
+# Beide DataFrames mergen
+df_Compare = cbind(df_Revenue, df_Cost$total_cost)
+df_Compare
 ```
 
 ## Shipments
@@ -86,7 +102,7 @@ col=c("darkblue", "darkred"))
 ```
 
 ## Shipments
-# Gruppierung: fulfilment_strategy + transport_price_booked + transport_cost_assigned 
+# Gegenuberstellung: Lieferungskosten gebucht und zugewiesen
 ```{r}
 group1 = aggregate(transport_price_booked ~ fulfilment_strategy + business_model, data=shipments, sum)
 group2 = aggregate(transport_cost_assigned  ~ fulfilment_strategy + business_model, data=shipments, sum)
@@ -100,13 +116,6 @@ groupbind
 ```
 
 
-## Margin
-# Berechnung der Marge und ihre Differenz zu den stornierten Lieferungen
-```{r}
-margin$DifferenceShipmentCount = margin$shipment_count_3pl - margin$non_cancelled_shipment_count_3pl
-margin[,c(1,2,3,13)]
-```
-
 # Shipments Daten "last_stop_requested_arrival_to_date" in Wochendatum formatieren, um Margin zu verketten
 "last_stop_requested_arrival_to_date"
 ```{r}
@@ -119,7 +128,7 @@ colnames(margin)[1] = c("CalendarWeek")
 
 # Beide Tabellen "shipments" und "margin" nach "CalendarWeek" mergen
 TableBind = merge(shipments, margin, by = "CalendarWeek")
-TableBind
+head(TableBind)
 ```
 
 

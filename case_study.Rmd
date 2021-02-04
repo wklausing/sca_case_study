@@ -26,7 +26,7 @@ head(margin)
 ```
 
 
-*Aufgabe A: Erkenntnisgewinn*
+***Aufgabe A: Erkenntnisgewinn***
 Ziel der Aufgabe ist der Bericht von etwaigen Erkenntnissen über die Daten, 
 die Sie im Laufe der Projektbearbeitung erlangt haben. 
 Zudem soll gezielt über die in der Fallstudienbeschreibung geforderten Punkte berichtet werden. 
@@ -43,12 +43,14 @@ Gehen Sie dabei schon gezielt auf die *Marge* ein (sowohl die *zeitliche Entwick
 Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche. 
 Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten, die Ihnen besonders wichtig und präsentationswürdig erscheinen. Bereiten Sie gegebenenfalls ein Portfolio im Back-Up Ihrer Präsentation vor, um auf Anschlussfragen reagieren zu können. Sie sollten bei Ihrer Vorstellung dieser Teilaufgabe versuchen Zusammenhänge zu interpretieren und Implikationen abzuleiten, selbst wenn Ihre erarbeiteten Inhalte durch experimentelle Untersuchungen entstanden sind.
 
-```{r}
+```{eval=FALSE}
  count_business_model = shipments %>%
   count(business_model)
 count_business_model
  ggplot(count_business_model, aes(business_model,n)) +
     geom_col()
+ 
+#TODO: Zahlen koennen hier mehr Aussagekraft haben indem man zB aggregiert
 ```
 
 
@@ -58,25 +60,54 @@ str(margin)
 ```
 
 
-
-# Shipments Daten "last_stop_requested_arrival_to_date" in Wochendatum formatieren, um mit Margin zu verketten
+## Verkettung: Shipments + Mergin
 ```{r}
-# Datum von Shipment Spalte "last_stop_requested_arrival_to_date" umformatieren, sodass Kalenderwoche angezeigt wird
+# Datum von Shipment Spalte "last_stop_requested_arrival_to_date" umformatieren, 
+# sodass Kalenderwoche angezeigt wird
 CalendarWeekFormat = as.Date(shipments$last_stop_requested_arrival_to_date)
 shipments$CalendarWeek = strftime(CalendarWeekFormat, format = "%Y-%V") #Year-CalendarWeek
 
-# Unbennen der ersten Spalte der Tabelle margin
+# Unbenennen der ersten Spalte der Tabelle margin
 colnames(margin)[1] = c("CalendarWeek")
 
 # Beide Tabellen "shipments" und "margin" nach "CalendarWeek" mergen
 TableBind = merge(shipments, margin, by = "CalendarWeek")
 head(TableBind)
+
+#TODO: Grafik hierzu waere gut
 ```
 
 
-## Margin
-# Berechnung der Marge und ihre Differenz zu den stornierten Lieferungen
+## Shipments Gegenueberstellung: total_cost und total_revenue
 ```{r}
-#margin$DifferenceShipmentCount = data.frame(margin$shipment_count_3pl - margin$non_cancelled_shipment_count_3pl)
-#margin
+# Umsatz aggrerieren
+df_Revenue = data.frame(aggregate(total_revenue ~ 
+                                    business_model + fulfilment_strategy, 
+                                  data=TableBind, sum))
+
+# Kosten aggrerieren
+df_Cost = data.frame(aggregate(total_cost ~ 
+                                 business_model + fulfilment_strategy, 
+                               data=TableBind, sum))
+
+# Beide DataFrames mergen
+df_Compare = cbind(df_Revenue, df_Cost$total_cost)
+df_Compare
+
+#TODO: Grafik hierzu waere gut
+```
+
+
+## Shipments Gegenuberstellung: Lieferungskosten gebucht und zugewiesen
+```{r}
+group1 = aggregate(transport_price_booked ~ 
+                     fulfilment_strategy + business_model, data=shipments, sum)
+group2 = aggregate(transport_cost_assigned  ~ 
+                     fulfilment_strategy + business_model, data=shipments, sum)
+
+differenz = group1[3] - group2[3]
+colnames(differenz) = "differenz"
+
+groupbind = cbind(group1, group2[3], differenz)
+groupbind
 ```
