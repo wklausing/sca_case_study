@@ -17,6 +17,7 @@ library("Metrics")
 library("dummies")
 ```
 
+### CSV Dateien einlesen
 ```{r}
 shipments <- read.csv("data/shipment_FINAL_20210115.csv")
 margin <- read.csv("data/margin_by_week_FINAL_20210115.csv")
@@ -53,14 +54,14 @@ count_business_model
 #TODO: Zahlen koennen hier mehr Aussagekraft haben indem man zB aggregiert
 ```
 
-
+### (1) Struktur ausgeben
 ```{r}
 str(shipments)
 str(margin)
 ```
 
 
-## Verkettung: Shipments + Mergin
+### (2) Verkettung der zwei Tabellen: Shipments + Mergin
 ```{r}
 # Datum von Shipment Spalte "last_stop_requested_arrival_to_date" umformatieren, 
 # sodass Kalenderwoche angezeigt wird
@@ -74,11 +75,11 @@ colnames(margin)[1] = c("CalendarWeek")
 TableBind = merge(shipments, margin, by = "CalendarWeek")
 head(TableBind)
 
-#TODO: Grafik hierzu waere gut
+#TODO: Zeitliche Grafik mit Umsaetzen + Kosten hierzu waere gut
 ```
 
 
-## Shipments Gegenueberstellung: total_cost und total_revenue
+### (3) Shipments Gegenueberstellung: total_cost und total_revenue
 ```{r}
 # Umsatz aggrerieren
 df_Revenue = data.frame(aggregate(total_revenue ~ 
@@ -92,13 +93,16 @@ df_Cost = data.frame(aggregate(total_cost ~
 
 # Beide DataFrames mergen
 df_Compare = cbind(df_Revenue, df_Cost$total_cost)
+
+#umbenennen
+colnames(df_Compare)[4] = "total_cost"
 df_Compare
 
-#TODO: Grafik hierzu waere gut
+#TODO: Grafik von Kosten und Einnahmen hierzu waere gut
 ```
 
 
-## Shipments Gegenuberstellung: Lieferungskosten gebucht und zugewiesen
+### (4) Shipments Gegenuberstellung: Lieferungskosten gebucht und zugewiesen
 ```{r}
 group1 = aggregate(transport_price_booked ~ 
                      fulfilment_strategy + business_model, data=shipments, sum)
@@ -110,4 +114,6 @@ colnames(differenz) = "differenz"
 
 groupbind = cbind(group1, group2[3], differenz)
 groupbind
+
+#TODO: Grafik von entstandene Kosten bei Lieferung waere gut
 ```
