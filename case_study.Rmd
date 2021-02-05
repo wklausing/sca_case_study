@@ -60,6 +60,7 @@ str(shipments)
 str(margin)
 ```
 
+***Datenaufbereitung: Zeitliche Entwicklung***
 ### (2.1) JAHR-MONAT extrahieren
 ```{r}
 # Extrahieren von Jahr-Monat aus Shipment-Spalte "last_stop_requested_arrival_to_date", 
@@ -71,8 +72,7 @@ TableBind$YearMonth = format(x,"%Y-%m")
 
 #Info: Benoetigen wir spaeter fuer die Zeitreihenanalyse und Vorhersage
 ```
-
-### (2.2) Shipments + Mergin Tabellen als Kalenderwoche verketten
+### (2.2) Kalenderwoche Verketten aus Shipments + Mergin Tabellen
 ```{r}
 # Datum von Shipment Spalte "last_stop_requested_arrival_to_date" umformatieren, 
 # sodass Kalendarwoche in der ersten Spalte angezeigt werden
@@ -84,8 +84,9 @@ colnames(margin)[1] = c("CalendarWeek")
 
 # Beide Tabellen "shipments" und "margin" nach "CalendarWeek" mergen
 TableBind = merge(shipments, margin, by = "CalendarWeek")
-head(TableBind)
+TableBind
 
+#TODO: Ueberpruefen noetig: Ist CalendarWeek richtig abgebildet in TableBind?
 #TODO: Zeitliche Grafik mit Umsaetzen + Kosten hierzu waere gut
 ```
 
@@ -127,6 +128,7 @@ group2 = aggregate(transport_cost_assigned  ~
 differenz = group1[3] - group2[3]
 colnames(differenz) = "differenz"
 
+# Spalten von Dataframes werden verbunden
 groupbind = cbind(group1, group2[3], differenz)
 groupbind
 
@@ -139,7 +141,8 @@ groupbind
 
 ```
 
-### (6) Margin: Vorhersage aus Margin visualisieren
+### (6) Margin: Vorhersage aus Margin visualisieren. 
+# Vorhersage Daten existieren schon. Erst in Teil B neue Vorhersage machen.
 ```{r}
 
 ```
