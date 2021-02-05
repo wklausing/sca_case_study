@@ -35,7 +35,7 @@ Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche.
 Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten, die Ihnen besonders wichtig und präsentationswürdig erscheinen. Bereiten Sie gegebenenfalls ein Portfolio im Back-Up Ihrer Präsentation vor, um auf Anschlussfragen reagieren zu können. Sie sollten bei Ihrer Vorstellung dieser Teilaufgabe versuchen Zusammenhänge zu interpretieren und Implikationen abzuleiten, selbst wenn Ihre erarbeiteten Inhalte durch experimentelle Untersuchungen entstanden sind.
 
 
-***(1) Datenaufbereitung***
+***(1) Datenvorbereitung***
 ### (1.1) CSV Dateien einlesen
 ```{r}
 shipments <- read.csv("data/shipment_FINAL_20210115.csv")
@@ -50,7 +50,7 @@ str(shipments)
 str(margin)
 ```
 
-***(2) Datenaufbereitung: Zeitliche Entwicklung***
+***(2) Daten Formatieren: Zeitliche Entwicklung***
 ### (2.1) JAHR-MONAT extrahieren
 ```{r}
 # Extrahieren von Jahr-Monat aus Shipment-Spalte "last_stop_requested_arrival_to_date", 
