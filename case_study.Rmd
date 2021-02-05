@@ -93,23 +93,22 @@ head(TableBind)
 ### (3) Shipments Gegenueberstellung: total_cost und total_revenue
 ```{r}
 # Umsatz aggrerieren
-df_Revenue = data.frame(aggregate(total_revenue ~ 
-                                    business_model + fulfilment_strategy, 
-                                  data=TableBind, sum))
+df_Revenue = data.frame(aggregate(
+  total_revenue ~ business_model + fulfilment_strategy, data=TableBind, sum))
 
 # Kosten aggrerieren
-df_Cost = data.frame(aggregate(total_cost ~ 
-                                 business_model + fulfilment_strategy, 
-                               data=TableBind, sum))
+df_Cost = data.frame(aggregate(
+  total_cost ~ business_model + fulfilment_strategy, data=TableBind, sum))
 
 # Beide DataFrames mergen
 df_Compare = cbind(df_Revenue, df_Cost$total_cost)
 
-#umbenennen
+# Umbenennen
 colnames(df_Compare)[4] = "total_cost"
 df_Compare
 
-#TODO: Grafik zu verbessern
+#TODO: Datenbereinigen mit unique() und ungleich null
+#TODO: Grafik verbessern, da hier nicht Kosten und Umsaetze angezeigt werden
 barplot(table(TableBind$fulfilment_strategy , TableBind$business_model ), 
         beside = TRUE, #horiz = TRUE,
         col=c("darkblue", "darkred"),
@@ -131,6 +130,7 @@ colnames(differenz) = "differenz"
 groupbind = cbind(group1, group2[3], differenz)
 groupbind
 
+#TODO: Datenbereinigen mit unique() und ungleich null
 #TODO: Grafik von entstandene Kosten bei Lieferung waere gut
 ```
 
