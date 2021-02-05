@@ -17,16 +17,6 @@ library("Metrics")
 library("dummies")
 ```
 
-### CSV Dateien einlesen
-```{r}
-shipments <- read.csv("data/shipment_FINAL_20210115.csv")
-margin <- read.csv("data/margin_by_week_FINAL_20210115.csv")
-
-head(shipments)
-head(margin)
-```
-
-
 ***Aufgabe A: Erkenntnisgewinn***
 Ziel der Aufgabe ist der Bericht von etwaigen Erkenntnissen über die Daten, 
 die Sie im Laufe der Projektbearbeitung erlangt haben. 
@@ -35,32 +25,32 @@ Die Daten sollen angemessen aufbereitet und visualisiert werden.
 Wenn möglich sollen Handlungsempfehlungen aus den Erkenntnissen abgeleitet werden. 
 Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
 • Visuelle Exploration
-• Kennzahlen und Reporting
-• von Verfahren identifizierte Muster (Saisonalitäten, Trends, ...)
-• Korrelationen
-• Verschiedene Methoden der deskriptiven Statistik (Clustering, ...)
+• Kennzahlen und Reporting:
+  - von Verfahren identifizierte Muster (Saisonalitäten, Trends, ...)
+  - Korrelationen
+  - Verschiedene Methoden der deskriptiven Statistik (Clustering, ...)
 Versuchen Sie einen möglichst guten Überblick über die Shipment-Daten zu generieren. 
 Gehen Sie dabei schon gezielt auf die *Marge* ein (sowohl die *zeitliche Entwicklung* als auch identifizierte Zusammenhänge). Achten Sie bei Ihren Interpretationen auf die Gültigkeit von Aussagen über Kausalitäten.
 Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche. 
 Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten, die Ihnen besonders wichtig und präsentationswürdig erscheinen. Bereiten Sie gegebenenfalls ein Portfolio im Back-Up Ihrer Präsentation vor, um auf Anschlussfragen reagieren zu können. Sie sollten bei Ihrer Vorstellung dieser Teilaufgabe versuchen Zusammenhänge zu interpretieren und Implikationen abzuleiten, selbst wenn Ihre erarbeiteten Inhalte durch experimentelle Untersuchungen entstanden sind.
 
-```{eval=FALSE}
- count_business_model = shipments %>%
-  count(business_model)
-count_business_model
- ggplot(count_business_model, aes(business_model,n)) +
-    geom_col()
- 
-#TODO: Zahlen koennen hier mehr Aussagekraft haben indem man zB aggregiert
-```
 
-### (1) Struktur ausgeben
+***(1) Datenaufbereitung***
+### (1.1) CSV Dateien einlesen
+```{r}
+shipments <- read.csv("data/shipment_FINAL_20210115.csv")
+margin <- read.csv("data/margin_by_week_FINAL_20210115.csv")
+
+head(shipments)
+head(margin)
+```
+### (1.2) Struktur ausgeben
 ```{r}
 str(shipments)
 str(margin)
 ```
 
-***Datenaufbereitung: Zeitliche Entwicklung***
+***(2) Datenaufbereitung: Zeitliche Entwicklung***
 ### (2.1) JAHR-MONAT extrahieren
 ```{r}
 # Extrahieren von Jahr-Monat aus Shipment-Spalte "last_stop_requested_arrival_to_date", 
@@ -91,7 +81,8 @@ TableBind
 ```
 
 
-### (3) Shipments Gegenueberstellung: total_cost und total_revenue
+***(3) Visuelle Exploration (mit Aggregation)***
+### (3.1) Shipments Gegenueberstellung: total_cost und total_revenue
 ```{r}
 # Umsatz aggrerieren
 df_Revenue = data.frame(aggregate(
@@ -118,7 +109,7 @@ barplot(table(TableBind$fulfilment_strategy , TableBind$business_model ),
 ```
 
 
-### (4) Shipments Gegenuberstellung: Lieferungskosten gebucht und zugewiesen
+### (3.2) Shipments Gegenuberstellung: Lieferungskosten gebucht und zugewiesen
 ```{r}
 group1 = aggregate(transport_price_booked ~ 
                      fulfilment_strategy + business_model, data=shipments, sum)
@@ -136,13 +127,33 @@ groupbind
 #TODO: Grafik von entstandene Kosten bei Lieferung waere gut
 ```
 
-### (5) Shipments Gegenuberstellung: shipment_state + shipment_stage + business_model
+### (3.3) Shipments Gegenuberstellung: shipment_state + shipment_stage + business_model
 ```{r}
 
 ```
 
-### (6) Margin: Vorhersage aus Margin visualisieren. 
+### (3.4) Margin: Vorhersage aus Margin visualisieren. 
 # Vorhersage Daten existieren schon. Erst in Teil B neue Vorhersage machen.
+```{r}
+
+```
+
+
+
+
+***(4) Kennzahlen und Reporting von Verfahren identifizierte Muster zB Saisonalitäten, Trends, ...***
+```{r}
+
+```
+
+
+***(5) Korrelationen***
+```{r}
+
+```
+
+
+***(6) Verschiedene Methoden der deskriptiven Statistik (Clustering, ...)***
 ```{r}
 
 ```
