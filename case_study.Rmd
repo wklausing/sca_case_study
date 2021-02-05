@@ -60,11 +60,22 @@ str(shipments)
 str(margin)
 ```
 
+### (2.1) JAHR-MONAT extrahieren
+```{r}
+# Extrahieren von Jahr-Monat aus Shipment-Spalte "last_stop_requested_arrival_to_date", 
+# da diese Spalte auch in Margin-Spalte vorhanden ist
+x <- as.Date(TableBind$last_stop_requested_arrival_to_date, format="%Y-%m-%d")
 
-### (2) Verkettung der zwei Tabellen: Shipments + Mergin
+# Jahr-Monat an die Shipment Spalte hinten anhaengen
+TableBind$YearMonth = format(x,"%Y-%m")
+
+#Info: Benoetigen wir spaeter fuer die Zeitreihenanalyse und Vorhersage
+```
+
+### (2.2) Shipments + Mergin Tabellen als Kalenderwoche verketten
 ```{r}
 # Datum von Shipment Spalte "last_stop_requested_arrival_to_date" umformatieren, 
-# sodass Kalenderwoche angezeigt wird
+# sodass Kalendarwoche in der ersten Spalte angezeigt werden
 CalendarWeekFormat = as.Date(shipments$last_stop_requested_arrival_to_date)
 shipments$CalendarWeek = strftime(CalendarWeekFormat, format = "%Y-%V") #Year-CalendarWeek
 
@@ -98,7 +109,12 @@ df_Compare = cbind(df_Revenue, df_Cost$total_cost)
 colnames(df_Compare)[4] = "total_cost"
 df_Compare
 
-#TODO: Grafik von Kosten und Einnahmen hierzu waere gut
+#TODO: Grafik zu verbessern
+barplot(table(TableBind$fulfilment_strategy , TableBind$business_model ), 
+        beside = TRUE, #horiz = TRUE,
+        col=c("darkblue", "darkred"),
+        xlab="Business Model", ylab="Anzahl", 
+        main="titel")
 ```
 
 
@@ -117,3 +133,14 @@ groupbind
 
 #TODO: Grafik von entstandene Kosten bei Lieferung waere gut
 ```
+
+### (5) Shipments Gegenuberstellung: shipment_state + shipment_stage + business_model
+```{r}
+
+```
+
+### (6) Margin: Vorhersage aus Margin visualisieren
+```{r}
+
+```
+

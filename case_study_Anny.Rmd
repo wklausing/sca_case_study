@@ -52,25 +52,46 @@ Versuchen Sie einen möglichst guten Überblick über die Shipment-Daten zu gene
 Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche. Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten, die Ihnen besonders wichtig und präsenta- tionswürdig erscheinen. Bereiten Sie gegebenenfalls ein Portfolio im Back-Up Ihrer Präsenta- tion vor, um auf Anschlussfragen reagieren zu können. Sie sollten bei Ihrer Vorstellung dieser Teilaufgabe versuchen Zusammenhänge zu interpretieren und Implikationen abzuleiten, selbst wenn Ihre erarbeiteten Inhalte durch experimentelle Untersuchungen entstanden sind.
 
 
-# Visualisieren der Daten aus der Tabelle Shipments
+### (1) Verkettung der zwei Tabellen: Shipments + Mergin
 ```{r}
-barplot(table(shipments$shipment_state)) 
-barplot(table(shipments$shipment_stage))
+# Datum von Shipment Spalte "last_stop_requested_arrival_to_date" so umformatieren, dass Kalenderwoche angezeigt wird
+CalendarWeekFormat = as.Date(shipments$last_stop_requested_arrival_to_date)
+shipments$CalendarWeek = strftime(CalendarWeekFormat, format = "%Y-%V") #Y-CalendarWeek
 
-barplot(table(shipments$custom_rate_shipment))
-barplot(table(shipments$fulfilment_strategy))
+# Unbennen der ersten Spalte der Tabelle margin
+colnames(margin)[1] = c("CalendarWeek")
 
-barplot(table(shipments$business_model))
-barplot(table(shipments$shipment_stage))
-barplot(table(shipments$custom_rate_shipment))
-barplot(table(shipments$country_lane))
-barplot(table(shipments$stops_count))
-barplot(table(shipments$cancellation_reason))
-barplot(table(shipments$total_revenue))
-barplot(table(shipments$total_cost))
-barplot(table(shipments$transport_price_booked))
-barplot(table(shipments$transport_cost_assigned))
+# Beide Tabellen "shipments" und "margin" nach "CalendarWeek" mergen
+TableBind = merge(shipments, margin, by = "CalendarWeek")
+head(TableBind)
+
+
+#TODO: Grafik zu verbessern
+barplot(table(TableBind$fulfilment_strategy , TableBind$business_model ), 
+        beside = TRUE, #horiz = TRUE,
+        col=c("darkblue", "darkred"),
+        xlab="Business Model", ylab="Anzahl", 
+        main="titel")
 ```
+### (2) shipments Liniendiagramm: transport_price_booked + transport_cost_assigned
+```{r}
+# Datentyp umwandeln (typecast)
+PriceBooked = ts(TableBind$transport_price_booked, frequency = 12)
+
+# Extrahieren von Jahr-Monat aus Shipment Spalte "last_stop_requested_arrival_to_date"
+x <- as.Date(TableBind$last_stop_requested_arrival_to_date, format="%Y-%m-%d")
+TableBind$YearMonth = format(x,"%Y-%m")
+
+
+# Visualisierung der Daten insgesamt 5 Jahre
+ ggplot(data = TableBind, aes(x = YearMonth, y = transport_price_booked, group=1)) + 
+      geom_line() 
+ 
+```
+
+
+ 
+
 
 ```{r}
 barplot(table(shipments$lane_domain))
@@ -116,20 +137,7 @@ groupbind
 ```
 
 
-# Shipments Daten "last_stop_requested_arrival_to_date" in Wochendatum formatieren, um Margin zu verketten
-"last_stop_requested_arrival_to_date"
-```{r}
-# Datum von Shipment Spalte "last_stop_requested_arrival_to_date" so umformatieren, dass Kalenderwoche angezeigt wird
-CalendarWeekFormat = as.Date(shipments$last_stop_requested_arrival_to_date)
-shipments$CalendarWeek = strftime(CalendarWeekFormat, format = "%Y-%V") #Y-CalendarWeek
 
-# Unbennen der ersten Spalte der Tabelle margin
-colnames(margin)[1] = c("CalendarWeek")
-
-# Beide Tabellen "shipments" und "margin" nach "CalendarWeek" mergen
-TableBind = merge(shipments, margin, by = "CalendarWeek")
-head(TableBind)
-```
 
 
 
