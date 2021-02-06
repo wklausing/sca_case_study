@@ -1,0 +1,141 @@
+---
+title: "case_study"
+author: "klauwi"
+date: "2/3/2021"
+output: html_document
+---
+
+Library Packages
+```{r}
+#rm(list = ls())
+library("readr")
+library("dplyr") 
+library("zoo")
+library("forecast")
+library("ggplot2")
+#library("mosaic")
+#library("Metrics")
+#library("dummies)
+```
+
+```{r}
+shipments <- read.csv("data/shipment_FINAL_20210115.csv")
+margin <- read.csv("data/margin_by_week_FINAL_20210115.csv")
+
+head(shipments)
+head(margin)
+```
+
+```{r}
+ count_business_model = shipments %>%
+  count(business_model)
+count_business_model
+ ggplot(count_business_model ,aes(business_model,n))+
+    geom_col()
+```
+
+
+```{r eval=FALSE}
+str(shipments)
+str(margin)
+```
+```{r eval=FALSE}
+shipments <- read.csv("data/shipment_FINAL_20210115.csv")
+# Datenbereinigung: Entferne Zeilen ohne lane_domain. Betrifft zwei Zeilen.
+shipments = shipments[shipments$lane_domain != "",]
+
+#TODO Mögliche Bereinigungen: Datum "2024-11-20" gibt es in last_stop_requested_arrival_to und mehr. 
+#TODO "0019-08-20 01:53:28" in first_stop_actual_arrival. 
+#TODO cancellation_reason = fake_order
+
+#Timestamps
+shipments$shipment_created_at = as.POSIXct(shipments$shipment_created_at,tz=Sys.timezone())
+
+shipments[shipments$smh_accepted_first_state_change == "",]$smh_accepted_first_state_change = NA
+shipments$smh_accepted_first_state_change = as.POSIXct(shipments$smh_accepted_first_state_change,tz=Sys.timezone())  
+
+shipments[shipments$smh_accepted_last_state_change == "",]$smh_accepted_last_state_change = NA
+shipments$smh_accepted_last_state_change = as.POSIXct(shipments$smh_accepted_last_state_change,tz=Sys.timezone())  
+
+shipments$first_stop_requested_arrival_to = as.POSIXct(shipments$first_stop_requested_arrival_to,tz=Sys.timezone())  
+
+shipments$first_stop_agreed_arrival_to = as.POSIXct(shipments$first_stop_agreed_arrival_to,tz=Sys.timezone())
+
+shipments$last_stop_agreed_arrival_to = as.POSIXct(shipments$last_stop_agreed_arrival_to,tz=Sys.timezone())
+
+shipments[shipments$first_stop_actual_arrival == "",]$first_stop_actual_arrival = NA
+shipments$first_stop_actual_arrival = as.POSIXct(shipments[shipments$first_stop_actual_arrival != "",]$first_stop_actual_arrival,tz=Sys.timezone())
+
+shipments$last_stop_requested_arrival_to = as.POSIXct(shipments$last_stop_requested_arrival_to,tz=Sys.timezone())
+
+shipments[shipments$last_stop_actual_arrival == "",]$last_stop_actual_arrival = NA
+shipments$last_stop_actual_arrival = as.POSIXct(shipments[shipments$last_stop_actual_arrival != "",]$last_stop_actual_arrival,tz=Sys.timezone())
+
+shipments[shipments$sh_cancelled == "",]$sh_cancelled = NA
+shipments$sh_cancelled = as.POSIXct(shipments[shipments$sh_cancelled != "",]$sh_cancelled,tz=Sys.timezone())
+
+#Dates
+shipments$first_stop_requested_arrival_to_date = shipments$first_stop_requested_arrival_to_date %>% as.Date()
+shipments$last_stop_requested_arrival_to_date = shipments$last_stop_requested_arrival_to_date %>% as.Date()
+
+
+
+```
+
+*Aufgabe A: Erkenntnisgewinn*
+Ziel der Aufgabe ist der Bericht von etwaigen Erkenntnissen über die Daten, die Sie im Laufe der Projektbearbeitung erlangt haben. Zudem soll gezielt über die in der Fallstudienbeschreibung geforderten Punkte berichtet werden. 
+Die Daten sollen angemessen aufbereitet und visualisiert werden. Wenn möglich sollen Handlungsempfehlungen aus den Erkenntnissen abgeleitet werden. Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
+• Visuelle Exploration
+• Kennzahlen und Reporting
+• von Verfahren identifizierte Muster (Saisonalitäten, Trends, ...)
+• Korrelationen
+• Verschiedene Methoden der deskriptiven Statistik (Clustering, ...)
+Versuchen Sie einen möglichst guten Überblick über die Shipment-Daten zu generieren. Gehen Sie dabei schon gezielt auf die Marge ein (sowohl die zeitliche Entwicklung als auch iden- tifizierte Zusammenhänge). Achten Sie bei Ihren Interpretationen auf die Gültigkeit von Aus- sagen über Kausalitäten.
+Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche. Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten, die Ihnen besonders wichtig und präsenta- tionswürdig erscheinen. Bereiten Sie gegebenenfalls ein Portfolio im Back-Up Ihrer Präsenta- tion vor, um auf Anschlussfragen reagieren zu können. Sie sollten bei Ihrer Vorstellung dieser Teilaufgabe versuchen Zusammenhänge zu interpretieren und Implikationen abzuleiten, selbst wenn Ihre erarbeiteten Inhalte durch experimentelle Untersuchungen entstanden sind.
+
+
+### (1) Verkettung der zwei Tabellen: Shipments + Mergin
+```{r}
+# Datum von Shipment Spalte "last_stop_requested_arrival_to_date" so umformatieren, dass Kalenderwoche angezeigt wird
+CalendarWeekFormat = as.Date(shipments$last_stop_requested_arrival_to_date)
+shipments$CalendarWeek = strftime(CalendarWeekFormat, format = "%Y-%V") #Y-CalendarWeek
+
+# Revenue und Costdarstellen
+shipments_week_aggregated = shipments[c("CalendarWeek", "total_revenue", "total_cost")] %>% aggregate(. ~ CalendarWeek, data = ., sum)
+shipments_week_aggregated$number = seq.int(nrow(shipments_week_aggregated)) #TODO Just for plotting. Date would be better.
+shipments_week_aggregated$profit = shipments_week_aggregated$total_revenue - shipments_week_aggregated$total_cost
+
+ggplot(data = shipments_week_aggregated, aes(x = CalendarWeek, group=1)) + 
+  geom_line(aes(y = total_cost), colour="red") + 
+  geom_line(aes(y = total_revenue), colour="blue") +
+  geom_line(aes(y = profit), colour="black") + 
+  xlab("Date") +  
+  ylab("Euro") +
+  ggtitle(label = "Instafreight: Revenue, Cost, and Profit") +
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
+  scale_x_discrete(breaks = shipments_week_aggregated$CalendarWeek[seq(1, length(shipments_week_aggregated$CalendarWeek), by = 6)])
+
+#TODO X Achse zu Monaten umwandeln
+```
+
+```{r}
+# Datum von Shipment Spalte "last_stop_requested_arrival_to_date" so umformatieren, dass Kalenderwoche angezeigt wird
+CalendarWeekFormat = as.Date(shipments$last_stop_requested_arrival_to_date)
+shipments$CalendarWeek = strftime(CalendarWeekFormat, format = "%Y-%V") #Y-CalendarWeek
+
+# Revenue und Costdarstellen
+shipments_week_aggregated = shipments[c("shipment_created_at", "total_revenue", "total_cost")] %>% aggregate(. ~ shipment_created_at, data = ., sum)
+shipments_week_aggregated$number = seq.int(nrow(shipments_week_aggregated)) #TODO Just for plotting. Date would be better.
+shipments_week_aggregated$profit = shipments_week_aggregated$total_revenue - shipments_week_aggregated$total_cost
+
+ggplot(data = shipments_week_aggregated, aes(x = shipment_created_at, group=1)) + 
+  geom_line(aes(y = total_cost), colour="red") + 
+  geom_line(aes(y = total_revenue), colour="blue") +
+  geom_line(aes(y = profit), colour="black") + 
+  xlab("Date") +  
+  ylab("Euro") +
+  ggtitle(label = "Instafreight: Revenue, Cost, and Profit") +
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8))
+
+#TODO X Achse zu Monaten umwandeln
+```
