@@ -27,7 +27,7 @@ Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
 
 • *Visuelle Exploration*
 - Datenbereinigung #Wilke
-- Grafik Cost und Renvue #Wilke erledigt
+- Grafik Cost und Renvue #Wilke CalendarWeek zu Monat ändern
 - Grafik zu (transport_price_booked + transport_cost_assigned) #Anny
 - Grafik zu Marge allein um Schwankungen zu identifizieren #Anny
 
