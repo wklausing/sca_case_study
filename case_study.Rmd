@@ -154,13 +154,13 @@ groupbind
 ```
 
 
-***(4) Korrelationen***
+***(4) Korrelationen + Externe Faktoren (Noch zu finden!)***
 ```{r}
 
 ```
 
 
-***(5) Verschiedene Methoden der deskriptiven Statistik (Clustering, ...)***
+***(5) Verschiedene Methoden der deskriptiven Statistik (Clustering, Zeitreihenanalyse...)***
 ```{r}
 
 ```
