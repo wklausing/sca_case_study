@@ -32,8 +32,11 @@ count_business_model
 str(shipments)
 str(margin)
 ```
-```{r eval=FALSE}
+
+```{r eval=TRUE}
 shipments <- read.csv("data/shipment_FINAL_20210115.csv")
+
+
 # Datenbereinigung: Entferne Zeilen ohne lane_domain. Betrifft zwei Zeilen.
 shipments = shipments[shipments$lane_domain != "",]
 
@@ -71,8 +74,6 @@ shipments$sh_cancelled = as.POSIXct(shipments[shipments$sh_cancelled != "",]$sh_
 shipments$first_stop_requested_arrival_to_date = shipments$first_stop_requested_arrival_to_date %>% as.Date()
 shipments$last_stop_requested_arrival_to_date = shipments$last_stop_requested_arrival_to_date %>% as.Date()
 
-
-
 ```
 
 *Aufgabe A: Erkenntnisgewinn*
@@ -90,12 +91,11 @@ Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche. Beschränken Sie sic
 ### (1) Verkettung der zwei Tabellen: Shipments + Mergin
 ```{r}
 # Datum von Shipment Spalte "last_stop_requested_arrival_to_date" so umformatieren, dass Kalenderwoche angezeigt wird
-CalendarWeekFormat = as.Date(shipments$last_stop_requested_arrival_to_date)
+CalendarWeekFormat = as.Date(shipments$shipment_created_at)
 shipments$CalendarWeek = strftime(CalendarWeekFormat, format = "%Y-%V") #Y-CalendarWeek
 
 # Revenue und Costdarstellen
 shipments_week_aggregated = shipments[c("CalendarWeek", "total_revenue", "total_cost")] %>% aggregate(. ~ CalendarWeek, data = ., sum)
-shipments_week_aggregated$number = seq.int(nrow(shipments_week_aggregated)) #TODO Just for plotting. Date would be better.
 shipments_week_aggregated$profit = shipments_week_aggregated$total_revenue - shipments_week_aggregated$total_cost
 
 ggplot(data = shipments_week_aggregated, aes(x = CalendarWeek, group=1)) + 
@@ -104,7 +104,7 @@ ggplot(data = shipments_week_aggregated, aes(x = CalendarWeek, group=1)) +
   geom_line(aes(y = profit), colour="black") + 
   xlab("Date") +  
   ylab("Euro") +
-  ggtitle(label = "Instafreight: Revenue, Cost, and Profit") +
+  ggtitle(label = "Instafreight: Revenue, Cost, and Profit group by CalendarWeek") +
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
   scale_x_discrete(breaks = shipments_week_aggregated$CalendarWeek[seq(1, length(shipments_week_aggregated$CalendarWeek), by = 6)])
 
@@ -112,13 +112,8 @@ ggplot(data = shipments_week_aggregated, aes(x = CalendarWeek, group=1)) +
 ```
 
 ```{r}
-# Datum von Shipment Spalte "last_stop_requested_arrival_to_date" so umformatieren, dass Kalenderwoche angezeigt wird
-CalendarWeekFormat = as.Date(shipments$last_stop_requested_arrival_to_date)
-shipments$CalendarWeek = strftime(CalendarWeekFormat, format = "%Y-%V") #Y-CalendarWeek
-
 # Revenue und Costdarstellen
 shipments_week_aggregated = shipments[c("shipment_created_at", "total_revenue", "total_cost")] %>% aggregate(. ~ shipment_created_at, data = ., sum)
-shipments_week_aggregated$number = seq.int(nrow(shipments_week_aggregated)) #TODO Just for plotting. Date would be better.
 shipments_week_aggregated$profit = shipments_week_aggregated$total_revenue - shipments_week_aggregated$total_cost
 
 ggplot(data = shipments_week_aggregated, aes(x = shipment_created_at, group=1)) + 
@@ -127,7 +122,7 @@ ggplot(data = shipments_week_aggregated, aes(x = shipment_created_at, group=1)) 
   geom_line(aes(y = profit), colour="black") + 
   xlab("Date") +  
   ylab("Euro") +
-  ggtitle(label = "Instafreight: Revenue, Cost, and Profit") +
+  ggtitle(label = "Instafreight: Revenue, Cost, and Profit group by shipment_created_at") +
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8))
 
 #TODO X Achse zu Monaten umwandeln
