@@ -57,11 +57,13 @@ shipments$first_stop_requested_arrival_to = as.POSIXct(shipments$first_stop_requ
 
 shipments$first_stop_agreed_arrival_to = as.POSIXct(shipments$first_stop_agreed_arrival_to,tz=Sys.timezone())
 
+shipments[shipments$last_stop_agreed_arrival_to == "",]$last_stop_agreed_arrival_to = NA
 shipments$last_stop_agreed_arrival_to = as.POSIXct(shipments$last_stop_agreed_arrival_to,tz=Sys.timezone())
 
 shipments[shipments$first_stop_actual_arrival == "",]$first_stop_actual_arrival = NA
 shipments$first_stop_actual_arrival = as.POSIXct(shipments[shipments$first_stop_actual_arrival != "",]$first_stop_actual_arrival,tz=Sys.timezone())
 
+shipments[shipments$last_stop_requested_arrival_to == "",]$last_stop_requested_arrival_to = NA
 shipments$last_stop_requested_arrival_to = as.POSIXct(shipments$last_stop_requested_arrival_to,tz=Sys.timezone())
 
 shipments[shipments$last_stop_actual_arrival == "",]$last_stop_actual_arrival = NA
@@ -126,4 +128,24 @@ ggplot(data = shipments_week_aggregated, aes(x = shipment_created_at, group=1)) 
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8))
 
 #TODO X Achse zu Monaten umwandeln
+#TODO Ausreisser bereinigen.
 ```
+
+
+```{r}
+#Prüfen ob Ausprägungen mit der Dokumentation übereinstimmen.
+shipments$shipment_state %>% unique(.)
+shipments$shipment_stage %>% unique(.)
+shipments$business_model %>% unique(.)
+shipments$custom_rate_shipment %>% unique(.)
+shipments$lane_domain %>% unique(.)
+shipments$country_lane %>% unique(.)
+shipments$stops_count %>% unique(.)
+shipments$cancellation_reason %>% unique(.)
+
+```
+
+
+
+
+#TODO Erzeugung Datum von Zeile und first_stop_req liegen weit auseinander

@@ -7,14 +7,15 @@ output: html_document
 
 Library Packages
 ```{r}
-library(readr)
-library(dplyr) 
+library("readr")
+library("dplyr") 
 library("zoo")
 library("forecast")
 library("ggplot2")
 library("mosaic")
 library("Metrics")
 library("dummies")
+library("janitor")
 ```
 
 ***Aufgabe A: Erkenntnisgewinn***
@@ -60,25 +61,8 @@ str(margin)
 ```
 ***Datenbereinigung***
 ```{r eval=TRUE}
-shipments <- read.csv("data/shipment_FINAL_20210115.csv")
-
-
-# Datenbereinigung: Entferne Zeilen ohne lane_domain. Betrifft zwei Zeilen.
-shipments = shipments[shipments$lane_domain != "",]
-
-#TODO Mögliche Bereinigungen: Datum "2024-11-20" gibt es in last_stop_requested_arrival_to und mehr. 
-#TODO "0019-08-20 01:53:28" in first_stop_actual_arrival. Alles vor November 2017 löschen und alles davor auf 2019 ändern.
-#TODO cancellation_reason = fake_order raus
-#TODO Duplikate raus mit unique
-#TODO differenz von transport booked/assigned
-#TODO Differenz zwischen Cost/Revenue sowie Differenz Transport booked/assigned Schwellenwert definieren und löschen
-#TODO erste vier Buchungen löschen bei createdDate sortieren
-#TODO negative Zahl bei transport raus
-#TODO OTD noch berechnen
-
-
-
-#Timestamps
+# Shipments Daten ins richtige Format bringen.
+# Timestamps
 shipments$shipment_created_at = as.POSIXct(shipments$shipment_created_at,tz=Sys.timezone())
 
 shipments[shipments$smh_accepted_first_state_change == "",]$smh_accepted_first_state_change = NA
@@ -91,11 +75,13 @@ shipments$first_stop_requested_arrival_to = as.POSIXct(shipments$first_stop_requ
 
 shipments$first_stop_agreed_arrival_to = as.POSIXct(shipments$first_stop_agreed_arrival_to,tz=Sys.timezone())
 
+shipments[shipments$last_stop_agreed_arrival_to == "",]$last_stop_agreed_arrival_to = NA
 shipments$last_stop_agreed_arrival_to = as.POSIXct(shipments$last_stop_agreed_arrival_to,tz=Sys.timezone())
 
 shipments[shipments$first_stop_actual_arrival == "",]$first_stop_actual_arrival = NA
 shipments$first_stop_actual_arrival = as.POSIXct(shipments[shipments$first_stop_actual_arrival != "",]$first_stop_actual_arrival,tz=Sys.timezone())
 
+shipments[shipments$last_stop_requested_arrival_to == "",]$last_stop_requested_arrival_to = NA
 shipments$last_stop_requested_arrival_to = as.POSIXct(shipments$last_stop_requested_arrival_to,tz=Sys.timezone())
 
 shipments[shipments$last_stop_actual_arrival == "",]$last_stop_actual_arrival = NA
@@ -104,9 +90,52 @@ shipments$last_stop_actual_arrival = as.POSIXct(shipments[shipments$last_stop_ac
 shipments[shipments$sh_cancelled == "",]$sh_cancelled = NA
 shipments$sh_cancelled = as.POSIXct(shipments[shipments$sh_cancelled != "",]$sh_cancelled,tz=Sys.timezone())
 
-#Dates
+# Dates
 shipments$first_stop_requested_arrival_to_date = shipments$first_stop_requested_arrival_to_date %>% as.Date()
 shipments$last_stop_requested_arrival_to_date = shipments$last_stop_requested_arrival_to_date %>% as.Date()
+
+
+shipments %>% nrow()
+# Shipments Datenbereinigung
+#1. Entferne Zeilen mit leerer lane_domain. Betrifft 2 Zeilen.  
+shipments = shipments[shipments$lane_domain != "",]
+shipments %>% nrow()
+
+#2. Entferne Zeilen mit cancellation_reason = fake_order. Betrifft 1622 Zeilen.
+shipments = shipments[shipments$cancellation_reason != "fake_order",]
+shipments %>% nrow()
+
+#3. Ändere 2024 zu 2020 in last_stop_requested_arrival_to und last_stop_requested_arrival_to_date Spalte. Betrifft 1 Zeile.
+shipments[shipments$last_stop_requested_arrival_to == "2024-11-20 07:00:00",]$last_stop_requested_arrival_to = "2020-11-20 07:00:00"
+shipments[shipments$last_stop_requested_arrival_to_date == "2024-11-20",]$last_stop_requested_arrival_to_date = "2020-11-20"
+shipments %>% nrow()
+
+#4. Ändere 0019 zu 2019. Betrifft 1 Zeile.
+shipments[shipments$first_stop_actual_arrival == "0019-08-20 01:53:28",]$first_stop_actual_arrival = "2019-08-20 01:53:28"
+shipments %>% nrow()
+
+#5. Prüfen auf Duplikate insgesamt und für shipment_reference speziell. Betrifft 0 Zeilen.
+shipments = shipments %>%  distinct(.)
+shipments <- shipments[!duplicated(shipments$shipment_reference),]
+shipments %>% nrow()
+
+#6. Entferne ersten 4 Zeilen, siehe Forum. Betrifft 4 Zeilen.
+shipments = shipments[-1:-4,]
+shipments %>% nrow()
+
+#7. Entferne weitere Zeile, da es nur 1 Tag vom ganzen Monat ist. Betrifft 1 Zeile.
+shipments = shipments[-1,]
+shipments %>% nrow()
+
+#8. Entferne Zeile mit -1 in transport_cost_assigned, da dies laut Dokumentation nicht sein kann. Betrifft 1 Zeile.
+shipments = shipments[shipments$transport_cost_assigned != -1,]
+shipments %>% nrow()
+
+#TODO differenz von transport booked/assigned
+#TODO Differenz zwischen Cost/Revenue sowie Differenz Transport booked/assigned Schwellenwert definieren und löschen
+
+
+#TODO OTD noch berechnen
 
 ```
 
