@@ -26,16 +26,18 @@ Wenn möglich sollen Handlungsempfehlungen aus den Erkenntnissen abgeleitet werd
 Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
 
 • *Visuelle Exploration*
-- Grafik Cost und Renvue # Wilke erledigt
+- Datenbereinigung #Wilke
+- Grafik Cost und Renvue #Wilke erledigt
 - Grafik zu (transport_price_booked + transport_cost_assigned) #Anny
 - Grafik zu Marge allein um Schwankungen zu identifizieren #Anny
 
 • Kennzahlen und Reporting:
-  - *von Verfahren identifizierte Muster (Saisonalitäten, Trends, ...)*
-  - *Korrelationen* # Alle
-    - Interne Korrelation # Dinh
-    - Externe Daten raussuchen 
-  - *Verschiedene Methoden der deskriptiven Statistik (Clustering, Times Series...)* #Toke
+  - *Identifikation von Muster (zB Saisonalitäten, Trends, ...)*
+  - *Korrelationen* 
+    > Interne Korrelation #Dinh
+    > Externe Daten #Anny, Wilke, Toke
+  - *Methoden der deskriptiven Statistik (Clustering, Times Series...)* #Toke
+  
 Versuchen Sie einen möglichst guten Überblick über die Shipment-Daten zu generieren. 
 Gehen Sie dabei schon gezielt auf die *Marge* ein (sowohl die *zeitliche Entwicklung* als auch identifizierte Zusammenhänge). Achten Sie bei Ihren Interpretationen auf die Gültigkeit von Aussagen über Kausalitäten.
 Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche. 
