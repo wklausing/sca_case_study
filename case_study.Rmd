@@ -26,13 +26,16 @@ Wenn möglich sollen Handlungsempfehlungen aus den Erkenntnissen abgeleitet werd
 Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
 
 • *Visuelle Exploration*
-- Grafik Cost und Renvue # erledigt
-- Grafik zu (transport_price_booked + transport_cost_assigned)
+- Grafik Cost und Renvue # Wilke erledigt
+- Grafik zu (transport_price_booked + transport_cost_assigned) #Anny
+- Grafik zu Marge allein um Schwankungen zu identifizieren #Anny
 
 • Kennzahlen und Reporting:
   - *von Verfahren identifizierte Muster (Saisonalitäten, Trends, ...)*
-  - *Korrelationen*
-  - *Verschiedene Methoden der deskriptiven Statistik (Clustering, ...)*
+  - *Korrelationen* # Alle
+    - Interne Korrelation # Dinh
+    - Externe Daten raussuchen 
+  - *Verschiedene Methoden der deskriptiven Statistik (Clustering, Times Series...)* #Toke
 Versuchen Sie einen möglichst guten Überblick über die Shipment-Daten zu generieren. 
 Gehen Sie dabei schon gezielt auf die *Marge* ein (sowohl die *zeitliche Entwicklung* als auch identifizierte Zusammenhänge). Achten Sie bei Ihren Interpretationen auf die Gültigkeit von Aussagen über Kausalitäten.
 Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche. 
@@ -52,6 +55,57 @@ head(margin)
 ```{r}
 str(shipments)
 str(margin)
+```
+***Datenbereinigung***
+```{r eval=TRUE}
+shipments <- read.csv("data/shipment_FINAL_20210115.csv")
+
+
+# Datenbereinigung: Entferne Zeilen ohne lane_domain. Betrifft zwei Zeilen.
+shipments = shipments[shipments$lane_domain != "",]
+
+#TODO Mögliche Bereinigungen: Datum "2024-11-20" gibt es in last_stop_requested_arrival_to und mehr. 
+#TODO "0019-08-20 01:53:28" in first_stop_actual_arrival. Alles vor November 2017 löschen und alles davor auf 2019 ändern.
+#TODO cancellation_reason = fake_order raus
+#TODO Duplikate raus mit unique
+#TODO differenz von transport booked/assigned
+#TODO Differenz zwischen Cost/Revenue sowie Differenz Transport booked/assigned Schwellenwert definieren und löschen
+#TODO erste vier Buchungen löschen bei createdDate sortieren
+#TODO negative Zahl bei transport raus
+#TODO OTD noch berechnen
+
+
+
+#Timestamps
+shipments$shipment_created_at = as.POSIXct(shipments$shipment_created_at,tz=Sys.timezone())
+
+shipments[shipments$smh_accepted_first_state_change == "",]$smh_accepted_first_state_change = NA
+shipments$smh_accepted_first_state_change = as.POSIXct(shipments$smh_accepted_first_state_change,tz=Sys.timezone())  
+
+shipments[shipments$smh_accepted_last_state_change == "",]$smh_accepted_last_state_change = NA
+shipments$smh_accepted_last_state_change = as.POSIXct(shipments$smh_accepted_last_state_change,tz=Sys.timezone())  
+
+shipments$first_stop_requested_arrival_to = as.POSIXct(shipments$first_stop_requested_arrival_to,tz=Sys.timezone())  
+
+shipments$first_stop_agreed_arrival_to = as.POSIXct(shipments$first_stop_agreed_arrival_to,tz=Sys.timezone())
+
+shipments$last_stop_agreed_arrival_to = as.POSIXct(shipments$last_stop_agreed_arrival_to,tz=Sys.timezone())
+
+shipments[shipments$first_stop_actual_arrival == "",]$first_stop_actual_arrival = NA
+shipments$first_stop_actual_arrival = as.POSIXct(shipments[shipments$first_stop_actual_arrival != "",]$first_stop_actual_arrival,tz=Sys.timezone())
+
+shipments$last_stop_requested_arrival_to = as.POSIXct(shipments$last_stop_requested_arrival_to,tz=Sys.timezone())
+
+shipments[shipments$last_stop_actual_arrival == "",]$last_stop_actual_arrival = NA
+shipments$last_stop_actual_arrival = as.POSIXct(shipments[shipments$last_stop_actual_arrival != "",]$last_stop_actual_arrival,tz=Sys.timezone())
+
+shipments[shipments$sh_cancelled == "",]$sh_cancelled = NA
+shipments$sh_cancelled = as.POSIXct(shipments[shipments$sh_cancelled != "",]$sh_cancelled,tz=Sys.timezone())
+
+#Dates
+shipments$first_stop_requested_arrival_to_date = shipments$first_stop_requested_arrival_to_date %>% as.Date()
+shipments$last_stop_requested_arrival_to_date = shipments$last_stop_requested_arrival_to_date %>% as.Date()
+
 ```
 
 ***Daten Formatieren: Zeitliche Entwicklung***
