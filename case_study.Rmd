@@ -24,7 +24,11 @@ Zudem soll gezielt über die in der Fallstudienbeschreibung geforderten Punkte b
 Die Daten sollen angemessen aufbereitet und visualisiert werden. 
 Wenn möglich sollen Handlungsempfehlungen aus den Erkenntnissen abgeleitet werden. 
 Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
+
 • *Visuelle Exploration*
+- Grafik Cost und Renvue # erledigt
+- Grafik zu (transport_price_booked + transport_cost_assigned)
+
 • Kennzahlen und Reporting:
   - *von Verfahren identifizierte Muster (Saisonalitäten, Trends, ...)*
   - *Korrelationen*
