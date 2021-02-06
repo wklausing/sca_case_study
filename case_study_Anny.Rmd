@@ -113,6 +113,25 @@ df_Cost = data.frame(aggregate(total_cost ~ business_model + fulfilment_strategy
 # Beide DataFrames mergen
 df_Compare = cbind(df_Revenue, df_Cost$total_cost)
 df_Compare
+
+
+
+# Revenue und Costdarstellen
+shipments_week_aggregated = shipments[c("CalendarWeek", "total_revenue", "total_cost")] %>% 
+  aggregate(. ~ CalendarWeek, data = ., sum)
+shipments_week_aggregated$profit = shipments_week_aggregated$total_revenue - shipments_week_aggregated$total_cost
+shipments_week_aggregated 
+ggplot(data = shipments_week_aggregated, aes(x = CalendarWeek, group=1)) + 
+  geom_line(aes(y = total_cost), colour="red") + 
+  geom_line(aes(y = total_revenue), colour="blue") +
+  geom_line(aes(y = profit), colour="black") + 
+  xlab("Date") +  
+  ylab("Euro") +
+  ggtitle(label = "Instafreight: Revenue, Cost, and Profit group by CalendarWeek") +
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
+  scale_x_discrete(breaks = shipments_week_aggregated$CalendarWeek[seq(1, length(shipments_week_aggregated$CalendarWeek), by = 6)])
+
+#TODO X Achse zu Monaten umwandeln
 ```
 
 ## Shipments
