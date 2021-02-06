@@ -24,11 +24,11 @@ Zudem soll gezielt über die in der Fallstudienbeschreibung geforderten Punkte b
 Die Daten sollen angemessen aufbereitet und visualisiert werden. 
 Wenn möglich sollen Handlungsempfehlungen aus den Erkenntnissen abgeleitet werden. 
 Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
-• Visuelle Exploration
+• *Visuelle Exploration*
 • Kennzahlen und Reporting:
-  - von Verfahren identifizierte Muster (Saisonalitäten, Trends, ...)
-  - Korrelationen
-  - Verschiedene Methoden der deskriptiven Statistik (Clustering, ...)
+  - *von Verfahren identifizierte Muster (Saisonalitäten, Trends, ...)*
+  - *Korrelationen*
+  - *Verschiedene Methoden der deskriptiven Statistik (Clustering, ...)*
 Versuchen Sie einen möglichst guten Überblick über die Shipment-Daten zu generieren. 
 Gehen Sie dabei schon gezielt auf die *Marge* ein (sowohl die *zeitliche Entwicklung* als auch identifizierte Zusammenhänge). Achten Sie bei Ihren Interpretationen auf die Gültigkeit von Aussagen über Kausalitäten.
 Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche. 
@@ -50,7 +50,7 @@ str(shipments)
 str(margin)
 ```
 
-***(1.3) Daten Formatieren: Zeitliche Entwicklung***
+***Daten Formatieren: Zeitliche Entwicklung***
 ### (1.3) JAHR-MONAT extrahieren
 ```{r}
 # Extrahieren von Jahr-Monat aus Shipment-Spalte "last_stop_requested_arrival_to_date", 
@@ -80,14 +80,16 @@ TableBind
 #TODO: Zeitliche Grafik mit Umsaetzen + Kosten hierzu waere gut
 ```
 
-
+***Datenbereinigung***
 ### (1.5) Datenbereinigung
 ```{r}
 #TODO: Datenbereinigen mit unique() und ungleich null
+
+
 ```
 
-***(3) Visuelle Exploration (mit Aggregation)***
-### (3.1) Shipments Gegenueberstellung: total_cost und total_revenue
+***(2) Visuelle Exploration (mit Aggregation)***
+### (2.1) Shipments Gegenueberstellung: total_cost und total_revenue
 ```{r}
 # Umsatz aggrerieren
 df_Revenue = data.frame(aggregate(
@@ -114,7 +116,7 @@ barplot(table(TableBind$fulfilment_strategy , TableBind$business_model ),
 ```
 
 
-### (3.2) Shipments Gegenuberstellung: Lieferungskosten gebucht und zugewiesen
+### (2.2) Shipments Gegenuberstellung: Lieferungskosten gebucht und zugewiesen
 ```{r}
 group1 = aggregate(transport_price_booked ~ 
                      fulfilment_strategy + business_model, data=shipments, sum)
@@ -132,12 +134,12 @@ groupbind
 #TODO: Grafik von entstandene Kosten bei Lieferung waere gut
 ```
 
-### (3.3) Shipments Gegenuberstellung: shipment_state + shipment_stage + business_model
+### (2.3) Shipments Gegenuberstellung: shipment_state + shipment_stage + business_model
 ```{r}
 
 ```
 
-### (3.4) Margin: Vorhersage aus Margin visualisieren. 
+### (2.4) Margin: Vorhersage aus Margin visualisieren. 
 # Vorhersage Daten existieren schon. Erst in Teil B neue Vorhersage machen.
 ```{r}
 
@@ -146,19 +148,19 @@ groupbind
 
 
 
-***(4) Kennzahlen und Reporting von Verfahren identifizierte Muster zB Saisonalitäten, Trends, ...***
+***(3) Kennzahlen und Reporting von Verfahren identifizierte Muster zB Saisonalitäten, Trends, ...***
 ```{r}
 
 ```
 
 
-***(5) Korrelationen***
+***(4) Korrelationen***
 ```{r}
 
 ```
 
 
-***(6) Verschiedene Methoden der deskriptiven Statistik (Clustering, ...)***
+***(5) Verschiedene Methoden der deskriptiven Statistik (Clustering, ...)***
 ```{r}
 
 ```
