@@ -116,11 +116,12 @@ df_Compare
 
 
 
-# Revenue und Costdarstellen
+# Revenue und Cost darstellen
 shipments_week_aggregated = shipments[c("CalendarWeek", "total_revenue", "total_cost")] %>% 
   aggregate(. ~ CalendarWeek, data = ., sum)
 shipments_week_aggregated$profit = shipments_week_aggregated$total_revenue - shipments_week_aggregated$total_cost
-shipments_week_aggregated 
+head(shipments_week_aggregated)
+
 ggplot(data = shipments_week_aggregated, aes(x = CalendarWeek, group=1)) + 
   geom_line(aes(y = total_cost), colour="red") + 
   geom_line(aes(y = total_revenue), colour="blue") +
