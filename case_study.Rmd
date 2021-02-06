@@ -50,8 +50,8 @@ str(shipments)
 str(margin)
 ```
 
-***(2) Daten Formatieren: Zeitliche Entwicklung***
-### (2.1) JAHR-MONAT extrahieren
+***(1.3) Daten Formatieren: Zeitliche Entwicklung***
+### (1.3) JAHR-MONAT extrahieren
 ```{r}
 # Extrahieren von Jahr-Monat aus Shipment-Spalte "last_stop_requested_arrival_to_date", 
 # da diese Spalte auch in Margin-Spalte vorhanden ist
@@ -62,7 +62,7 @@ TableBind$YearMonth = format(x,"%Y-%m")
 
 #Info: Benoetigen wir spaeter fuer die Zeitreihenanalyse und Vorhersage
 ```
-### (2.2) Kalenderwoche Verketten aus Shipments + Mergin Tabellen
+### (1.4) Kalenderwoche Verketten aus Shipments + Mergin Tabellen
 ```{r}
 # Datum von Shipment Spalte "last_stop_requested_arrival_to_date" umformatieren, 
 # sodass Kalendarwoche in der ersten Spalte angezeigt werden
@@ -80,6 +80,11 @@ TableBind
 #TODO: Zeitliche Grafik mit Umsaetzen + Kosten hierzu waere gut
 ```
 
+
+### (1.5) Datenbereinigung
+```{r}
+#TODO: Datenbereinigen mit unique() und ungleich null
+```
 
 ***(3) Visuelle Exploration (mit Aggregation)***
 ### (3.1) Shipments Gegenueberstellung: total_cost und total_revenue
@@ -99,7 +104,7 @@ df_Compare = cbind(df_Revenue, df_Cost$total_cost)
 colnames(df_Compare)[4] = "total_cost"
 df_Compare
 
-#TODO: Datenbereinigen mit unique() und ungleich null
+
 #TODO: Grafik verbessern, da hier nicht Kosten und Umsaetze angezeigt werden
 barplot(table(TableBind$fulfilment_strategy , TableBind$business_model ), 
         beside = TRUE, #horiz = TRUE,
