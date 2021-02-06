@@ -8,14 +8,7 @@ output: html_document
 Library Packages
 ```{r}
 #rm(list = ls())
-library("readr")
-library("dplyr") 
-library("zoo")
-library("forecast")
-library("ggplot2")
-#library("mosaic")
-#library("Metrics")
-#library("dummies)
+library("tidyverse")
 ```
 
 ```{r}
