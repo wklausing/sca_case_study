@@ -46,7 +46,7 @@ Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten,
 
 
 ***(1) Datenvorbereitung***
-### (1.1) CSV Dateien einlesen
+### (1.1) CSV Dateien einlesen 
 ```{r}
 # Shipments Daten einlesen und ins richtige Format bringen.
 shipments <- read.csv("data/shipment_FINAL_20210115.csv")
@@ -168,13 +168,7 @@ TableBind
 #TODO: Zeitliche Grafik mit Umsaetzen + Kosten hierzu waere gut
 ```
 
-***Datenbereinigung***
-### (1.5) Datenbereinigung
-```{r}
-#TODO: Datenbereinigen mit unique() und ungleich null
 
-
-```
 
 ***(2) Visuelle Exploration (mit Aggregation)***
 ### (2.1) Shipments Gegenueberstellung: total_cost und total_revenue
