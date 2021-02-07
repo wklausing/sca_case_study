@@ -6,7 +6,8 @@ output: html_document
 ---
 
 Library Packages
-```{r}
+```{r eval=TRUE}
+#rm(list = ls())
 library("readr")
 library("dplyr") 
 library("zoo")
@@ -139,7 +140,7 @@ shipments = shipments[!is.na(shipments$shipment_reference), ]
 
 ***Daten Formatieren: Zeitliche Entwicklung***
 ### (1.3) JAHR-MONAT extrahieren
-```{r}
+```{r eval=TRUE}
 # Extrahieren von Jahr-Monat aus Shipment-Spalte "last_stop_requested_arrival_to_date", 
 # da diese Spalte auch in Margin-Spalte vorhanden ist
 x <- as.Date(TableBind$last_stop_requested_arrival_to_date, format="%Y-%m-%d")
@@ -153,7 +154,7 @@ TableBind$YearMonth = format(x,"%Y-%m")
 
 ***(2) Visuelle Exploration (mit Aggregation)***
 ### (2.1) Shipments Gegenueberstellung: total_cost und total_revenue
-```{r}
+```{r eval=TRUE}
 # Umsatz aggrerieren
 df_Revenue = data.frame(aggregate(
   total_revenue ~ business_model + fulfilment_strategy, data=TableBind, sum))
@@ -171,7 +172,7 @@ df_Compare
 ```
 
 ### (2.2) Zwei Liniendiagramme zu Shipment Kosten, Umsatz und Marge
-```{r}
+```{r eval=TRUE}
 # Verkettung der zwei Tabellen: Shipments + Mergin
 # Datum von Shipment Spalte "last_stop_requested_arrival_to_date" so umformatieren, dass Kalenderwoche angezeigt wird
 YearMonthFormat = as.Date(shipments$shipment_created_at)
@@ -215,7 +216,7 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
 ```
 
 ### (2.3) Ein Liniendiagramm zu Shipment transport_price_booked + transport_cost_assigned
-```{r}
+```{r eval=TRUE}
 # Aggregieren
 shipments_week_aggregated = shipments[c("YearMonth", "transport_price_booked", "transport_cost_assigned")] %>% 
   aggregate(. ~ YearMonth, data = ., sum)
@@ -256,7 +257,7 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
 
 
 ### (2.4) 
-```{r}
+```{r eval=TRUE}
 # Revenue und Costdarstellen
 shipments_week_aggregated = shipments[c("shipment_created_at", "total_revenue", "total_cost")] %>% aggregate(. ~ shipment_created_at, data = ., sum)
 shipments_week_aggregated$profit = shipments_week_aggregated$total_revenue - shipments_week_aggregated$total_cost
@@ -268,14 +269,15 @@ ggplot(data = shipments_week_aggregated, aes(x = shipment_created_at, group=1)) 
   xlab("Date") +  
   ylab("Euro") +
   ggtitle(label = "Instafreight: Revenue, Cost, and Profit group by shipment_created_at") +
-  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8))
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) +
+  scale_y_continuous(breaks=NULL)
 
 #TODO X Achse zu Monaten umwandeln
 #TODO Ausreisser bereinigen.
 ```
 
 ### (2.5) Shipments Gegenuberstellung: Lieferungskosten gebucht und zugewiesen
-```{r}
+```{r eval=TRUE}
 group1 = aggregate(transport_price_booked ~ 
                      fulfilment_strategy + business_model, data=shipments, sum)
 group2 = aggregate(transport_cost_assigned  ~ 
@@ -295,25 +297,25 @@ groupbind
 
 ### (2.3) Bereitsvorhandene Vorhersage aus Margin visualisieren. 
 # Vorhersage Daten existieren schon. Erst in Teil B neue Vorhersage machen.
-```{r}
+```{r eval=TRUE}
 
 ```
 
 
 ***(3) Kennzahlen und Reporting von Verfahren identifizierte Muster zB Saisonalitäten, Trends, ...***
-```{r}
+```{r eval=TRUE}
 
 ```
 
 
 ***(4) Korrelationen + Externe Faktoren (Noch zu finden!)***
-```{r}
+```{r eval=TRUE}
 
 ```
 
 
 ***(5) Verschiedene Methoden der deskriptiven Statistik (Clustering, Zeitreihenanalyse...)***
-```{r}
+```{r eval=TRUE}
 
 ```
 
