@@ -119,8 +119,8 @@ shipments = shipments[-1:-4,]
 #7. Entferne weitere Zeile, da es nur 1 Tag vom ganzen Monat ist. Betrifft 1 Zeile.
 shipments = shipments[-1,]
 
-#8. Entferne Zeile mit -1 in transport_cost_assigned, da dies laut Dokumentation nicht sein kann. Betrifft 1 Zeile.
-shipments = shipments[shipments$transport_cost_assigned != -1,]
+#8. Entferne Zeile mit -1 in transport_cost_assigned, da dies laut Dokumentation nicht sein kann. Selbes für transport_price_booked. Betrifft 1 Zeile.
+shipments = shipments[shipments$transport_price_booked >= 0 & shipments$transport_cost_assigned >= 0,]
 
 #9. Ausreißer bei total_revenue und total_cost entfernen.
 plot(x=shipments$total_revenue, y=shipments$total_cost)# Vorher
@@ -129,6 +129,9 @@ plot(x=shipments$total_revenue, y=shipments$total_cost)# Nachher
 
 #10. transport_cost_assigned und transport_price_booked dürfen nur größer/gleich 0 sein. 
 shipments = shipments[shipments$transport_cost_assigned >= 0 & shipments$transport_price_booked >= 0,]
+
+#11. Entferne Zeilen die nur NA haben.
+shipments = shipments[!is.na(shipments$shipment_reference), ]
 
 #TODO OTD noch berechnen
 
