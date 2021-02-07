@@ -141,24 +141,6 @@ TableBind$YearMonth = format(x,"%Y-%m")
 
 #Info: Benoetigen wir spaeter fuer die Zeitreihenanalyse und Vorhersage
 ```
-### (1.4) Kalenderwoche Verketten aus Shipments + Mergin Tabellen
-```{r}
-# Datum von Shipment Spalte "last_stop_requested_arrival_to_date" umformatieren, 
-# sodass Kalendarwoche in der ersten Spalte angezeigt werden
-CalendarWeekFormat = as.Date(shipments$last_stop_requested_arrival_to_date)
-shipments$CalendarWeek = strftime(CalendarWeekFormat, format = "%Y-%V") #Year-CalendarWeek
-
-# Unbenennen der ersten Spalte der Tabelle margin
-colnames(margin)[1] = c("CalendarWeek")
-
-# Beide Tabellen "shipments" und "margin" nach "CalendarWeek" mergen
-TableBind = merge(shipments, margin, by = "CalendarWeek")
-TableBind
-
-#TODO: Ueberpruefen noetig: Ist CalendarWeek richtig abgebildet in TableBind?
-#TODO: Zeitliche Grafik mit Umsaetzen + Kosten hierzu waere gut
-```
-
 
 
 ***(2) Visuelle Exploration (mit Aggregation)***
@@ -178,16 +160,70 @@ df_Compare = cbind(df_Revenue, df_Cost$total_cost)
 # Umbenennen
 colnames(df_Compare)[4] = "total_cost"
 df_Compare
-
-
-#TODO: Grafik verbessern, da hier nicht Kosten und Umsaetze angezeigt werden
-barplot(table(TableBind$fulfilment_strategy , TableBind$business_model ), 
-        beside = TRUE, #horiz = TRUE,
-        col=c("darkblue", "darkred"),
-        xlab="Business Model", ylab="Anzahl", 
-        main="titel")
 ```
 
+### (1) Zwei Liniendiagramme zu Shipment Kosten, Umsatz und Marge
+```{r}
+# Verkettung der zwei Tabellen: Shipments + Mergin
+# Datum von Shipment Spalte "last_stop_requested_arrival_to_date" so umformatieren, dass Kalenderwoche angezeigt wird
+CalendarWeekFormat = as.Date(shipments$shipment_created_at)
+shipments$CalendarWeek = strftime(CalendarWeekFormat, format = "%Y-%m") #Y-CalendarWeek
+
+# Revenue und Costdarstellen
+shipments_week_aggregated = shipments[c("CalendarWeek", "total_revenue", "total_cost")] %>% 
+  aggregate(. ~ CalendarWeek, data = ., sum)
+shipments_week_aggregated$margin = shipments_week_aggregated$total_revenue - shipments_week_aggregated$total_cost
+shipments_week_aggregated 
+
+# Liniendiagram von Kosten, Umsatz und Marge
+ggplot(data = shipments_week_aggregated, aes(x = CalendarWeek, group=1)) + 
+  geom_line(aes(y = total_cost), colour="red") + 
+  geom_line(aes(y = total_revenue), colour="blue") +
+  geom_line(aes(y = margin), colour="black") + 
+  xlab("Date") +  
+  ylab("Euro") +
+  ggtitle(label = "Instafreight: Umsatz, Kosten und Marge in 2017 - 2021") +
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
+ 
+  #y-Achse Zahlen als Integer-Wert deklarieren
+  scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
+  scale_x_discrete(breaks = shipments_week_aggregated$CalendarWeek[seq(1, length(shipments_week_aggregated$CalendarWeek), by = 2)])
+
+
+# Zweites Liniendiagram  nur mit Marge
+ggplot(data = shipments_week_aggregated, aes(x = CalendarWeek, group=1)) +
+  geom_line(aes(y = margin), colour="black") + 
+  xlab("Date") +  
+  ylab("Euro") +
+  ggtitle(label = "Instafreight: Marge in 2017 - 2021") +
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
+  
+  #y-Achse Zahlen als Integer-Wert deklarieren
+  scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1))))) +
+  
+  # Periode in 6 Jahrsabstaenden wiedergeben
+  scale_x_discrete(breaks = shipments_week_aggregated$CalendarWeek[seq(1, length(shipments_week_aggregated$CalendarWeek), by = 2)])
+
+#TODO Y besser darstellen
+```
+
+```{r}
+# Revenue und Costdarstellen
+shipments_week_aggregated = shipments[c("shipment_created_at", "total_revenue", "total_cost")] %>% aggregate(. ~ shipment_created_at, data = ., sum)
+shipments_week_aggregated$profit = shipments_week_aggregated$total_revenue - shipments_week_aggregated$total_cost
+
+ggplot(data = shipments_week_aggregated, aes(x = shipment_created_at, group=1)) + 
+  geom_line(aes(y = total_cost), colour="red") + 
+  geom_line(aes(y = total_revenue), colour="blue") +
+  geom_line(aes(y = profit), colour="black") + 
+  xlab("Date") +  
+  ylab("Euro") +
+  ggtitle(label = "Instafreight: Revenue, Cost, and Profit group by shipment_created_at") +
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8))
+
+#TODO X Achse zu Monaten umwandeln
+#TODO Ausreisser bereinigen.
+```
 
 ### (2.2) Shipments Gegenuberstellung: Lieferungskosten gebucht und zugewiesen
 ```{r}
