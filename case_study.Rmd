@@ -246,6 +246,9 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
   #y-Achse Zahlen als Integer-Wert deklarieren
   scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
   scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)])
+
+#TODO Y besser darstellen
+#TODO Legende fehlt
 ```
 
 
