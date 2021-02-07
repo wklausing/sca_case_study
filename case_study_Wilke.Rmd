@@ -11,40 +11,10 @@ Library Packages
 library("tidyverse")
 ```
 
-```{r}
-shipments <- read.csv("data/shipment_FINAL_20210115.csv")
-margin <- read.csv("data/margin_by_week_FINAL_20210115.csv")
-
-head(shipments)
-head(margin)
-```
-
-```{r}
- count_business_model = shipments %>%
-  count(business_model)
-count_business_model
- ggplot(count_business_model ,aes(business_model,n))+
-    geom_col()
-```
-
-
-```{r eval=FALSE}
-str(shipments)
-str(margin)
-```
-
 ```{r eval=TRUE}
+# Shipments Daten einlesen und ins richtige Format bringen.
 shipments <- read.csv("data/shipment_FINAL_20210115.csv")
-
-
-# Datenbereinigung: Entferne Zeilen ohne lane_domain. Betrifft zwei Zeilen.
-shipments = shipments[shipments$lane_domain != "",]
-
-#TODO Mögliche Bereinigungen: Datum "2024-11-20" gibt es in last_stop_requested_arrival_to und mehr. 
-#TODO "0019-08-20 01:53:28" in first_stop_actual_arrival. 
-#TODO cancellation_reason = fake_order
-
-#Timestamps
+# Timestamps
 shipments$shipment_created_at = as.POSIXct(shipments$shipment_created_at,tz=Sys.timezone())
 
 shipments[shipments$smh_accepted_first_state_change == "",]$smh_accepted_first_state_change = NA
@@ -72,23 +42,63 @@ shipments$last_stop_actual_arrival = as.POSIXct(shipments[shipments$last_stop_ac
 shipments[shipments$sh_cancelled == "",]$sh_cancelled = NA
 shipments$sh_cancelled = as.POSIXct(shipments[shipments$sh_cancelled != "",]$sh_cancelled,tz=Sys.timezone())
 
-#Dates
+# Dates
 shipments$first_stop_requested_arrival_to_date = shipments$first_stop_requested_arrival_to_date %>% as.Date()
 shipments$last_stop_requested_arrival_to_date = shipments$last_stop_requested_arrival_to_date %>% as.Date()
 
+# Margin Daten einlesen 
+margin <- read.csv("data/margin_by_week_FINAL_20210115.csv")
+
+head(shipments)
+head(margin)
 ```
 
-*Aufgabe A: Erkenntnisgewinn*
-Ziel der Aufgabe ist der Bericht von etwaigen Erkenntnissen über die Daten, die Sie im Laufe der Projektbearbeitung erlangt haben. Zudem soll gezielt über die in der Fallstudienbeschreibung geforderten Punkte berichtet werden. 
-Die Daten sollen angemessen aufbereitet und visualisiert werden. Wenn möglich sollen Handlungsempfehlungen aus den Erkenntnissen abgeleitet werden. Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
-• Visuelle Exploration
-• Kennzahlen und Reporting
-• von Verfahren identifizierte Muster (Saisonalitäten, Trends, ...)
-• Korrelationen
-• Verschiedene Methoden der deskriptiven Statistik (Clustering, ...)
-Versuchen Sie einen möglichst guten Überblick über die Shipment-Daten zu generieren. Gehen Sie dabei schon gezielt auf die Marge ein (sowohl die zeitliche Entwicklung als auch iden- tifizierte Zusammenhänge). Achten Sie bei Ihren Interpretationen auf die Gültigkeit von Aus- sagen über Kausalitäten.
-Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche. Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten, die Ihnen besonders wichtig und präsenta- tionswürdig erscheinen. Bereiten Sie gegebenenfalls ein Portfolio im Back-Up Ihrer Präsenta- tion vor, um auf Anschlussfragen reagieren zu können. Sie sollten bei Ihrer Vorstellung dieser Teilaufgabe versuchen Zusammenhänge zu interpretieren und Implikationen abzuleiten, selbst wenn Ihre erarbeiteten Inhalte durch experimentelle Untersuchungen entstanden sind.
+### (1.2) Struktur ausgeben
+```{r eval=FALSE}
+str(shipments)
+str(margin)
+```
 
+***Datenbereinigung***
+```{r eval=TRUE}
+# Shipments Datenbereinigung
+#1. Entferne Zeilen mit leerer lane_domain. Betrifft 2 Zeilen.  
+shipments = shipments[shipments$lane_domain != "",]
+
+#2. Entferne Zeilen mit cancellation_reason = fake_order. Betrifft 1622 Zeilen.
+shipments = shipments[shipments$cancellation_reason != "fake_order",]
+
+#3. Ändere 2024 zu 2020 in last_stop_requested_arrival_to und last_stop_requested_arrival_to_date Spalte. Betrifft 1 Zeile.
+shipments[shipments$last_stop_requested_arrival_to == "2024-11-20 07:00:00",]$last_stop_requested_arrival_to = "2020-11-20 07:00:00"
+shipments[shipments$last_stop_requested_arrival_to_date == "2024-11-20",]$last_stop_requested_arrival_to_date = "2020-11-20"
+
+#4. Ändere 0019 zu 2019. Betrifft 1 Zeile.
+shipments$first_stop_actual_arrival = ifelse(!is.na(shipments$first_stop_actual_arrival) & shipments$first_stop_actual_arrival == "0019-08-20 01:53:28", "2019-08-20 01:53:28", NA)
+
+#5. Prüfen auf Duplikate insgesamt und für shipment_reference speziell. Betrifft 0 Zeilen.
+#shipments = shipments %>%  distinct(.)
+#shipments <- shipments[!duplicated(shipments$shipment_reference),]
+
+#6. Entferne ersten 4 Zeilen, siehe Forum. Betrifft 4 Zeilen.
+shipments = shipments[-1:-4,]
+
+#7. Entferne weitere Zeile, da es nur 1 Tag vom ganzen Monat ist. Betrifft 1 Zeile.
+shipments = shipments[-1,]
+
+#8. Entferne Zeile mit -1 in transport_cost_assigned, da dies laut Dokumentation nicht sein kann. Betrifft 1 Zeile.
+shipments = shipments[shipments$transport_cost_assigned != -1,]
+
+#9. Ausreißer bei total_revenue und total_cost entfernen.
+plot(x=shipments$total_revenue, y=shipments$total_cost)# Vorher
+shipments = shipments[shipments$total_revenue < 5000 & shipments$total_revenue > -1000 & shipments$total_cost > -1000,]
+plot(x=shipments$total_revenue, y=shipments$total_cost)# Nachher
+
+#10. transport_cost_assigned und transport_price_booked dürfen nur größer/gleich 0 sein. 
+shipments = shipments[shipments$transport_cost_assigned >= 0 & shipments$transport_price_booked >= 0,]
+
+#TODO OTD noch berechnen
+
+```
 
 ### (1) Verkettung der zwei Tabellen: Shipments + Mergin
 ```{r}
@@ -132,6 +142,9 @@ ggplot(data = shipments_week_aggregated, aes(x = shipment_created_at, group=1)) 
 ```
 
 
+
+
+
 ```{r}
 #Prüfen ob Ausprägungen mit der Dokumentation übereinstimmen.
 shipments$shipment_state %>% unique(.)
@@ -146,6 +159,22 @@ shipments$cancellation_reason %>% unique(.)
 ```
 
 
+wilke = shipments[1:10,]
+write.csv(wilke,"~/\\data\\processed\\FileName.csv", row.names = FALSE)
 
+write.csv(shipments,".\\data\\test2.csv", row.names = FALSE)
+wilke2 <- read.csv(".\\data\\test2.csv")
+
+
+write.csv2(wilke, file ="C:\\filename.csv",row.names=FALSE)
+write.csv2(wilke, file ="C:\\Users\\Peter\\Documents\\TUB Master\\1. Semester\\SCA\\Case study\\data\\processed\\test.csv",row.names=FALSE)
+
+write.csv2(shipments, file =".\\data\\processed\\shipments_processed.csv",row.names=FALSE)
+
+write.csv2(shipments, file =".\\data\\shipments_processed.csv",row.names=FALSE)
+
+wilke2 <- read.csv(".\\data\\shipments_processed.csv")
+
+wilke3 <- read.csv("data/shipments_processed.csv")
 
 #TODO Erzeugung Datum von Zeile und first_stop_req liegen weit auseinander

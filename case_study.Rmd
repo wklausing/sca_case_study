@@ -82,7 +82,7 @@ shipments$sh_cancelled = as.POSIXct(shipments[shipments$sh_cancelled != "",]$sh_
 shipments$first_stop_requested_arrival_to_date = shipments$first_stop_requested_arrival_to_date %>% as.Date()
 shipments$last_stop_requested_arrival_to_date = shipments$last_stop_requested_arrival_to_date %>% as.Date()
 
-
+# Margin Daten einlesen 
 margin <- read.csv("data/margin_by_week_FINAL_20210115.csv")
 
 head(shipments)
@@ -122,8 +122,13 @@ shipments = shipments[-1,]
 #8. Entferne Zeile mit -1 in transport_cost_assigned, da dies laut Dokumentation nicht sein kann. Betrifft 1 Zeile.
 shipments = shipments[shipments$transport_cost_assigned != -1,]
 
-#TODO differenz von transport booked/assigned
-#TODO Differenz zwischen Cost/Revenue sowie Differenz Transport booked/assigned Schwellenwert definieren und löschen
+#9. Ausreißer bei total_revenue und total_cost entfernen.
+plot(x=shipments$total_revenue, y=shipments$total_cost)# Vorher
+shipments = shipments[shipments$total_revenue < 5000 & shipments$total_revenue > -1000 & shipments$total_cost > -1000,]
+plot(x=shipments$total_revenue, y=shipments$total_cost)# Nachher
+
+#10. transport_cost_assigned und transport_price_booked dürfen nur größer/gleich 0 sein. 
+shipments = shipments[shipments$transport_cost_assigned >= 0 & shipments$transport_price_booked >= 0,]
 
 #TODO OTD noch berechnen
 
