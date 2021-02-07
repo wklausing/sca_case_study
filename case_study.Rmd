@@ -28,9 +28,9 @@ Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
 
 • *Visuelle Exploration*
 - Datenbereinigung #Wilke
-- Grafik Cost und Renvue #Wilke CalendarWeek zu Monat ändern
+- Grafik Cost und Renvue #Wilke
 - Grafik zu (transport_price_booked + transport_cost_assigned) #Anny
-- Grafik zu Marge allein um Schwankungen zu identifizieren #Anny
+- Grafik zu Marge allein um Schwankungen zu identifizieren #Anny, erledigt
 
 • Kennzahlen und Reporting:
   - *Identifikation von Muster (zB Saisonalitäten, Trends, ...)*
@@ -166,17 +166,17 @@ df_Compare
 ```{r}
 # Verkettung der zwei Tabellen: Shipments + Mergin
 # Datum von Shipment Spalte "last_stop_requested_arrival_to_date" so umformatieren, dass Kalenderwoche angezeigt wird
-CalendarWeekFormat = as.Date(shipments$shipment_created_at)
-shipments$CalendarWeek = strftime(CalendarWeekFormat, format = "%Y-%m") #Y-CalendarWeek
+YearMonthFormat = as.Date(shipments$shipment_created_at)
+shipments$YearMonth = strftime(YearMonthFormat, format = "%Y-%m") #Jahr-Monat
 
 # Revenue und Costdarstellen
-shipments_week_aggregated = shipments[c("CalendarWeek", "total_revenue", "total_cost")] %>% 
-  aggregate(. ~ CalendarWeek, data = ., sum)
+shipments_week_aggregated = shipments[c("YearMonth", "total_revenue", "total_cost")] %>% 
+  aggregate(. ~ YearMonth, data = ., sum)
 shipments_week_aggregated$margin = shipments_week_aggregated$total_revenue - shipments_week_aggregated$total_cost
 shipments_week_aggregated 
 
 # Liniendiagram von Kosten, Umsatz und Marge
-ggplot(data = shipments_week_aggregated, aes(x = CalendarWeek, group=1)) + 
+ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) + 
   geom_line(aes(y = total_cost), colour="red") + 
   geom_line(aes(y = total_revenue), colour="blue") +
   geom_line(aes(y = margin), colour="black") + 
@@ -187,12 +187,12 @@ ggplot(data = shipments_week_aggregated, aes(x = CalendarWeek, group=1)) +
  
   #y-Achse Zahlen als Integer-Wert deklarieren
   scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
-  scale_x_discrete(breaks = shipments_week_aggregated$CalendarWeek[seq(1, length(shipments_week_aggregated$CalendarWeek), by = 2)])
+  scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)])
 
 
 
 # Zweites Liniendiagram  nur mit Marge
-ggplot(data = shipments_week_aggregated, aes(x = CalendarWeek, group=1)) +
+ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
   geom_line(aes(y = margin), colour="black") + 
   xlab("Date") +  
   ylab("Euro") +
@@ -202,10 +202,37 @@ ggplot(data = shipments_week_aggregated, aes(x = CalendarWeek, group=1)) +
   #y-Achse Zahlen als Integer-Wert deklarieren
   scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1))))) +
   # Periode in 6 Jahrsabstaenden wiedergeben
-  scale_x_discrete(breaks = shipments_week_aggregated$CalendarWeek[seq(1, length(shipments_week_aggregated$CalendarWeek), by = 2)])
+  scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)])
 
 #TODO Y besser darstellen
 ```
+
+### (1) Ein Liniendiagramm zu Shipment transport_price_booked + transport_cost_assigned
+```{r}
+# Revenue und Costdarstellen
+shipments_week_aggregated = shipments[c("YearMonth", "transport_price_booked", "transport_cost_assigned")] %>% 
+  aggregate(. ~ YearMonth, data = ., sum)
+shipments_week_aggregated$difference = shipments_week_aggregated$transport_price_booked - shipments_week_aggregated$transport_cost_assigned
+shipments_week_aggregated 
+
+
+ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) + 
+  geom_line(aes(y = transport_price_booked), colour="red") + 
+  geom_line(aes(y = transport_cost_assigned), colour="blue") +
+  geom_line(aes(y = difference), colour="black") + 
+  xlab("Date") +  
+  ylab("Euro") +
+  ggtitle(label = "Instafreight: Gebuchte Preise, zugewiesene Kosten und Kosten Differenz in 2017 - 2021") +
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
+ 
+  #y-Achse Zahlen als Integer-Wert deklarieren
+  scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
+  scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)])
+
+
+```
+
+
 
 ```{r}
 # Revenue und Costdarstellen
