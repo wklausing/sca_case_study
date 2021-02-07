@@ -167,7 +167,7 @@ colnames(df_Compare)[4] = "total_cost"
 df_Compare
 ```
 
-### (1) Zwei Liniendiagramme zu Shipment Kosten, Umsatz und Marge
+### (2.2) Zwei Liniendiagramme zu Shipment Kosten, Umsatz und Marge
 ```{r}
 # Verkettung der zwei Tabellen: Shipments + Mergin
 # Datum von Shipment Spalte "last_stop_requested_arrival_to_date" so umformatieren, dass Kalenderwoche angezeigt wird
@@ -192,7 +192,7 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
     #y-Achse Zahlen als Integer-Wert deklarieren
     scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
-    scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)]) +
+    scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)]) 
 
 
 # Zweites Liniendiagram nur mit Marge
@@ -211,9 +211,9 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
 #TODO Legende fehlt
 ```
 
-### (1) Ein Liniendiagramm zu Shipment transport_price_booked + transport_cost_assigned
+### (2.3) Ein Liniendiagramm zu Shipment transport_price_booked + transport_cost_assigned
 ```{r}
-# Revenue und Costdarstellen
+# Aggregieren
 shipments_week_aggregated = shipments[c("YearMonth", "transport_price_booked", "transport_cost_assigned")] %>% 
   aggregate(. ~ YearMonth, data = ., sum)
 shipments_week_aggregated$difference = 
@@ -252,7 +252,7 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
 ```
 
 
-
+### (2.4) 
 ```{r}
 # Revenue und Costdarstellen
 shipments_week_aggregated = shipments[c("shipment_created_at", "total_revenue", "total_cost")] %>% aggregate(. ~ shipment_created_at, data = ., sum)
@@ -271,7 +271,7 @@ ggplot(data = shipments_week_aggregated, aes(x = shipment_created_at, group=1)) 
 #TODO Ausreisser bereinigen.
 ```
 
-### (2.2) Shipments Gegenuberstellung: Lieferungskosten gebucht und zugewiesen
+### (2.5) Shipments Gegenuberstellung: Lieferungskosten gebucht und zugewiesen
 ```{r}
 group1 = aggregate(transport_price_booked ~ 
                      fulfilment_strategy + business_model, data=shipments, sum)
