@@ -216,18 +216,12 @@ groupbind
 #TODO: Grafik von entstandene Kosten bei Lieferung waere gut
 ```
 
-### (2.3) Shipments Gegenuberstellung: shipment_state + shipment_stage + business_model
-```{r}
 
-```
-
-### (2.4) Margin: Vorhersage aus Margin visualisieren. 
+### (2.3) Bereitsvorhandene Vorhersage aus Margin visualisieren. 
 # Vorhersage Daten existieren schon. Erst in Teil B neue Vorhersage machen.
 ```{r}
 
 ```
-
-
 
 
 ***(3) Kennzahlen und Reporting von Verfahren identifizierte Muster zB Saisonalitäten, Trends, ...***
@@ -247,3 +241,36 @@ groupbind
 
 ```
 
+
+
+***Aufgabe B: Vorhersagemodelle****
+Das Ziel dieser Aufgabe ist die Erstellung von Prognosemodellen zur Abschätzung der Unternehmensmarge. 
+Erstellen Sie zu diesem Zweck zunächst ein Modell basierend auf multivari ater Regression, welches die Marge einer Buchung/ eines Shipments in Abhängigkeit relevan- ter Einflussfaktoren vorhersagt. Das Modell soll systematisch erstellt werden, indem mehrere Kombinationen von erklärenden Variablen gegeneinander getestet werden und eine begrün- dete Empfehlung für das beste Modell gegeben wird. Als Art der Modellierung wird hierbei die multivariate Lineare Regression vorgeschlagen. Überlegen Sie, wie dieses Modell in die Un- ternehmensprozesse eingebunden werden kann. Das Modell soll eher eine Erklärungs- als eine Vorhersagefunktion erfüllen.
+Erstellen Sie weiterhin ein Modell, welches für die Vorhersage der zukünftigen Entwicklung der Unternehmensmarge genutzt werden kann. Hierbei sind mehrere Lösungen denkbar. Ach- ten Sie hier besonders auf die Realisierbarkeit bezüglich des Modelleinsatzes im Unternehmen.
+Folgende Daten stehen Ihnen zur Erstellung der Modelle zur Verfügung:
+Unternehmensinterne Daten
+Sie erhalten zwei Datensätzen von Instafreight, welche im beigefügten PDF näher beschrieben werden. Der eine Datensatz beschreibt die Shipments der letzten 3 Jahre, der andere Daten- satz beschreibt die wöchentliche Marge in dem Zeitraum.
+Weitere Daten für die Bearbeitung der Fallstudie
+Sie können weitere Variablen recherchieren, die einen Einfluss auf die Unternehmensmarge haben und die Modellergebnisse entsprechend verbessern können. Folgende Variablen könn- ten beispielsweise verwendet werden:
+• Wetterdaten
+• Entwicklung der Kaufkraft, Bevölkerungszuwachs
+• Feriendaten, Feiertags-Daten, Event-Daten
+Diese Beispiele sind lediglich ein Vorschlag. 
+Sie können weitere Variablen verwenden, die aus Ihrer Sicht für die Erstellung des Modelles relevant sind. Die Auswahl muss nachvollziehbar begründet werden.
+
+SCA – WiSe 20/21 Aufgabenstellung zur Case Study
+Bitte achten Sie bei der Auswahl der beschreibenden Variablen auf die Verlässlichkeit der verwendeten Datenquelle. Empfohlene Datenquellen für die Auswahl der Variablen sind bei- spielsweise:
+• Statistische Agenturen der verschiedenen Länder (z.B. Statistisches Bundesamt2 für Deutschland - https://www.destatis.de/DE/Home/_inhalt.html)
+• Eurostat (https://ec.europa.eu/eurostat/de/home)
+• Statista (https://de.statista.com/)
+• Relevante wissenschaftliche Literatur
+• UN Databank für statistische Daten (http://w3.unece.org/pxweb/Dialog/)
+
+Zu B: Das erste Modell soll hauptsächlich eine erklärende Funktion erfüllen. Dabei wird die Frage beantwortet: „Welchen Einfluss haben gewisse Faktoren auf die Marge eines Shipments?“. Die Ergebnisse davon sollten in A einfließen. Das zweite Modell soll ein nutzbares Modell sein, welches dem Unternehmen eine Vorhersage über die zukünf- tige Entwicklung der Marge ermöglicht. Hier können Shipments beispielsweise auf Tage, Wochen oder Monate aggregiert werden. Achten Sie bei der Modellierung da- rauf, dass die notwendigen Daten zum Vorhersagezeitpunkt zugänglich sein müssen. Die Erkenntnisse aus dem ersten Modell sind hierbei sicherlich sinnvoll einzubringen.
+• Falls Ihre vorgeschlagene Gesamtlösung Modellierungen enthält, die über die in A und B entwickelten Lösungen hinausgeht, müssen Sie diese nicht implementieren. Es ge- nügt ein Ausblick.
+
+
+
+***Aufgabe C: Dashboard***
+Die Aufbereitung von vorhandenen Analyseergebnissen, welche dem Nutzer eine nachvoll- ziehbare Entscheidungsgrundlage bieten soll, stellt eine wichtige Rolle in der Entwicklung von Analytics-Lösungen dar. Aus diesem Grund werden Sie in dieser Aufgabe gebeten, eine Visu- alisierung Ihrer Ergebnisse aus B (und A) in Form eines Dashboards zu erstellen. Das Dash- board soll eine Implementierung des in B entwickelten Prognosemodells sein, welches ein möglichst nutzerfreundliches und anwendungsbezogenes Design vorweist. Überlegen Sie, welche relevanten Informationen dem Nutzer bereitgestellt werden müssen. Nutzen Sie dazu auch Ihre Erkenntnisse aus A. Achten Sie bei der Gestaltung des Dashboards unbedingt auf den zukünftigen Nutzer/Prozess.
+Beachten Sie dabei, dass der Entwurf ausschließlich die aus Ihrer Sicht relevanten Informati- onen beinhalten sollte. Überlegen Sie sich, welche Form der Visualisierung von einzelnen Kennzahlen / Variablen / Statistiken dem Nutzer die Entscheidungsfindung erleichtern könnte. Bitte achten Sie auf die Nachvollziehbarkeit der Entscheidungen, die zu Ihrem Entwurf geführt haben. Das Dashboard muss nicht funktional umgesetzt werden, es handelt sich lediglich um die konzeptionelle Gestaltung einer visuellen Entscheidungsgrundlage (Mock-Up!).
