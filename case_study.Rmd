@@ -47,7 +47,7 @@ Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten,
 
 ***(1) Datenvorbereitung***
 ### (1.1) CSV Dateien einlesen 
-```{r}
+```{r eval=TRUE}
 # Shipments Daten einlesen und ins richtige Format bringen.
 shipments <- read.csv("data/shipment_FINAL_20210115.csv")
 # Timestamps
@@ -89,47 +89,38 @@ head(shipments)
 head(margin)
 ```
 ### (1.2) Struktur ausgeben
-```{r}
+```{r eval=FALSE}
 str(shipments)
 str(margin)
 ```
 ***Datenbereinigung***
 ```{r eval=TRUE}
-shipments %>% nrow()
 # Shipments Datenbereinigung
 #1. Entferne Zeilen mit leerer lane_domain. Betrifft 2 Zeilen.  
 shipments = shipments[shipments$lane_domain != "",]
-shipments %>% nrow()
 
 #2. Entferne Zeilen mit cancellation_reason = fake_order. Betrifft 1622 Zeilen.
 shipments = shipments[shipments$cancellation_reason != "fake_order",]
-shipments %>% nrow()
 
 #3. Ändere 2024 zu 2020 in last_stop_requested_arrival_to und last_stop_requested_arrival_to_date Spalte. Betrifft 1 Zeile.
 shipments[shipments$last_stop_requested_arrival_to == "2024-11-20 07:00:00",]$last_stop_requested_arrival_to = "2020-11-20 07:00:00"
 shipments[shipments$last_stop_requested_arrival_to_date == "2024-11-20",]$last_stop_requested_arrival_to_date = "2020-11-20"
-shipments %>% nrow()
 
 #4. Ändere 0019 zu 2019. Betrifft 1 Zeile.
-shipments[shipments$first_stop_actual_arrival == "0019-08-20 01:53:28",]$first_stop_actual_arrival = "2019-08-20 01:53:28"
-shipments %>% nrow()
+shipments$first_stop_actual_arrival = ifelse(!is.na(shipments$first_stop_actual_arrival) & shipments$first_stop_actual_arrival == "0019-08-20 01:53:28", "2019-08-20 01:53:28", NA)
 
 #5. Prüfen auf Duplikate insgesamt und für shipment_reference speziell. Betrifft 0 Zeilen.
-shipments = shipments %>%  distinct(.)
-shipments <- shipments[!duplicated(shipments$shipment_reference),]
-shipments %>% nrow()
+#shipments = shipments %>%  distinct(.)
+#shipments <- shipments[!duplicated(shipments$shipment_reference),]
 
 #6. Entferne ersten 4 Zeilen, siehe Forum. Betrifft 4 Zeilen.
 shipments = shipments[-1:-4,]
-shipments %>% nrow()
 
 #7. Entferne weitere Zeile, da es nur 1 Tag vom ganzen Monat ist. Betrifft 1 Zeile.
 shipments = shipments[-1,]
-shipments %>% nrow()
 
 #8. Entferne Zeile mit -1 in transport_cost_assigned, da dies laut Dokumentation nicht sein kann. Betrifft 1 Zeile.
 shipments = shipments[shipments$transport_cost_assigned != -1,]
-shipments %>% nrow()
 
 #TODO differenz von transport booked/assigned
 #TODO Differenz zwischen Cost/Revenue sowie Differenz Transport booked/assigned Schwellenwert definieren und löschen
