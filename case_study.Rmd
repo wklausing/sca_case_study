@@ -190,6 +190,7 @@ ggplot(data = shipments_week_aggregated, aes(x = CalendarWeek, group=1)) +
   scale_x_discrete(breaks = shipments_week_aggregated$CalendarWeek[seq(1, length(shipments_week_aggregated$CalendarWeek), by = 2)])
 
 
+
 # Zweites Liniendiagram  nur mit Marge
 ggplot(data = shipments_week_aggregated, aes(x = CalendarWeek, group=1)) +
   geom_line(aes(y = margin), colour="black") + 
@@ -200,7 +201,6 @@ ggplot(data = shipments_week_aggregated, aes(x = CalendarWeek, group=1)) +
   
   #y-Achse Zahlen als Integer-Wert deklarieren
   scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1))))) +
-  
   # Periode in 6 Jahrsabstaenden wiedergeben
   scale_x_discrete(breaks = shipments_week_aggregated$CalendarWeek[seq(1, length(shipments_week_aggregated$CalendarWeek), by = 2)])
 
