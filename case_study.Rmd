@@ -17,6 +17,8 @@ library("mosaic")
 library("Metrics")
 library("dummies")
 library("janitor")
+library("plotly")
+
 ```
 
 ***Aufgabe A: Erkenntnisgewinn***
@@ -84,7 +86,7 @@ shipments$first_stop_requested_arrival_to_date = shipments$first_stop_requested_
 shipments$last_stop_requested_arrival_to_date = shipments$last_stop_requested_arrival_to_date %>% as.Date()
 
 # Margin Daten einlesen 
-margin <- read.csv("data/margin_by_week_FINAL_20210115.csv")
+margin <- read.csv2("data/margin_by_week_FINAL_20210115.csv")
 
 head(shipments)
 head(margin)
@@ -294,14 +296,70 @@ groupbind
 #TODO: Grafik von entstandene Kosten bei Lieferung waere gut
 ```
 
+### (2.6) Visualisierung der zeitlichen Entwicklung von dem (prozentualen) wöchentlichen Profit
+```{r}
+ggplot(data = margin, aes(x = first_stop_requested_arrival_to_week, y = forecasted_margin_3pl, group=1)) +
+  geom_line()+
+  geom_point()+
+  
+  xlab("Week") +  
+  ylab("Prozent (%)") +
+  ggtitle(label = "Instafreight: Weekly Margin (2018-2021)") +
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
+  scale_x_discrete(breaks = margin$first_stop_requested_arrival_to_week[seq(1, length(margin$first_stop_requested_arrival_to_week), by = 10)])
+```
+Erkenntnisse:
++ sehr schwankende Profite, aber vor Ende des 2019 ist die Gewinnmarge nie negativ.
++ 5 kritische Zeitpunkte (negative prozentuale Profite):
+2019-52 (23.12.2019), 2020-01(30.12.2019-05.01.2020), 2020-36 bis 2020-38 (31.08.2020-20.09.2020) 
 
-### (2.3) Bereitsvorhandene Vorhersage aus Margin visualisieren. 
-# Vorhersage Daten existieren schon. Erst in Teil B neue Vorhersage machen.
+## (2.7) Visualisierung der zeitlichen Veränderung des Anteils von cancelled_shipment_count_3pl 
+```{r}
+#Anteil von cancelled_shipment_count_3pl berechnen
+margin$cancel_rate_3pl = round( ((margin$shipment_count_3pl-margin$non_cancelled_shipment_count_3pl)/margin$shipment_count_3pl)*100,2) 
+
+#Visualisierung
+plot_ly(data = margin,x= ~first_stop_requested_arrival_to_week,   
+        y= ~cancel_rate_3pl ,type = "bar")
+
+```
+
+Erkenntnisse: 
++ Es liegt ein hoher Anteil von stonierten Shipments vor besonders zwischen der Kalenderwoche 48-2019 und 02-2020.
+Moeglicher Grund: Zu dieser Zeit fand die erstmalige Covid-19-Ausbreitung in China statt, was zum Exporteinbruch und folglich weiterer Unterbrechung von Lieferketten in Deutchland bzw. im Europa fuehrte.
++ Weitere Peaks am Ende des Jahres 2020 sind auch zu erkennen 
+Moeglicher Grund:zweite Welle der Corona-Pandemie
+
+## (2.8) Visualisierung der Profite aus custom rate shipments und spot shipments
+**Unterschied zwischen custom rate shipments und spot shipments**
+Bei jeder Custom Rate wird ein Vertrag mit festen Transportpreisen mit dem Kunden geschlossen und die Transportpreise gehalten werden müssen.
+Bei dem Gegenstück der Custom Rate shipments, der Spot shipments, kann der Preis jederzeit angepasst werden. Dies passiert normalerweise auf einer wöchentlichen Basis.
+
+
 ```{r eval=TRUE}
+#margin in Euro fuer alle 3PL-Shipments
+margin$forecasted_margin_3pl_Euro = round( (margin$forecasted_revenue_3pl*(margin$forecasted_margin_3pl/100)),2)
+
+#margin in Euro fuer 3PL custom_rate shipments
+margin$forecasted_margin_3pl_custom_rate_Euro = round( (margin$forecasted_revenue_3pl_custom_rate*(margin$forecasted_margin_3pl_custom_rate/100)),2)
+
+#margin in Euro fuer 3PL spot shipments
+margin$forecasted_margin_3pl_spot_Euro = round( (margin$forecasted_revenue_3pl_spot*(margin$forecasted_margin_3pl_spot/100)),2)
+
+# Visualisierung
+plot_ly(data = margin,x= ~first_stop_requested_arrival_to_week,   
+        y= ~forecasted_margin_3pl_custom_rate_Euro,type = "bar", name = "custom_rate") %>%  
+        add_trace(y= ~forecasted_margin_3pl_spot_Euro, name ="spot")%>% 
+        layout(yaxis = list(title = 'margin in Euro'), barmode = 'stack')
+
 
 ```
 
 
+
+
+### (2.3) Bereitsvorhandene Vorhersage aus Margin visualisieren. 
+# Vorhersage Daten existieren schon. Erst in Teil B neue Vorhersage machen.
 ***(3) Kennzahlen und Reporting von Verfahren identifizierte Muster zB Saisonalitäten, Trends, ...***
 ```{r eval=TRUE}
 
