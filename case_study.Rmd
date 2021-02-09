@@ -17,8 +17,8 @@ library("mosaic")
 library("Metrics")
 library("dummies")
 library("janitor")
-library("plotly")#install.packages("plotly")
-
+install.packages("plotly")
+library("plotly") 
 ```
 
 ***Aufgabe A: Erkenntnisgewinn***

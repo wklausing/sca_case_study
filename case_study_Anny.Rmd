@@ -17,8 +17,8 @@ library("mosaic")
 library("Metrics")
 library("dummies")
 library("janitor")
-#install.packages("plotly")
-# library("plotly") 
+install.packages("plotly")
+library("plotly") 
 ```
 
 ***Aufgabe A: Erkenntnisgewinn***
@@ -314,12 +314,12 @@ Erkenntnisse:
 2019-52 (23.12.2019), 2020-01(30.12.2019-05.01.2020), 2020-36 bis 2020-38 (31.08.2020-20.09.2020) 
 
 ## (2.7) Visualisierung der zeitlichen Veränderung des Anteils von cancelled_shipment_count_3pl 
-```{r eval = FALSE}
+```{r}
 #Anteil von cancelled_shipment_count_3pl berechnen
 margin$cancel_rate_3pl = round( ((margin$shipment_count_3pl-margin$non_cancelled_shipment_count_3pl)/margin$shipment_count_3pl)*100,2) 
 
 #Visualisierung
-plot_ly(data = margin,x= ~ first_stop_requested_arrival_to_week,   
+plot_ly(data = margin,x= ~first_stop_requested_arrival_to_week,   
         y= ~cancel_rate_3pl ,type = "bar")
 
 ```
@@ -336,7 +336,7 @@ Bei jeder Custom Rate wird ein Vertrag mit festen Transportpreisen mit dem Kunde
 Bei dem Gegenstück der Custom Rate shipments, der Spot shipments, kann der Preis jederzeit angepasst werden. Dies passiert normalerweise auf einer wöchentlichen Basis.
 
 
-```{r eval=FALSE}
+```{r eval=TRUE}
 #margin in Euro fuer alle 3PL-Shipments
 margin$forecasted_margin_3pl_Euro = round( (margin$forecasted_revenue_3pl*(margin$forecasted_margin_3pl/100)),2)
 
