@@ -17,7 +17,7 @@ library("mosaic")
 library("Metrics")
 library("dummies")
 library("janitor")
-library("plotly")
+library("plotly")#install.packages("plotly")
 
 ```
 
@@ -142,7 +142,7 @@ shipments = shipments[!is.na(shipments$shipment_reference), ]
 
 ***Daten Formatieren: Zeitliche Entwicklung***
 ### (1.3) JAHR-MONAT extrahieren
-```{r eval=TRUE}
+```{r eval=FALSE}
 # Extrahieren von Jahr-Monat aus Shipment-Spalte "last_stop_requested_arrival_to_date", 
 # da diese Spalte auch in Margin-Spalte vorhanden ist
 x <- as.Date(TableBind$last_stop_requested_arrival_to_date, format="%Y-%m-%d")
@@ -156,7 +156,7 @@ TableBind$YearMonth = format(x,"%Y-%m")
 
 ***(2) Visuelle Exploration (mit Aggregation)***
 ### (2.1) Shipments Gegenueberstellung: total_cost und total_revenue
-```{r eval=TRUE}
+```{r eval=FALSE}
 # Umsatz aggrerieren
 df_Revenue = data.frame(aggregate(
   total_revenue ~ business_model + fulfilment_strategy, data=TableBind, sum))
