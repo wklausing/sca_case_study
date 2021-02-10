@@ -109,6 +109,9 @@ shipments$sh_cancelled = as.POSIXct(shipments[shipments$sh_cancelled != "",]$sh_
 shipments$first_stop_requested_arrival_to_date = shipments$first_stop_requested_arrival_to_date %>% as.Date()
 shipments$last_stop_requested_arrival_to_date = shipments$last_stop_requested_arrival_to_date %>% as.Date()
 
+# Erzeuge total_margin Spalte. (total_margin = total_revenue - total_cost)
+shipments$total_margin = shipments$total_revenue - shipments$total_cost
+
 # Erzeuge Spalte für Jahr. Monat, Tag
 shipments = shipments %>%
   dplyr::mutate(year = lubridate::year(shipment_created_at), 

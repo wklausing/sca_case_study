@@ -75,6 +75,9 @@ shipments$sh_cancelled = as.POSIXct(shipments[shipments$sh_cancelled != "",]$sh_
 shipments$first_stop_requested_arrival_to_date = shipments$first_stop_requested_arrival_to_date %>% as.Date()
 shipments$last_stop_requested_arrival_to_date = shipments$last_stop_requested_arrival_to_date %>% as.Date()
 
+# Erzeuge total_margin Spalte. (total_margin = total_revenue - total_cost)
+shipments$total_margin = shipments$total_revenue - shipments$total_cost
+
 # Erzeuge Spalte für Jahr. Monat, Tag
 shipments = shipments %>%
   dplyr::mutate(year = lubridate::year(shipment_created_at), 
@@ -425,7 +428,7 @@ shipments[shipments$year == "2019" & shipments$month > "6",] %>% ggplot(data=., 
 # Liniendiagramm Marge 2020-07 - 2020-12
 shipments[shipments$year == "2020" & shipments$month > "6",] %>% ggplot(data=., aes(x=shipment_created_at, y=total_margin, group=1)) +
   geom_line() +
-  ggtitle(label = "Marge für 2020-07 bis 2020-12  pro Tag")
+  ggtitle(label = "Marge für 2020-07 bis 2020-12 pro Tag")
 ```
 
 
