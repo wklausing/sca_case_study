@@ -42,14 +42,23 @@ Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
     > Externe Daten #Anny, Wilke, Toke
     
     
-    # Internet-Zugang
-    https://ec.europa.eu/eurostat/databrowser/view/isoc_ci_in_en2/default/table?lang=de
+
     
     # Nutzung von Computern und dem Internet durch Beschäftigte
+    # Spaeter anschauen und ausprobieren, moeglicherweise zu generisch
     https://ec.europa.eu/eurostat/databrowser/view/isoc_ci_cm_pn2/default/table?lang=de
     
     # BIP und Hauptkomponenten - ausgewählte internationale Jahresdaten
+    # Zu generisch
     https://ec.europa.eu/eurostat/databrowser/view/naida_10_gdp/default/table?lang=de
+    
+    Noch Daten 2017-2020 suchen zu:
+    # Import & Export
+    # Grippe oder generell Gesundheit von Menschen
+    # Benzinpreise, e.g. Diesel
+    # Verkehrsunfälle
+    # (Wetter Vergleich von domain_lane also zwischen Länder DE>>NL)
+    
     
   - *Methoden der deskriptiven Statistik (Clustering, Times Series...)* #Toke
   
@@ -503,7 +512,7 @@ Kendall’s correlation coefficient is often smaller than Spearman’s correlati
 
 ***Aufgabe B: Vorhersagemodelle****
 Das Ziel dieser Aufgabe ist die Erstellung von Prognosemodellen zur Abschätzung der Unternehmensmarge. 
-Erstellen Sie zu diesem Zweck zunächst ein Modell basierend auf multivari ater Regression, welches die Marge einer Buchung/ eines Shipments in Abhängigkeit relevan- ter Einflussfaktoren vorhersagt. Das Modell soll systematisch erstellt werden, indem mehrere Kombinationen von erklärenden Variablen gegeneinander getestet werden und eine begrün- dete Empfehlung für das beste Modell gegeben wird. Als Art der Modellierung wird hierbei die multivariate Lineare Regression vorgeschlagen. Überlegen Sie, wie dieses Modell in die Un- ternehmensprozesse eingebunden werden kann. Das Modell soll eher eine Erklärungs- als eine Vorhersagefunktion erfüllen.
+Erstellen Sie zu diesem Zweck zunächst ein Modell basierend auf multivari ater Regression, welches die Marge einer Buchung/ eines Shipments in Abhängigkeit relevanter Einflussfaktoren vorhersagt. Das Modell soll systematisch erstellt werden, indem mehrere Kombinationen von erklärenden Variablen gegeneinander getestet werden und eine begrün- dete Empfehlung für das beste Modell gegeben wird. Als Art der Modellierung wird hierbei die multivariate Lineare Regression vorgeschlagen. Überlegen Sie, wie dieses Modell in die Un- ternehmensprozesse eingebunden werden kann. Das Modell soll eher eine Erklärungs- als eine Vorhersagefunktion erfüllen.
 Erstellen Sie weiterhin ein Modell, welches für die Vorhersage der zukünftigen Entwicklung der Unternehmensmarge genutzt werden kann. Hierbei sind mehrere Lösungen denkbar. Ach- ten Sie hier besonders auf die Realisierbarkeit bezüglich des Modelleinsatzes im Unternehmen.
 Folgende Daten stehen Ihnen zur Erstellung der Modelle zur Verfügung:
 Unternehmensinterne Daten
