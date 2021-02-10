@@ -40,36 +40,36 @@ Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten,
 
 ***(1) Datenvorbereitung***
 ### (1.1) CSV Dateien einlesen 
-```{r eval=TRUE}
+```{r eval=FALSE}
 # Shipments Daten einlesen und ins richtige Format bringen.
 shipments <- read.csv("data/shipment_FINAL_20210115.csv")
 # Timestamps
 shipments$shipment_created_at = as.POSIXct(shipments$shipment_created_at,tz=Sys.timezone())
 
 shipments[shipments$smh_accepted_first_state_change == "",]$smh_accepted_first_state_change = NA
-#shipments$smh_accepted_first_state_change = as.POSIXct(shipments$smh_accepted_first_state_change,tz=Sys.timezone())  
+shipments$smh_accepted_first_state_change = as.POSIXct(shipments$smh_accepted_first_state_change,tz=Sys.timezone())  
 
 shipments[shipments$smh_accepted_last_state_change == "",]$smh_accepted_last_state_change = NA
-#shipments$smh_accepted_last_state_change = as.POSIXct(shipments$smh_accepted_last_state_change,tz=Sys.timezone())  
+shipments$smh_accepted_last_state_change = as.POSIXct(shipments$smh_accepted_last_state_change,tz=Sys.timezone())  
 
-#shipments$first_stop_requested_arrival_to = as.POSIXct(shipments$first_stop_requested_arrival_to,tz=Sys.timezone())  
+shipments$first_stop_requested_arrival_to = as.POSIXct(shipments$first_stop_requested_arrival_to,tz=Sys.timezone())  
 
-#shipments$first_stop_agreed_arrival_to = as.POSIXct(shipments$first_stop_agreed_arrival_to,tz=Sys.timezone())
+shipments$first_stop_agreed_arrival_to = as.POSIXct(shipments$first_stop_agreed_arrival_to,tz=Sys.timezone())
 
 shipments[shipments$last_stop_agreed_arrival_to == "",]$last_stop_agreed_arrival_to = NA
-#shipments$last_stop_agreed_arrival_to = as.POSIXct(shipments$last_stop_agreed_arrival_to,tz=Sys.timezone())
+shipments$last_stop_agreed_arrival_to = as.POSIXct(shipments$last_stop_agreed_arrival_to,tz=Sys.timezone())
 
 shipments[shipments$first_stop_actual_arrival == "",]$first_stop_actual_arrival = NA
-#shipments$first_stop_actual_arrival = as.POSIXct(shipments[shipments$first_stop_actual_arrival != "",]$first_stop_actual_arrival,tz=Sys.timezone())
+shipments$first_stop_actual_arrival = as.POSIXct(shipments[shipments$first_stop_actual_arrival != "",]$first_stop_actual_arrival,tz=Sys.timezone())
 
 shipments[shipments$last_stop_requested_arrival_to == "",]$last_stop_requested_arrival_to = NA
-#shipments$last_stop_requested_arrival_to = as.POSIXct(shipments$last_stop_requested_arrival_to,tz=Sys.timezone())
+shipments$last_stop_requested_arrival_to = as.POSIXct(shipments$last_stop_requested_arrival_to,tz=Sys.timezone())
 
 shipments[shipments$last_stop_actual_arrival == "",]$last_stop_actual_arrival = NA
-#shipments$last_stop_actual_arrival = as.POSIXct(shipments[shipments$last_stop_actual_arrival != "",]$last_stop_actual_arrival,tz=Sys.timezone())
+shipments$last_stop_actual_arrival = as.POSIXct(shipments[shipments$last_stop_actual_arrival != "",]$last_stop_actual_arrival,tz=Sys.timezone())
 
 shipments[shipments$sh_cancelled == "",]$sh_cancelled = NA
-#shipments$sh_cancelled = as.POSIXct(shipments[shipments$sh_cancelled != "",]$sh_cancelled,tz=Sys.timezone())
+shipments$sh_cancelled = as.POSIXct(shipments[shipments$sh_cancelled != "",]$sh_cancelled,tz=Sys.timezone())
 
 # Dates
 shipments$first_stop_requested_arrival_to_date = shipments$first_stop_requested_arrival_to_date %>% as.Date()
@@ -81,23 +81,15 @@ shipments = shipments %>%
                 month = lubridate::month(shipment_created_at), 
                 day = lubridate::day(shipment_created_at))
 
-YearMonthFormat = as.Date(shipments$shipment_created_at)
-shipments$YearMonth = strftime(YearMonthFormat, format = "%Y-%m") #Jahr-Monat
+# Jahr-Monat Spalte
+shipments$YearMonth = shipments$shipment_created_at %>% as.Date() %>% strftime(., format = "%Y-%m") 
 
 
 # Margin Daten einlesen 
 margin <- read.csv2("data/margin_by_week_FINAL_20210115.csv")
-
-head(shipments)
-head(margin)
-```
-### (1.2) Struktur ausgeben
-```{r eval=FALSE}
-str(shipments)
-str(margin)
 ```
 ***Datenbereinigung***
-```{r eval=TRUE}
+```{r eval=FALSE}
 # Shipments Datenbereinigung
 #1. Entferne Zeilen mit leerer lane_domain. Betrifft 2 Zeilen.  
 shipments = shipments[shipments$lane_domain != "",]
@@ -126,7 +118,7 @@ shipments = shipments[-1,]
 shipments = shipments[shipments$transport_price_booked >= 0 & shipments$transport_cost_assigned >= 0,]
 
 #9. Ausreißer bei total_revenue und total_cost entfernen.
-#plot(x=shipments$total_revenue, y=shipments$total_cost)# Vorher
+plot(x=shipments$total_revenue, y=shipments$total_cost)# Vorher
 shipments = shipments[shipments$total_revenue < 5000 & shipments$total_revenue > -1000 & shipments$total_cost > -1000,]
 plot(x=shipments$total_revenue, y=shipments$total_cost)# Nachher
 
@@ -136,8 +128,29 @@ shipments = shipments[shipments$transport_cost_assigned >= 0 & shipments$transpo
 #11. Entferne Zeilen die nur NA haben.
 shipments = shipments[!is.na(shipments$shipment_reference), ]
 
+#12. Die Spalte `country_lane` wird in eine Spalte `origin_country` und eine Spalte ´destination_country´ aufgeteilt 
+shipments <- shipments %>%
+  separate(country_lane, c("origin_country","destination_country"), "-->>")
+
 #TODO OTD noch berechnen
 
+# Dataframes abspeichern
+saveRDS(shipments, "data/shipments.rds")
+saveRDS(margin, "data/margins.rds")
+```
+***Vorbereiteten Daten aus RDS Dateien einlesen***
+```{r eval=TRUE}
+shipments = readRDS(file = "data/shipments.rds")
+margin = readRDS(file = "data/margins.rds")
+```
+
+### (1.2) Struktur ausgeben
+```{r eval=TRUE}
+head(shipments)
+str(shipments)
+
+head(margin)
+str(margin)
 ```
 
 ***Daten Formatieren: Zeitliche Entwicklung***
@@ -240,21 +253,6 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
   scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
   scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)])
 
-
-
-# Liniendiagramm Differenz
-ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) + 
-  geom_line(aes(y = difference), colour="black") + 
-  xlab("Date") +  
-  ylab("Euro") +
-  ggtitle(label = "Instafreight: Differenz zu Buchungs- und Transportkoste (2017-2021)") +
-  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
-  #y-Achse Zahlen als Integer-Wert deklarieren
-  scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
-  scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)])
-
-#TODO Y besser darstellen
-#TODO Legende fehlt
 ```
 
 
@@ -340,7 +338,7 @@ weird_shipments
 ```
 
 ```{r eval = false}
-#Auffällig keiten bei Preisen und Kosten suchen. Am besten einfach mit Table und nach Häufigkeit sortieren.
+#Auffälligkeiten bei Preisen und Kosten suchen. Am besten einfach mit Table und nach Häufigkeit sortieren.
 shipments$transport_cost_assigned %>% table(.) %>%  barplot(.)
 shipments$total_cost %>% table(.) %>%  barplot(.)
 
@@ -350,6 +348,7 @@ shipments$total_revenue %>% table(.) %>%  barplot(.)
 
 
 ```{r eval = false}
+#
 #Wachstum für Monate.
 growth_by_month = shipments %>% aggregate(total_revenue ~ year+month , data = ., sum)
 growth_by_month = growth_by_month[order(growth_by_month$year, growth_by_month$month ),]
@@ -364,7 +363,8 @@ for(i in 1:nrow(growth_by_month)) {
 growth_by_month
 growth_by_month$period = 1:nrow(growth_by_month)
 ggplot(growth_by_month, aes(x=period, y=monthly_growth, group=1))+
-  geom_line(color="red")
+  geom_line(color="red") +
+  ggtitle(label = "Wachstum von Total Revenue pro Monat")
 
 
 # Wachstum für Jahre. Nur volle Jahre.
@@ -379,7 +379,8 @@ for(i in 1:nrow(growth_by_year)) {
 growth_by_year
 growth_by_year$period = 1:nrow(growth_by_year)
 ggplot(growth_by_year, aes(x=period, y=yearly_growth, group=1))+
-  geom_line(color="red")
+  geom_line(color="red") +
+  ggtitle(label = "Wachstum Total Revenue pro Jahr")
 
 
 ```
@@ -416,7 +417,17 @@ plot(x=wilke$number, y=wilke$total_revenue, type = "l")
 
 
 
+```{r eval=TRUE}
+# Liniendiagramm Marge 2019-07 - 2019-12
+shipments[shipments$year == "2019" & shipments$month > "6",] %>% ggplot(data=., aes(x=shipment_created_at, y=total_margin, group=1)) +
+  geom_line() +
+  ggtitle(label = "Marge für 2019-07 bis 2019-12 pro Tag")
 
+# Liniendiagramm Marge 2020-07 - 2020-12
+shipments[shipments$year == "2020" & shipments$month > "6",] %>% ggplot(data=., aes(x=shipment_created_at, y=total_margin, group=1)) +
+  geom_line() +
+  ggtitle(label = "Marge für 2020-07 bis 2020-12  pro Tag")
+```
 
 
 

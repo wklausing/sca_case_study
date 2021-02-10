@@ -74,7 +74,7 @@ Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten,
 
 ***(1) Datenvorbereitung***
 ### (1.1) CSV Dateien einlesen 
-```{r eval=TRUE}
+```{r eval=FALSE}
 # Shipments Daten einlesen und ins richtige Format bringen.
 shipments <- read.csv("data/shipment_FINAL_20210115.csv")
 # Timestamps
@@ -109,19 +109,21 @@ shipments$sh_cancelled = as.POSIXct(shipments[shipments$sh_cancelled != "",]$sh_
 shipments$first_stop_requested_arrival_to_date = shipments$first_stop_requested_arrival_to_date %>% as.Date()
 shipments$last_stop_requested_arrival_to_date = shipments$last_stop_requested_arrival_to_date %>% as.Date()
 
+# Erzeuge Spalte für Jahr. Monat, Tag
+shipments = shipments %>%
+  dplyr::mutate(year = lubridate::year(shipment_created_at), 
+                month = lubridate::month(shipment_created_at), 
+                day = lubridate::day(shipment_created_at))
+
+# Jahr-Monat Spalte
+shipments$YearMonth = shipments$shipment_created_at %>% as.Date() %>% strftime(., format = "%Y-%m") 
+
+
 # Margin Daten einlesen 
 margin <- read.csv2("data/margin_by_week_FINAL_20210115.csv")
-
-head(shipments)
-head(margin)
-```
-### (1.2) Struktur ausgeben
-```{r eval=TRUE}
-str(shipments)
-str(margin)
 ```
 ***Datenbereinigung***
-```{r eval=TRUE}
+```{r eval=FALSE}
 # Shipments Datenbereinigung
 #1. Entferne Zeilen mit leerer lane_domain. Betrifft 2 Zeilen.  
 shipments = shipments[shipments$lane_domain != "",]
@@ -166,6 +168,23 @@ shipments <- shipments %>%
 
 #TODO OTD noch berechnen
 
+# Dataframes abspeichern
+saveRDS(shipments, "data/shipments.rds")
+saveRDS(margin, "data/margins.rds")
+```
+***Vorbereiteten Daten aus RDS Dateien einlesen***
+```{r eval=TRUE}
+shipments = readRDS(file = "data/shipments.rds")
+margin = readRDS(file = "data/margins.rds")
+```
+
+### (1.2) Struktur ausgeben
+```{r eval=TRUE}
+head(shipments)
+str(shipments)
+
+head(margin)
+str(margin)
 ```
 
 ***Daten Formatieren: Zeitliche Entwicklung***
