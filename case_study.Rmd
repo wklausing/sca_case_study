@@ -17,7 +17,7 @@ library("mosaic")
 library("Metrics")
 library("dummies")
 library("janitor")
-install.packages("plotly")
+#install.packages("plotly")
 library("plotly") 
 ```
 
@@ -42,14 +42,23 @@ Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
     > Externe Daten #Anny, Wilke, Toke
     
     
-    # Internet-Zugang
-    https://ec.europa.eu/eurostat/databrowser/view/isoc_ci_in_en2/default/table?lang=de
+
     
     # Nutzung von Computern und dem Internet durch Beschäftigte
+    # Spaeter anschauen und ausprobieren, moeglicherweise zu generisch
     https://ec.europa.eu/eurostat/databrowser/view/isoc_ci_cm_pn2/default/table?lang=de
     
     # BIP und Hauptkomponenten - ausgewählte internationale Jahresdaten
+    # Zu generisch
     https://ec.europa.eu/eurostat/databrowser/view/naida_10_gdp/default/table?lang=de
+    
+    Noch Daten 2017-2020 suchen zu:
+    # Import & Export
+    # Grippe oder generell Gesundheit von Menschen
+    # Benzinpreise, e.g. Diesel
+    # Verkehrsunfälle
+    # (Wetter Vergleich von domain_lane also zwischen Länder DE>>NL)
+    
     
   - *Methoden der deskriptiven Statistik (Clustering, Times Series...)* #Toke
   
@@ -103,7 +112,7 @@ head(shipments)
 head(margin)
 ```
 ### (1.2) Struktur ausgeben
-```{r eval=FALSE}
+```{r eval=TRUE}
 str(shipments)
 str(margin)
 ```
@@ -153,7 +162,7 @@ shipments = shipments[!is.na(shipments$shipment_reference), ]
 
 ***Daten Formatieren: Zeitliche Entwicklung***
 ### (1.3) JAHR-MONAT extrahieren
-```{r eval=FALSE}
+```{r eval=TRUE}
 # Extrahieren von Jahr-Monat aus Shipment-Spalte "last_stop_requested_arrival_to_date", 
 # da diese Spalte auch in Margin-Spalte vorhanden ist
 x <- as.Date(TableBind$last_stop_requested_arrival_to_date, format="%Y-%m-%d")
@@ -167,7 +176,7 @@ TableBind$YearMonth = format(x,"%Y-%m")
 
 ***(2) Visuelle Exploration (mit Aggregation)***
 ### (2.1) Shipments Gegenueberstellung: total_cost und total_revenue
-```{r eval=FALSE}
+```{r eval=TRUE}
 # Umsatz aggrerieren
 df_Revenue = data.frame(aggregate(
   total_revenue ~ business_model + fulfilment_strategy, data=TableBind, sum))
@@ -226,6 +235,7 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
 
 #TODO Y besser darstellen
 #TODO Legende fehlt
+#TODO geom_smooth()
 ```
 
 ### (2.3) Ein Liniendiagramm zu Shipment transport_price_booked + transport_cost_assigned
@@ -269,26 +279,6 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
 ```
 
 
-### (2.4) 
-```{r eval=TRUE}
-# Revenue und Costdarstellen
-shipments_week_aggregated = shipments[c("shipment_created_at", "total_revenue", "total_cost")] %>% aggregate(. ~ shipment_created_at, data = ., sum)
-shipments_week_aggregated$profit = shipments_week_aggregated$total_revenue - shipments_week_aggregated$total_cost
-
-ggplot(data = shipments_week_aggregated, aes(x = shipment_created_at, group=1)) + 
-  geom_line(aes(y = total_cost), colour="red") + 
-  geom_line(aes(y = total_revenue), colour="blue") +
-  geom_line(aes(y = profit), colour="black") + 
-  xlab("Date") +  
-  ylab("Euro") +
-  ggtitle(label = "Instafreight: Revenue, Cost, and Profit group by shipment_created_at") +
-  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) +
-  scale_y_continuous(breaks=NULL)
-
-#TODO X Achse zu Monaten umwandeln
-#TODO Ausreisser bereinigen.
-```
-
 ### (2.5) Shipments Gegenuberstellung: Lieferungskosten gebucht und zugewiesen
 ```{r eval=TRUE}
 group1 = aggregate(transport_price_booked ~ 
@@ -318,6 +308,10 @@ ggplot(data = margin, aes(x = first_stop_requested_arrival_to_week, y = forecast
   ggtitle(label = "Instafreight: Weekly Margin (2018-2021)") +
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
   scale_x_discrete(breaks = margin$first_stop_requested_arrival_to_week[seq(1, length(margin$first_stop_requested_arrival_to_week), by = 10)])
+
+#TODO Year-Month
+#TODO Negative Zahlen checken und Begründung suchen
+#TODO Verhaeltnis zwischen tatseachliche Daten und dem Forecast hier aufzeigen
 ```
 Erkenntnisse:
 + sehr schwankende Profite, aber vor Ende des 2019 ist die Gewinnmarge nie negativ.
@@ -340,13 +334,13 @@ Erkenntnisse:
 Moeglicher Grund: Zu dieser Zeit fand die erstmalige Covid-19-Ausbreitung in China statt, was zum Exporteinbruch und folglich weiterer Unterbrechung von Lieferketten in Deutchland bzw. im Europa fuehrte.
 + Weitere Peaks am Ende des Jahres 2020 sind auch zu erkennen 
 Moeglicher Grund:zweite Welle der Corona-Pandemie
+#TODO Covid Daten raussuchen
+#TODO Year-Month
 
 ## (2.8) Visualisierung der Profite aus custom rate shipments und spot shipments
 **Unterschied zwischen custom rate shipments und spot shipments**
-Bei jeder Custom Rate wird ein Vertrag mit festen Transportpreisen mit dem Kunden geschlossen und die Transportpreise gehalten werden müssen.
+Bei jeder Custom Rate wird ein Vertrag mit festen Transportpreisen mit dem Kunden geschlossen und die Transportpreise gehalten werden müssen. # Frage: Wer legt den Preis fuer Transport fest?
 Bei dem Gegenstück der Custom Rate shipments, der Spot shipments, kann der Preis jederzeit angepasst werden. Dies passiert normalerweise auf einer wöchentlichen Basis.
-
-
 ```{r eval=TRUE}
 #margin in Euro fuer alle 3PL-Shipments
 margin$forecasted_margin_3pl_Euro = round( (margin$forecasted_revenue_3pl*(margin$forecasted_margin_3pl/100)),2)
@@ -365,7 +359,8 @@ plot_ly(data = margin,x= ~first_stop_requested_arrival_to_week,
 
 
 ```
-
+Erkenntnis: Mehr Marge mit Customrate (Contract) als mit spot (Marktpreis)
+#TODO Titel und Year-Month noch setzen
 
 
 
@@ -378,9 +373,134 @@ plot_ly(data = margin,x= ~first_stop_requested_arrival_to_week,
 
 
 ***(4) Korrelationen + Externe Faktoren (Noch zu finden!)***
-```{r eval=TRUE}
+
+**Interne Faktoren**
+
+## (4.1) Subset von not cancelled shipments: 
+Berücksichtigt werden nur die nicht stornierten Shipments und folgende internen Faktoren:
+business model: 3PL, 4PL 
+custom rate shipment: FALSCH, WAHR 
+fullfilment strategy: bulk,pallet, fullTruck 
+lane domain: national, international, import, export
+stop count: 2,3,4,5,6,7 
+OTD: ontime (1), belated (0) 
+
+```{r}
+shipments_without_cancellation = subset(shipments, shipment_state != "cancelled")
+
+shipments_without_cancellation$margin = shipments_without_cancellation$total_revenue - shipments_without_cancellation$total_cost
+
+inspect(shipments_without_cancellation)
 
 ```
+
+## (4.2)  Categorical-numerical associations 
+(Zusammenhang zwischen der Gewinnmarge (numerical) und internen Faktoren: business model, custom rate shipment, fulfillment strategy und lane domain (categorical))
+
+a. business model
+```{r}
+# durchschnittliche Marge, aggregiert nach buusiness model (3PL, 4PL)
+shipments_without_cancellation %>%
+    group_by(business_model) %>%
+    summarize(mean_margin = mean(margin, na.rm = TRUE))
+
+```
+
+```{r}
+# VIsualisierung
+ggplot(shipments_without_cancellation, 
+       aes(factor(business_model), 
+       fill = factor(business_model))) +
+      geom_bar()
+```
+Erkenntnis: Die 3PL Shipments machen einen wesentlichen Anteil an den gesamten Shipments aus und außerdem bringen sie dem Unternehmen im Durchschnitt eine positive Gewinnmarge im Vergleich zu 4PL-Shipments.
+(also positver Zusammenhang zwischen 3PL Shipments als ein Typ von business model und der Marge)!
+
+b. custom rate shipment
+```{r}
+# durchschnittliche Marge, aggregiert nach custom rate shipment (falsch, wahr)
+  shipments_without_cancellation %>%
+    group_by(custom_rate_shipment) %>%
+    summarize(mean_margin = mean(margin, na.rm = TRUE))
+
+```
+```{r}
+  tapply(shipments_without_cancellation$margin ,shipments_without_cancellation$custom_rate_shipment ,sum)
+```
+```{r}
+# Visualisierung
+ggplot(shipments_without_cancellation, 
+       aes(factor(custom_rate_shipment), 
+       fill = factor(custom_rate_shipment))) +
+       geom_bar()
+```
+Erkenntnis: Der Profit hängt auch davon ab, ob es hier  ein spot shipment oder custom rate shipment ist. Bei den custom rate shipment muss es mit einem festen Transportpreis durchgeführt werden und somit schwanken sich die Margen stärker. Bei dem Gegenstück der Custom Rate shipments, der Spot shipments, können wir den Preis jederzeit anpassen. Deswegen kann mit wenigeren spot shipments eine deutlich höhere Summe der Marge errreicht werden.
+
+c. fulfillment strategy: bulk, pallet, fullTruck
+```{r}
+# durchschnittliche Marge, aggregiert nach fulfillment strategy (bulk, fullTRuck, palett)
+  shipments_without_cancellation %>%
+    group_by(fulfilment_strategy) %>%
+    summarize(mean_margin = mean(margin, na.rm = TRUE))
+```
+```{r}
+tapply(shipments_without_cancellation$margin ,shipments_without_cancellation$fulfilment_strategy ,sum)
+```
+
+```{r}
+# Visualisierung
+ggplot(shipments_without_cancellation, 
+       aes(factor(fulfilment_strategy), 
+       fill = factor(fulfilment_strategy))) +
+       geom_bar()
+```
+
+```{r}
+xtabs(~ custom_rate_shipment + fulfilment_strategy, data = shipments_without_cancellation)
+```
+Erkenntnis: Bei der Fulfillment-Strategie fullTruck sind ca. 2/3 der Shipments aus custom rate (mit pauschal festem Preis), somit kann nur geringe Gewinnmarge generiert werden im Vergleich zu der Marge von den Aufträgen auf dem Spotmarkt. (Der Preis wird für einzelne Stücke von Bulk-Waren oder Paletten berechnet und ändert sich auf Wochenbasis)
+
+d. Lane domain
+**Unterschied**
+import: aus anderen Ländern in Deutschland importieren
+export: von Deutschland nach anderen Ländern exportieren
+international: Transport nur zwischen Ländern ausschließlich Deutchland
+national: nur innerhalb von Deutschland
+```{r}
+# durchschnittliche Marge, aggregiert nach lane domain (export, import, national, international)
+  shipments_without_cancellation %>%
+    group_by(lane_domain) %>%
+    summarize(mean_margin = mean(margin, na.rm = TRUE))
+```
+
+```{r}
+tapply(shipments_without_cancellation$margin ,shipments_without_cancellation$lane_domain ,sum)
+```
+
+```{r}
+ggplot(shipments_without_cancellation, 
+       aes(factor(lane_domain), 
+       fill = factor(lane_domain))) +
+       geom_bar()
+```
+
+e. OTD
+
+## (4.3) Numerical-numerical associations
+(Zusammenhang zwischen der Gewinnmarge (numerical) und internem Faktor: stop count (numerical)
+```{r}
+cor(shipments_without_cancellation$stops_count, shipments_without_cancellation$margin)
+cor(shipments_without_cancellation$stops_count, shipments_without_cancellation$margin, method = "kendall")
+cor(shipments_without_cancellation$stops_count, shipments_without_cancellation$margin, method = "spearman")
+```
+Ergebnisse:
+Correlation coeff. : -0.02591123
+Correlation coeff. (Kendall-Model):-0.03360171
+Correlation coeff. (Spearman-Model)-0.0413169
+
+Exkurs:
+Kendall’s correlation coefficient is often smaller than Spearman’s correlation coefficient. Although Spearman’s is used more widely, it is more sensitive to errors and discrepancies in the data than Kendall’s.
+**TO DO** : zu entscheiden, welche oder ob überhaupt interne Faktoren bei der Vorhersagemodellen berücksichtigt werden sollten?
 
 
 ***(5) Verschiedene Methoden der deskriptiven Statistik (Clustering, Zeitreihenanalyse...)***
@@ -392,7 +512,7 @@ plot_ly(data = margin,x= ~first_stop_requested_arrival_to_week,
 
 ***Aufgabe B: Vorhersagemodelle****
 Das Ziel dieser Aufgabe ist die Erstellung von Prognosemodellen zur Abschätzung der Unternehmensmarge. 
-Erstellen Sie zu diesem Zweck zunächst ein Modell basierend auf multivari ater Regression, welches die Marge einer Buchung/ eines Shipments in Abhängigkeit relevan- ter Einflussfaktoren vorhersagt. Das Modell soll systematisch erstellt werden, indem mehrere Kombinationen von erklärenden Variablen gegeneinander getestet werden und eine begrün- dete Empfehlung für das beste Modell gegeben wird. Als Art der Modellierung wird hierbei die multivariate Lineare Regression vorgeschlagen. Überlegen Sie, wie dieses Modell in die Un- ternehmensprozesse eingebunden werden kann. Das Modell soll eher eine Erklärungs- als eine Vorhersagefunktion erfüllen.
+Erstellen Sie zu diesem Zweck zunächst ein Modell basierend auf multivari ater Regression, welches die Marge einer Buchung/ eines Shipments in Abhängigkeit relevanter Einflussfaktoren vorhersagt. Das Modell soll systematisch erstellt werden, indem mehrere Kombinationen von erklärenden Variablen gegeneinander getestet werden und eine begrün- dete Empfehlung für das beste Modell gegeben wird. Als Art der Modellierung wird hierbei die multivariate Lineare Regression vorgeschlagen. Überlegen Sie, wie dieses Modell in die Un- ternehmensprozesse eingebunden werden kann. Das Modell soll eher eine Erklärungs- als eine Vorhersagefunktion erfüllen.
 Erstellen Sie weiterhin ein Modell, welches für die Vorhersage der zukünftigen Entwicklung der Unternehmensmarge genutzt werden kann. Hierbei sind mehrere Lösungen denkbar. Ach- ten Sie hier besonders auf die Realisierbarkeit bezüglich des Modelleinsatzes im Unternehmen.
 Folgende Daten stehen Ihnen zur Erstellung der Modelle zur Verfügung:
 Unternehmensinterne Daten
