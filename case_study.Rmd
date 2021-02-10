@@ -378,9 +378,134 @@ plot_ly(data = margin,x= ~first_stop_requested_arrival_to_week,
 
 
 ***(4) Korrelationen + Externe Faktoren (Noch zu finden!)***
-```{r eval=TRUE}
+
+**Interne Faktoren**
+
+## (4.1) Subset von not cancelled shipments: 
+Berücksichtigt werden nur die nicht stornierten Shipments und folgende internen Faktoren:
+business model: 3PL, 4PL 
+custom rate shipment: FALSCH, WAHR 
+fullfilment strategy: bulk,pallet, fullTruck 
+lane domain: national, international, import, export
+stop count: 2,3,4,5,6,7 
+OTD: ontime (1), belated (0) 
+
+```{r}
+shipments_without_cancellation = subset(shipments, shipment_state != "cancelled")
+
+shipments_without_cancellation$margin = shipments_without_cancellation$total_revenue - shipments_without_cancellation$total_cost
+
+inspect(shipments_without_cancellation)
 
 ```
+
+## (4.2)  Categorical-numerical associations 
+(Zusammenhang zwischen der Gewinnmarge (numerical) und internen Faktoren: business model, custom rate shipment, fulfillment strategy und lane domain (categorical))
+
+a. business model
+```{r}
+# durchschnittliche Marge, aggregiert nach buusiness model (3PL, 4PL)
+shipments_without_cancellation %>%
+    group_by(business_model) %>%
+    summarize(mean_margin = mean(margin, na.rm = TRUE))
+
+```
+
+```{r}
+# VIsualisierung
+ggplot(shipments_without_cancellation, 
+       aes(factor(business_model), 
+       fill = factor(business_model))) +
+      geom_bar()
+```
+Erkenntnis: Die 3PL Shipments machen einen wesentlichen Anteil an den gesamten Shipments aus und außerdem bringen sie dem Unternehmen im Durchschnitt eine positive Gewinnmarge im Vergleich zu 4PL-Shipments.
+(also positver Zusammenhang zwischen 3PL Shipments als ein Typ von business model und der Marge)!
+
+b. custom rate shipment
+```{r}
+# durchschnittliche Marge, aggregiert nach custom rate shipment (falsch, wahr)
+  shipments_without_cancellation %>%
+    group_by(custom_rate_shipment) %>%
+    summarize(mean_margin = mean(margin, na.rm = TRUE))
+
+```
+```{r}
+  tapply(shipments_without_cancellation$margin ,shipments_without_cancellation$custom_rate_shipment ,sum)
+```
+```{r}
+# Visualisierung
+ggplot(shipments_without_cancellation, 
+       aes(factor(custom_rate_shipment), 
+       fill = factor(custom_rate_shipment))) +
+       geom_bar()
+```
+Erkenntnis: Der Profit hängt auch davon ab, ob es hier  ein spot shipment oder custom rate shipment ist. Bei den custom rate shipment muss es mit einem festen Transportpreis durchgeführt werden und somit schwanken sich die Margen stärker. Bei dem Gegenstück der Custom Rate shipments, der Spot shipments, können wir den Preis jederzeit anpassen. Deswegen kann mit wenigeren spot shipments eine deutlich höhere Summe der Marge errreicht werden.
+
+c. fulfillment strategy: bulk, pallet, fullTruck
+```{r}
+# durchschnittliche Marge, aggregiert nach fulfillment strategy (bulk, fullTRuck, palett)
+  shipments_without_cancellation %>%
+    group_by(fulfilment_strategy) %>%
+    summarize(mean_margin = mean(margin, na.rm = TRUE))
+```
+```{r}
+tapply(shipments_without_cancellation$margin ,shipments_without_cancellation$fulfilment_strategy ,sum)
+```
+
+```{r}
+# Visualisierung
+ggplot(shipments_without_cancellation, 
+       aes(factor(fulfilment_strategy), 
+       fill = factor(fulfilment_strategy))) +
+       geom_bar()
+```
+
+```{r}
+xtabs(~ custom_rate_shipment + fulfilment_strategy, data = shipments_without_cancellation)
+```
+Erkenntnis: Bei der Fulfillment-Strategie fullTruck sind ca. 2/3 der Shipments aus custom rate (mit pauschal festem Preis), somit kann nur geringe Gewinnmarge generiert werden im Vergleich zu der Marge von den Aufträgen auf dem Spotmarkt. (Der Preis wird für einzelne Stücke von Bulk-Waren oder Paletten berechnet und ändert sich auf Wochenbasis)
+
+d. Lane domain
+**Unterschied**
+import: aus anderen Ländern in Deutschland importieren
+export: von Deutschland nach anderen Ländern exportieren
+international: Transport nur zwischen Ländern ausschließlich Deutchland
+national: nur innerhalb von Deutschland
+```{r}
+# durchschnittliche Marge, aggregiert nach lane domain (export, import, national, international)
+  shipments_without_cancellation %>%
+    group_by(lane_domain) %>%
+    summarize(mean_margin = mean(margin, na.rm = TRUE))
+```
+
+```{r}
+tapply(shipments_without_cancellation$margin ,shipments_without_cancellation$lane_domain ,sum)
+```
+
+```{r}
+ggplot(shipments_without_cancellation, 
+       aes(factor(lane_domain), 
+       fill = factor(lane_domain))) +
+       geom_bar()
+```
+
+e. OTD
+
+## (4.3) Numerical-numerical associations
+(Zusammenhang zwischen der Gewinnmarge (numerical) und internem Faktor: stop count (numerical)
+```{r}
+cor(shipments_without_cancellation$stops_count, shipments_without_cancellation$margin)
+cor(shipments_without_cancellation$stops_count, shipments_without_cancellation$margin, method = "kendall")
+cor(shipments_without_cancellation$stops_count, shipments_without_cancellation$margin, method = "spearman")
+```
+Ergebnisse:
+Correlation coeff. : -0.02591123
+Correlation coeff. (Kendall-Model):-0.03360171
+Correlation coeff. (Spearman-Model)-0.0413169
+
+Exkurs:
+Kendall’s correlation coefficient is often smaller than Spearman’s correlation coefficient. Although Spearman’s is used more widely, it is more sensitive to errors and discrepancies in the data than Kendall’s.
+**TO DO** : zu entscheiden, welche oder ob überhaupt interne Faktoren bei der Vorhersagemodellen berücksichtigt werden sollten?
 
 
 ***(5) Verschiedene Methoden der deskriptiven Statistik (Clustering, Zeitreihenanalyse...)***
