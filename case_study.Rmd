@@ -4,7 +4,7 @@ author: "klauwi"
 date: "2/3/2021"
 output: html_document
 ---
-
+install.packages("janitor")
 Library Packages
 ```{r eval=TRUE}
 #rm(list = ls())
@@ -13,7 +13,7 @@ library("dplyr")
 library("zoo")
 library("forecast")
 library("ggplot2")
-library("mosaic")
+#library("mosaic")
 library("Metrics")
 library("dummies")
 library("janitor")
@@ -156,6 +156,10 @@ shipments = shipments[shipments$transport_cost_assigned >= 0 & shipments$transpo
 #11. Entferne Zeilen die nur NA haben.
 shipments = shipments[!is.na(shipments$shipment_reference), ]
 
+#12. Die Spalte `country_lane` wird in eine Spalte `origin_country` und eine Spalte ´destination_country´ aufgeteilt 
+shipments <- shipments %>%
+  separate(country_lane, c("origin_country","destination_country"), "-->>")
+
 #TODO OTD noch berechnen
 
 ```
@@ -163,14 +167,35 @@ shipments = shipments[!is.na(shipments$shipment_reference), ]
 ***Daten Formatieren: Zeitliche Entwicklung***
 ### (1.3) JAHR-MONAT extrahieren
 ```{r eval=TRUE}
-# Extrahieren von Jahr-Monat aus Shipment-Spalte "last_stop_requested_arrival_to_date", 
-# da diese Spalte auch in Margin-Spalte vorhanden ist
-x <- as.Date(TableBind$last_stop_requested_arrival_to_date, format="%Y-%m-%d")
-
-# Jahr-Monat an die Shipment Spalte hinten anhaengen
-TableBind$YearMonth = format(x,"%Y-%m")
+# shipment zwei neu spalten hinzufügen
+shipments <- shipments %>%
+  # aus der Spalte ´first_stop_requested_arrival_to_date´ wird der Monat und das Jahr in eine neue Spalte eingetragen
+  mutate(first_stop_requested_arrival_to_YearMonth = format(first_stop_requested_arrival_to_date, "%Y-%m")) %>%
+ # die Kalenderwoche wird ebenfalls in eine neue Spalte eingetragen
+   mutate(CalenderWeek = format(first_stop_requested_arrival_to_date, "%Y-%V")) 
 
 #Info: Benoetigen wir spaeter fuer die Zeitreihenanalyse und Vorhersage
+```
+
+```{r}
+# Erschaffen eines subsets von shipments ohne stornierte Aufträge von 2018 bis 2020
+shipments_uncancelled = subset(shipments, cancellation_reason == "" & first_stop_requested_arrival_to_YearMonth >= "2018-01" & first_stop_requested_arrival_to_YearMonth <= "2020-12" )
+```
+
+```{r}
+# die Marge über die Monate nach business_model aggregieren
+marge_YearMonth = aggregate(marge ~ first_stop_requested_arrival_to_YearMonth, shipments_uncancelled, mean)
+
+```
+
+```{r}
+#Liniendiagramm des Demand der Periode Shanghai über die 60 Perioden (Januar 2016-Dezember 2020)
+ggplot(marge_YearMonth, aes(x = seq(1,length(c(marge_YearMonth$first_stop_requested_arrival_to_YearMonth)),1), y = marge, group = 1)) + 
+  geom_line() +
+  
+  # Umbenennung der x-Achse
+  labs(x = "Periode")
+  
 ```
 
 
@@ -505,9 +530,119 @@ Kendall’s correlation coefficient is often smaller than Spearman’s correlati
 
 ***(5) Verschiedene Methoden der deskriptiven Statistik (Clustering, Zeitreihenanalyse...)***
 ```{r eval=TRUE}
+ts_marge = ts(marge_YearMonth$marge, frequency = 12)
 
+#Die 'cat' Funktion dient lediglich für eine bessere Übersicht indem sie Absätze im Output erzeugt
+# Modell automatisch erstellen lassen
+cat("\n","\n","Modell:","\n")
+m_marge = ets(ts_marge, model = "ZZZ")
+# (1) Modellzusammenfassung ausgeben lassen
+m_marge
+
+# (2) Ausgabe ursprüngliche Zeitreihe
+cat("\n","\n","Ursprüngliche Zeitreihe:","\n")
+ts_marge
+# (3) Residuen ausgeben
+cat("\n","\n","Residuen:","\n")
+round(m_marge$residuals,2)
+```
+Erstellen einer Nachfragevorhersage mit der 'forcast' Funktion und dem Modell 'm_marge_3PL' für ein weiteres Jahr also 12 Perioden
+```{r}
+#Vorhersage erstelle und in 'fcast_Shangh' speichern
+fcast_marge = forecast(m_marge,12)
+#Anzeigen der Vorhersage
+fcast_marge
+```
+Visualiesierung der Vorhersage ("forecast") und der ursprünglichen Nachfragen ("original") in einem Liniendiagramm über die Perioden. Es wurde ein Liniendiagramm gewählt, da es den fließenden Verlauf zwischen den Perioden anzeigen lässt und dadurch wie eng die beiden Linien der Vorhersage und der Origanlwerte über die Zeit auseinander liegen, lässt sich die Güte des Modells beobachten
+```{r}
+# Hintergrund erzeugen 
+ggplot(data = NULL) + 
+  
+  # Erste Linie hinzufuegen (keine Daten; X-Achse = Reihe von 1 bis laenge fitting Werten und Forecast Werten)
+  geom_line(data = NULL, aes(x=seq(1,length(c(fcast_marge$fitted, fcast_marge$mean)),1), 
+                             # Y-Achse = Kombination von fitting Werten und Forecast Werten
+                             y= c(as.numeric(fcast_marge$fitted),as.numeric(fcast_marge$mean)), 
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'forecast')) +
+  
+  # Zweite Linie hinzufuegen (Keine Daten; X-Achse = Reihe von 1 bis laenge Beobachtungen)
+  geom_line(data = NULL, aes(x=seq(1,length(fcast_marge$x),1), 
+                             # Y-Achse = Beobachtungen
+                             y= as.numeric(fcast_marge$x),
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'original')) + 
+  geom_smooth(data = NULL, aes(x=seq(1,length(c(fcast_marge$fitted, fcast_marge$mean)),1), 
+                             # Y-Achse = Kombination von fitting Werten und Forecast Werten
+                             y= c(as.numeric(fcast_marge$fitted),as.numeric(fcast_marge$mean)), 
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'forecast'))+
+  
+  # Umbenennung der x- und y-Achsen
+  labs(y="Marge in EUR", x="Periode")
+  
+  # Farben fuer Beschriftungen festlegen
+  scale_colour_manual(breaks = c("forecast", "original"), values = c("red", "blue"))
+```
+Erkenntnisse: 
+-keine Saisonalitäten identifiziert
+-leichter Trend nach oben
+
+## prozentuale Marge Zeitreihenanalyse
+```{r}
+marge_percent = shipments_uncancelled[c("first_stop_requested_arrival_to_YearMonth", "total_revenue", "total_cost", "marge")] %>%
+  aggregate(.~first_stop_requested_arrival_to_YearMonth,.,mean) %>%
+#Spalte prozentuale Marge einfügen
+  mutate(marge_percent = marge / total_revenue)
+
+ts_marge_percent = ts(marge_percent$marge_percent, frequency = 12)
+
+#Die 'cat' Funktion dient lediglich für eine bessere Übersicht indem sie Absätze im Output erzeugt
+# Modell automatisch erstellen lassen
+cat("\n","\n","Modell:","\n")
+m_marge_percent = ets(ts_marge_percent, model = "ZZZ")
+# (1) Modellzusammenfassung ausgeben lassen
+m_marge_percent
+
+# (2) Ausgabe ursprüngliche Zeitreihe
+cat("\n","\n","Ursprüngliche Zeitreihe:","\n")
+ts_marge_percent
+# (3) Residuen ausgeben
+cat("\n","\n","Residuen:","\n")
+round(m_marge_percent$residuals,2)
+```
+Erstellen einer Nachfragevorhersage mit der 'forcast' Funktion und dem Modell 'm_marge_3PL' für ein weiteres Jahr also 12 Perioden
+```{r}
+#Vorhersage erstelle und in 'fcast_Shangh' speichern
+fcast_marge_percent = forecast(m_marge_percent,12)
+#Anzeigen der Vorhersage
+fcast_marge_percent
 ```
 
+Visualiesierung der Vorhersage ("forecast") und der ursprünglichen Nachfragen ("original") in einem Liniendiagramm über die Perioden. Es wurde ein Liniendiagramm gewählt, da es den fließenden Verlauf zwischen den Perioden anzeigen lässt und dadurch wie eng die beiden Linien der Vorhersage und der Origanlwerte über die Zeit auseinander liegen, lässt sich die Güte des Modells beobachten
+```{r}
+# Hintergrund erzeugen 
+ggplot(data = NULL) + 
+  
+  # Erste Linie hinzufuegen (keine Daten; X-Achse = Reihe von 1 bis laenge fitting Werten und Forecast Werten)
+  geom_line(data = NULL, aes(x=seq(1,length(c(fcast_marge_percent$fitted, fcast_marge_percent$mean)),1), 
+                             # Y-Achse = Kombination von fitting Werten und Forecast Werten
+                             y= c(as.numeric(fcast_marge_percent$fitted),as.numeric(fcast_marge_percent$mean)), 
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'forecast')) +
+  
+  # Zweite Linie hinzufuegen (Keine Daten; X-Achse = Reihe von 1 bis laenge Beobachtungen)
+  geom_line(data = NULL, aes(x=seq(1,length(fcast_marge_percent$x),1), 
+                             # Y-Achse = Beobachtungen
+                             y= as.numeric(fcast_marge_percent$x),
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'original')) + 
+  
+  # Umbenennung der x- und y-Achsen
+  labs(y="Marge 3PL", x="Periode")
+  
+  # Farben fuer Beschriftungen festlegen
+  scale_colour_manual(breaks = c("forecast", "original"), values = c("red", "blue"))
+```
 
 
 ***Aufgabe B: Vorhersagemodelle****
