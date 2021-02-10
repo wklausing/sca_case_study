@@ -47,36 +47,46 @@ shipments <- read.csv("data/shipment_FINAL_20210115.csv")
 shipments$shipment_created_at = as.POSIXct(shipments$shipment_created_at,tz=Sys.timezone())
 
 shipments[shipments$smh_accepted_first_state_change == "",]$smh_accepted_first_state_change = NA
-shipments$smh_accepted_first_state_change = as.POSIXct(shipments$smh_accepted_first_state_change,tz=Sys.timezone())  
+#shipments$smh_accepted_first_state_change = as.POSIXct(shipments$smh_accepted_first_state_change,tz=Sys.timezone())  
 
 shipments[shipments$smh_accepted_last_state_change == "",]$smh_accepted_last_state_change = NA
-shipments$smh_accepted_last_state_change = as.POSIXct(shipments$smh_accepted_last_state_change,tz=Sys.timezone())  
+#shipments$smh_accepted_last_state_change = as.POSIXct(shipments$smh_accepted_last_state_change,tz=Sys.timezone())  
 
-shipments$first_stop_requested_arrival_to = as.POSIXct(shipments$first_stop_requested_arrival_to,tz=Sys.timezone())  
+#shipments$first_stop_requested_arrival_to = as.POSIXct(shipments$first_stop_requested_arrival_to,tz=Sys.timezone())  
 
-shipments$first_stop_agreed_arrival_to = as.POSIXct(shipments$first_stop_agreed_arrival_to,tz=Sys.timezone())
+#shipments$first_stop_agreed_arrival_to = as.POSIXct(shipments$first_stop_agreed_arrival_to,tz=Sys.timezone())
 
 shipments[shipments$last_stop_agreed_arrival_to == "",]$last_stop_agreed_arrival_to = NA
-shipments$last_stop_agreed_arrival_to = as.POSIXct(shipments$last_stop_agreed_arrival_to,tz=Sys.timezone())
+#shipments$last_stop_agreed_arrival_to = as.POSIXct(shipments$last_stop_agreed_arrival_to,tz=Sys.timezone())
 
 shipments[shipments$first_stop_actual_arrival == "",]$first_stop_actual_arrival = NA
-shipments$first_stop_actual_arrival = as.POSIXct(shipments[shipments$first_stop_actual_arrival != "",]$first_stop_actual_arrival,tz=Sys.timezone())
+#shipments$first_stop_actual_arrival = as.POSIXct(shipments[shipments$first_stop_actual_arrival != "",]$first_stop_actual_arrival,tz=Sys.timezone())
 
 shipments[shipments$last_stop_requested_arrival_to == "",]$last_stop_requested_arrival_to = NA
-shipments$last_stop_requested_arrival_to = as.POSIXct(shipments$last_stop_requested_arrival_to,tz=Sys.timezone())
+#shipments$last_stop_requested_arrival_to = as.POSIXct(shipments$last_stop_requested_arrival_to,tz=Sys.timezone())
 
 shipments[shipments$last_stop_actual_arrival == "",]$last_stop_actual_arrival = NA
-shipments$last_stop_actual_arrival = as.POSIXct(shipments[shipments$last_stop_actual_arrival != "",]$last_stop_actual_arrival,tz=Sys.timezone())
+#shipments$last_stop_actual_arrival = as.POSIXct(shipments[shipments$last_stop_actual_arrival != "",]$last_stop_actual_arrival,tz=Sys.timezone())
 
 shipments[shipments$sh_cancelled == "",]$sh_cancelled = NA
-shipments$sh_cancelled = as.POSIXct(shipments[shipments$sh_cancelled != "",]$sh_cancelled,tz=Sys.timezone())
+#shipments$sh_cancelled = as.POSIXct(shipments[shipments$sh_cancelled != "",]$sh_cancelled,tz=Sys.timezone())
 
 # Dates
 shipments$first_stop_requested_arrival_to_date = shipments$first_stop_requested_arrival_to_date %>% as.Date()
 shipments$last_stop_requested_arrival_to_date = shipments$last_stop_requested_arrival_to_date %>% as.Date()
 
+# Erzeuge Spalte für Jahr. Monat, Tag
+shipments = shipments %>%
+  dplyr::mutate(year = lubridate::year(shipment_created_at), 
+                month = lubridate::month(shipment_created_at), 
+                day = lubridate::day(shipment_created_at))
+
+YearMonthFormat = as.Date(shipments$shipment_created_at)
+shipments$YearMonth = strftime(YearMonthFormat, format = "%Y-%m") #Jahr-Monat
+
+
 # Margin Daten einlesen 
-margin <- read.csv("data/margin_by_week_FINAL_20210115.csv")
+margin <- read.csv2("data/margin_by_week_FINAL_20210115.csv")
 
 head(shipments)
 head(margin)
@@ -116,7 +126,7 @@ shipments = shipments[-1,]
 shipments = shipments[shipments$transport_price_booked >= 0 & shipments$transport_cost_assigned >= 0,]
 
 #9. Ausreißer bei total_revenue und total_cost entfernen.
-plot(x=shipments$total_revenue, y=shipments$total_cost)# Vorher
+#plot(x=shipments$total_revenue, y=shipments$total_cost)# Vorher
 shipments = shipments[shipments$total_revenue < 5000 & shipments$total_revenue > -1000 & shipments$total_cost > -1000,]
 plot(x=shipments$total_revenue, y=shipments$total_cost)# Nachher
 
@@ -132,7 +142,7 @@ shipments = shipments[!is.na(shipments$shipment_reference), ]
 
 ***Daten Formatieren: Zeitliche Entwicklung***
 ### (1.3) JAHR-MONAT extrahieren
-```{r eval=TRUE}
+```{r eval=FALSE}
 # Extrahieren von Jahr-Monat aus Shipment-Spalte "last_stop_requested_arrival_to_date", 
 # da diese Spalte auch in Margin-Spalte vorhanden ist
 x <- as.Date(TableBind$last_stop_requested_arrival_to_date, format="%Y-%m-%d")
@@ -146,7 +156,7 @@ TableBind$YearMonth = format(x,"%Y-%m")
 
 ***(2) Visuelle Exploration (mit Aggregation)***
 ### (2.1) Shipments Gegenueberstellung: total_cost und total_revenue
-```{r eval=TRUE}
+```{r eval=FALSE}
 # Umsatz aggrerieren
 df_Revenue = data.frame(aggregate(
   total_revenue ~ business_model + fulfilment_strategy, data=TableBind, sum))
@@ -286,70 +296,8 @@ groupbind
 #TODO: Grafik von entstandene Kosten bei Lieferung waere gut
 ```
 
-
-### (2.3) Bereitsvorhandene Vorhersage aus Margin visualisieren. 
-# Vorhersage Daten existieren schon. Erst in Teil B neue Vorhersage machen.
-```{r eval=TRUE}
-
-```
-
-
-***(3) Kennzahlen und Reporting von Verfahren identifizierte Muster zB Saisonalitäten, Trends, ...***
-```{r eval=TRUE}
-
-```
-
-
-***(4) Korrelationen + Externe Faktoren (Noch zu finden!)***
-```{r eval=TRUE}
-
-```
-
-
-***(5) Verschiedene Methoden der deskriptiven Statistik (Clustering, Zeitreihenanalyse...)***
-```{r eval=TRUE}
-
-```
-
-
-
-***Aufgabe B: Vorhersagemodelle****
-Das Ziel dieser Aufgabe ist die Erstellung von Prognosemodellen zur Abschätzung der Unternehmensmarge. 
-Erstellen Sie zu diesem Zweck zunächst ein Modell basierend auf multivari ater Regression, welches die Marge einer Buchung/ eines Shipments in Abhängigkeit relevan- ter Einflussfaktoren vorhersagt. Das Modell soll systematisch erstellt werden, indem mehrere Kombinationen von erklärenden Variablen gegeneinander getestet werden und eine begrün- dete Empfehlung für das beste Modell gegeben wird. Als Art der Modellierung wird hierbei die multivariate Lineare Regression vorgeschlagen. Überlegen Sie, wie dieses Modell in die Un- ternehmensprozesse eingebunden werden kann. Das Modell soll eher eine Erklärungs- als eine Vorhersagefunktion erfüllen.
-Erstellen Sie weiterhin ein Modell, welches für die Vorhersage der zukünftigen Entwicklung der Unternehmensmarge genutzt werden kann. Hierbei sind mehrere Lösungen denkbar. Ach- ten Sie hier besonders auf die Realisierbarkeit bezüglich des Modelleinsatzes im Unternehmen.
-Folgende Daten stehen Ihnen zur Erstellung der Modelle zur Verfügung:
-Unternehmensinterne Daten
-Sie erhalten zwei Datensätzen von Instafreight, welche im beigefügten PDF näher beschrieben werden. Der eine Datensatz beschreibt die Shipments der letzten 3 Jahre, der andere Daten- satz beschreibt die wöchentliche Marge in dem Zeitraum.
-Weitere Daten für die Bearbeitung der Fallstudie
-Sie können weitere Variablen recherchieren, die einen Einfluss auf die Unternehmensmarge haben und die Modellergebnisse entsprechend verbessern können. Folgende Variablen könn- ten beispielsweise verwendet werden:
-• Wetterdaten
-• Entwicklung der Kaufkraft, Bevölkerungszuwachs
-• Feriendaten, Feiertags-Daten, Event-Daten
-Diese Beispiele sind lediglich ein Vorschlag. 
-Sie können weitere Variablen verwenden, die aus Ihrer Sicht für die Erstellung des Modelles relevant sind. Die Auswahl muss nachvollziehbar begründet werden.
-
-SCA – WiSe 20/21 Aufgabenstellung zur Case Study
-Bitte achten Sie bei der Auswahl der beschreibenden Variablen auf die Verlässlichkeit der verwendeten Datenquelle. Empfohlene Datenquellen für die Auswahl der Variablen sind bei- spielsweise:
-• Statistische Agenturen der verschiedenen Länder (z.B. Statistisches Bundesamt2 für Deutschland - https://www.destatis.de/DE/Home/_inhalt.html)
-• Eurostat (https://ec.europa.eu/eurostat/de/home)
-• Statista (https://de.statista.com/)
-• Relevante wissenschaftliche Literatur
-• UN Databank für statistische Daten (http://w3.unece.org/pxweb/Dialog/)
-
-Zu B: Das erste Modell soll hauptsächlich eine erklärende Funktion erfüllen. Dabei wird die Frage beantwortet: „Welchen Einfluss haben gewisse Faktoren auf die Marge eines Shipments?“. Die Ergebnisse davon sollten in A einfließen. Das zweite Modell soll ein nutzbares Modell sein, welches dem Unternehmen eine Vorhersage über die zukünf- tige Entwicklung der Marge ermöglicht. Hier können Shipments beispielsweise auf Tage, Wochen oder Monate aggregiert werden. Achten Sie bei der Modellierung da- rauf, dass die notwendigen Daten zum Vorhersagezeitpunkt zugänglich sein müssen. Die Erkenntnisse aus dem ersten Modell sind hierbei sicherlich sinnvoll einzubringen.
-• Falls Ihre vorgeschlagene Gesamtlösung Modellierungen enthält, die über die in A und B entwickelten Lösungen hinausgeht, müssen Sie diese nicht implementieren. Es ge- nügt ein Ausblick.
-
-
-
-***Aufgabe C: Dashboard***
-Die Aufbereitung von vorhandenen Analyseergebnissen, welche dem Nutzer eine nachvoll- ziehbare Entscheidungsgrundlage bieten soll, stellt eine wichtige Rolle in der Entwicklung von Analytics-Lösungen dar. Aus diesem Grund werden Sie in dieser Aufgabe gebeten, eine Visu- alisierung Ihrer Ergebnisse aus B (und A) in Form eines Dashboards zu erstellen. Das Dash- board soll eine Implementierung des in B entwickelten Prognosemodells sein, welches ein möglichst nutzerfreundliches und anwendungsbezogenes Design vorweist. Überlegen Sie, welche relevanten Informationen dem Nutzer bereitgestellt werden müssen. Nutzen Sie dazu auch Ihre Erkenntnisse aus A. Achten Sie bei der Gestaltung des Dashboards unbedingt auf den zukünftigen Nutzer/Prozess.
-Beachten Sie dabei, dass der Entwurf ausschließlich die aus Ihrer Sicht relevanten Informati- onen beinhalten sollte. Überlegen Sie sich, welche Form der Visualisierung von einzelnen Kennzahlen / Variablen / Statistiken dem Nutzer die Entscheidungsfindung erleichtern könnte. Bitte achten Sie auf die Nachvollziehbarkeit der Entscheidungen, die zu Ihrem Entwurf geführt haben. Das Dashboard muss nicht funktional umgesetzt werden, es handelt sich lediglich um die konzeptionelle Gestaltung einer visuellen Entscheidungsgrundlage (Mock-Up!).
-
-
-
-
-```{r}
-#Prüfen ob Ausprägungen mit der Dokumentation übereinstimmen.
+```{r eval = false}
+# Shipments: Prüfen ob Ausprägungen mit der Dokumentation übereinstimmen.
 shipments$shipment_state %>% unique(.)
 shipments$shipment_stage %>% unique(.)
 shipments$business_model %>% unique(.)
@@ -361,23 +309,123 @@ shipments$cancellation_reason %>% unique(.)
 
 ```
 
+```{r}
+# Shipments: Balkendiagram für cancellation_reason
+total_shipments = shipments %>% nrow()
+total_cancelled_shipments = shipments[shipments$cancellation_reason != "",] %>% nrow()
 
-wilke = shipments[1:10,]
-write.csv(wilke,"~/\\data\\processed\\FileName.csv", row.names = FALSE)
+success_rate = 1 - total_cancelled_shipments / total_shipments
+success_rate
+# 92.75% aller shipments sind erfolgreich, 7.25% nicht.
+```
 
-write.csv(shipments,".\\data\\test2.csv", row.names = FALSE)
-wilke2 <- read.csv(".\\data\\test2.csv")
+```{r eval = false}
+# Shipments: Balkendiagram für cancellation_reason
+shipments[shipments$cancellation_reason != "",]$cancellation_reason %>% table(.) %>%  barplot(., names=unique(shipments[shipments$cancellation_reason != "",]$cancellation_reason), las=2, cex.names=.6)
+```
+
+```{r eval = false}
+# Shipments: Vergleich von Plot 
+shipments_customer_not_ready = shipments[shipments$cancellation_reason == "customer_not_ready",]
+
+plot(x=shipments_customer_not_ready$total_revenue, y=shipments_customer_not_ready$total_cost)
+
+#Bei 220 und 320 Revenue scheinen vllt Fixkosten für Kunden zu sein wen diese absagen, da sich an diesen Stellen Linien bilden.
+```
+
+```{r eval = false}
+#TODO Shipments: total_cost = 1 und total_revenue = 1. Aussortieren? Betrifft 276 Zeilen
+weird_shipments = shipments[shipments$total_cost == 1 & shipments$total_revenue == 1,]
+weird_shipments
+```
+
+```{r eval = false}
+#Auffällig keiten bei Preisen und Kosten suchen. Am besten einfach mit Table und nach Häufigkeit sortieren.
+shipments$transport_cost_assigned %>% table(.) %>%  barplot(.)
+shipments$total_cost %>% table(.) %>%  barplot(.)
+
+shipments$transport_price_booked %>% table(.) %>%  barplot(.)
+shipments$total_revenue %>% table(.) %>%  barplot(.)
+```
 
 
-write.csv2(wilke, file ="C:\\filename.csv",row.names=FALSE)
-write.csv2(wilke, file ="C:\\Users\\Peter\\Documents\\TUB Master\\1. Semester\\SCA\\Case study\\data\\processed\\test.csv",row.names=FALSE)
+```{r eval = false}
+#Wachstum für Monate.
+growth_by_month = shipments %>% aggregate(total_revenue ~ year+month , data = ., sum)
+growth_by_month = growth_by_month[order(growth_by_month$year, growth_by_month$month ),]
 
-write.csv2(shipments, file =".\\data\\processed\\shipments_processed.csv",row.names=FALSE)
+for(i in 1:nrow(growth_by_month)) {
+  if(i == 1) {
+    growth_by_month$monthly_growth[i] = 0
+  } else {
+    growth_by_month$monthly_growth[i] = growth_by_month$total_revenue[i] / growth_by_month$total_revenue[i-1]
+  }
+}
+growth_by_month
+growth_by_month$period = 1:nrow(growth_by_month)
+ggplot(growth_by_month, aes(x=period, y=monthly_growth, group=1))+
+  geom_line(color="red")
 
-write.csv2(shipments, file =".\\data\\shipments_processed.csv",row.names=FALSE)
 
-wilke2 <- read.csv(".\\data\\shipments_processed.csv")
+# Wachstum für Jahre. Nur volle Jahre.
+growth_by_year = shipments[shipments$year != "2017" & shipments$year != "2021",] %>% aggregate(total_revenue ~ year, data = ., sum)
+for(i in 1:nrow(growth_by_year)) {
+  if(i == 1) {
+    growth_by_year$yearly_growth[i] = 0
+  } else {
+    growth_by_year$yearly_growth[i] = growth_by_year$total_revenue[i] / growth_by_year$total_revenue[i-1]
+  }
+}
+growth_by_year
+growth_by_year$period = 1:nrow(growth_by_year)
+ggplot(growth_by_year, aes(x=period, y=yearly_growth, group=1))+
+  geom_line(color="red")
 
-wilke3 <- read.csv("data/shipments_processed.csv")
 
-#TODO Erzeugung Datum von Zeile und first_stop_req liegen weit auseinander
+```
+
+
+
+
+### Korrelation Google Data
+```{r eval=TRUE}
+correlations = data.frame(cor(shipments[23:26]))
+
+correlations
+
+google_data <- read.csv("data/google_data.csv")
+YearMonthFormat = as.Date(google_data$Woche)
+google_data$YearMonth = strftime(YearMonthFormat, format = "%Y-%m") #Jahr-Monat
+google_data_by_month = google_data %>% aggregate(Spedition...Deutschland. ~ YearMonth , data = ., mean)
+
+google_data_by_month$number = 1:nrow(google_data_by_month)
+google_data_by_month
+plot(x=google_data_by_month$number, y=google_data_by_month$Spedition...Deutschland., type = "l")
+
+
+
+wilke = shipments %>% aggregate(total_revenue ~ YearMonth , data = ., mean)
+wilke$number = 1:nrow(wilke)
+wilke
+plot(x=wilke$number, y=wilke$total_revenue, type = "l")
+
+#correlations = data.frame(cor(shipments$, google_data$Spedition...Deutschland.))
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
