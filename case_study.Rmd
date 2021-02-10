@@ -4,11 +4,12 @@ author: "klauwi"
 date: "2/3/2021"
 output: html_document
 ---
-install.packages("janitor")
+
 Library Packages
 ```{r eval=TRUE}
 #rm(list = ls())
 library("readr")
+#install.packages("dplyr")
 library("dplyr") 
 library("zoo")
 library("forecast")
@@ -19,6 +20,9 @@ library("dummies")
 library("janitor")
 #install.packages("plotly")
 library("plotly") 
+#install.packages("janitor")
+library("janitor")
+#update.packages()
 ```
 
 ***Aufgabe A: Erkenntnisgewinn***
