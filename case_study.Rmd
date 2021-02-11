@@ -22,6 +22,7 @@ library("janitor")
 library("plotly") 
 #install.packages("janitor")
 library("janitor")
+library("tidyr")
 #update.packages()
 ```
 
@@ -221,7 +222,7 @@ ggplot(marge_YearMonth, aes(x = seq(1,length(c(marge_YearMonth$first_stop_reques
   
   # Umbenennung der x-Achse
   labs(x = "Periode")
-  
+# TODO: Korrigieren von dem Kommentar oben:"Liniendiagramm des Demand der Periode Shanghai über die 60 Perioden (Januar 2016-Dezember 2020)" 
 ```
 
 
@@ -348,7 +349,7 @@ groupbind
 #TODO: Grafik von entstandene Kosten bei Lieferung waere gut
 ```
 
-### (2.6) Visualisierung der zeitlichen Entwicklung von dem (prozentualen) wöchentlichen Profit
+### (2.6) Visualisierung der zeitlichen Entwicklung von dem prognostizierten (prozentualen) wöchentlichen Profit
 ```{r}
 ggplot(data = margin, aes(x = first_stop_requested_arrival_to_week, y = forecasted_margin_3pl, group=1)) +
   geom_line()+
@@ -359,15 +360,55 @@ ggplot(data = margin, aes(x = first_stop_requested_arrival_to_week, y = forecast
   ggtitle(label = "Instafreight: Weekly Margin (2018-2021)") +
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
   scale_x_discrete(breaks = margin$first_stop_requested_arrival_to_week[seq(1, length(margin$first_stop_requested_arrival_to_week), by = 10)])
-
-#TODO Year-Month
-#TODO Negative Zahlen checken und Begründung suchen
-#TODO Verhaeltnis zwischen tatseachliche Daten und dem Forecast hier aufzeigen
 ```
 Erkenntnisse:
 + sehr schwankende Profite, aber vor Ende des 2019 ist die Gewinnmarge nie negativ.
 + 5 kritische Zeitpunkte (negative prozentuale Profite):
 2019-52 (23.12.2019), 2020-01(30.12.2019-05.01.2020), 2020-36 bis 2020-38 (31.08.2020-20.09.2020) 
+
+#TODO Verhaeltnis zwischen tatseachliche Daten und dem Forecast hier aufzeigen
+```{r}
+# Subset von tatsaechlich realisierten Margen von 3PL Shipments, aggregiert nach Wochen
+# install.packages("tidyverse")
+library("tidyverse")
+
+shipments_3PL<- subset(shipments, business_model =="3PL")
+
+margin_week <- shipments_3PL %>% select(CalenderWeek, total_margin)
+margin_week <- aggregate(total_margin~CalenderWeek, data = margin_week, sum)
+names(margin_week)[2] = "realisierte_Marge"
+names(margin_week)[1] = "first_stop_requested_arrival_to_week"
+```
+
+```{r}
+# Kombinieren von margin und margin_week
+margin <- merge(margin, margin_week, by= "first_stop_requested_arrival_to_week")
+```
+
+```{r}
+#margin in Euro fuer alle 3PL-Shipments
+margin$forecasted_margin_3pl_Euro = round( (margin$forecasted_revenue_3pl*(margin$forecasted_margin_3pl/100)),2)
+```
+
+
+```{r}
+#Visualisierung des Verhaeltnises zwischen tatseachliche Daten und dem Forecast 
+# Liniendiagram von forcasted_margin
+ggplot(data = margin, aes(x = first_stop_requested_arrival_to_week, group=1)) + 
+  geom_line(aes(y = forecasted_margin_3pl_Euro), colour="red") + 
+  geom_line(aes(y = realisierte_Marge), colour="darkgreen") +
+  
+  xlab("Week") +  
+  ylab("Margin in Euro") +
+  
+  ggtitle(label = "Instafreight: Forecast vs. Reality (2018-2021)") +
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
+  
+  scale_x_discrete(breaks = margin$first_stop_requested_arrival_to_week[seq(1, length(margin$first_stop_requested_arrival_to_week), by = 5)]) 
+
+```
+
+
 
 ## (2.7) Visualisierung der zeitlichen Veränderung des Anteils von cancelled_shipment_count_3pl 
 ```{r}
@@ -393,9 +434,6 @@ Moeglicher Grund:zweite Welle der Corona-Pandemie
 Bei jeder Custom Rate wird ein Vertrag mit festen Transportpreisen mit dem Kunden geschlossen und die Transportpreise gehalten werden müssen. # Frage: Wer legt den Preis fuer Transport fest?
 Bei dem Gegenstück der Custom Rate shipments, der Spot shipments, kann der Preis jederzeit angepasst werden. Dies passiert normalerweise auf einer wöchentlichen Basis.
 ```{r eval=TRUE}
-#margin in Euro fuer alle 3PL-Shipments
-margin$forecasted_margin_3pl_Euro = round( (margin$forecasted_revenue_3pl*(margin$forecasted_margin_3pl/100)),2)
-
 #margin in Euro fuer 3PL custom_rate shipments
 margin$forecasted_margin_3pl_custom_rate_Euro = round( (margin$forecasted_revenue_3pl_custom_rate*(margin$forecasted_margin_3pl_custom_rate/100)),2)
 
