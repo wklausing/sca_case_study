@@ -60,7 +60,7 @@ Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
     Noch Daten 2017-2020 suchen zu:
     # Import & Export
     # Grippe oder generell Gesundheit von Menschen
-    # Benzinpreise, e.g. Diesel
+    # Benzinpreise, e.g. Diesel #erledigt
     # Verkehrsunfälle
     # (Wetter Vergleich von domain_lane also zwischen Länder DE>>NL)
     
@@ -475,12 +475,13 @@ stop count: 2,3,4,5,6,7
 OTD: ontime (1), belated (0) 
 
 ```{r}
-shipments_without_cancellation = subset(shipments, shipment_state != "cancelled")
+##shipments_without_cancellation = subset(shipments, shipment_state != "cancelled")
 
-shipments_without_cancellation$margin = shipments_without_cancellation$total_revenue - shipments_without_cancellation$total_cost
+##shipments_without_cancellation$margin = shipments_without_cancellation$total_revenue - shipments_without_cancellation$total_cost
 
-inspect(shipments_without_cancellation)
+##inspect(shipments_without_cancellation)
 
+shipments_uncancelled
 ```
 
 ## (4.2)  Categorical-numerical associations 
@@ -489,15 +490,15 @@ inspect(shipments_without_cancellation)
 a. business model
 ```{r}
 # durchschnittliche Marge, aggregiert nach buusiness model (3PL, 4PL)
-shipments_without_cancellation %>%
+shipments_uncancelled %>%
     group_by(business_model) %>%
-    summarize(mean_margin = mean(margin, na.rm = TRUE))
+    summarize(mean_margin = mean(total_margin, na.rm = TRUE))
 
 ```
 
 ```{r}
 # VIsualisierung
-ggplot(shipments_without_cancellation, 
+ggplot(shipments_uncancelled, 
        aes(factor(business_model), 
        fill = factor(business_model))) +
       geom_bar()
@@ -594,7 +595,7 @@ Kendall’s correlation coefficient is often smaller than Spearman’s correlati
 
 ***(5) Verschiedene Methoden der deskriptiven Statistik (Clustering, Zeitreihenanalyse...)***
 ```{r eval=TRUE}
-ts_marge = ts(marge_YearMonth$marge, frequency = 12)
+ts_marge = ts(marge_YearMonth$total_margin, frequency = 12)
 
 #Die 'cat' Funktion dient lediglich für eine bessere Übersicht indem sie Absätze im Output erzeugt
 # Modell automatisch erstellen lassen
@@ -653,12 +654,12 @@ Erkenntnisse:
 
 ## prozentuale Marge Zeitreihenanalyse
 ```{r}
-marge_percent = shipments_uncancelled[c("first_stop_requested_arrival_to_YearMonth", "total_revenue", "total_cost", "marge")] %>%
+marge_percent = shipments_uncancelled[c("first_stop_requested_arrival_to_YearMonth", "total_revenue", "total_cost", "total_margin")] %>%
   aggregate(.~first_stop_requested_arrival_to_YearMonth,.,mean) %>%
 #Spalte prozentuale Marge einfügen
-  mutate(marge_percent = marge / total_revenue)
+  mutate(total_margin_percent = total_margin / total_revenue)
 
-ts_marge_percent = ts(marge_percent$marge_percent, frequency = 12)
+ts_marge_percent = ts(marge_percent$total_margin_percent, frequency = 12)
 
 #Die 'cat' Funktion dient lediglich für eine bessere Übersicht indem sie Absätze im Output erzeugt
 # Modell automatisch erstellen lassen
@@ -702,7 +703,7 @@ ggplot(data = NULL) +
                              colour = 'original')) + 
   
   # Umbenennung der x- und y-Achsen
-  labs(y="Marge 3PL", x="Periode")
+  labs(y="prozentuale Marge 3PL", x="Periode")
   
   # Farben fuer Beschriftungen festlegen
   scale_colour_manual(breaks = c("forecast", "original"), values = c("red", "blue"))
