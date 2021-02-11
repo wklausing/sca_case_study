@@ -369,6 +369,10 @@ ggplot(growth_by_month, aes(x=period, y=monthly_growth, group=1))+
   geom_line(color="red") +
   ggtitle(label = "Wachstum von Total Revenue pro Monat")
 
+ggplot(growth_by_month[growth_by_year$period != 1,], aes(x=period, y=monthly_growth, group=1))+
+  geom_line(color="red") +
+  ggtitle(label = "Wachstum von Total Revenue pro Monat")
+
 
 # Wachstum für Jahre. Nur volle Jahre.
 growth_by_year = shipments[shipments$year != "2017" & shipments$year != "2021",] %>% aggregate(total_revenue ~ year, data = ., sum)
@@ -379,40 +383,36 @@ for(i in 1:nrow(growth_by_year)) {
     growth_by_year$yearly_growth[i] = growth_by_year$total_revenue[i] / growth_by_year$total_revenue[i-1]
   }
 }
+
 growth_by_year
 growth_by_year$period = 1:nrow(growth_by_year)
 ggplot(growth_by_year, aes(x=period, y=yearly_growth, group=1))+
   geom_line(color="red") +
   ggtitle(label = "Wachstum Total Revenue pro Jahr")
-
-
 ```
 
 
 
 
-### Korrelation Google Data
+### Korrelation in Shipments und mit Google Data
 ```{r eval=TRUE}
-correlations = shipments[c("stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost")] %>% cor() %>% data.frame()
+correlations = shipments[c("stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% cor() %>% data.frame()
 correlations
 
-google_data <- read.csv("data/google_data.csv")
-YearMonthFormat = as.Date(google_data$Woche)
-google_data$YearMonth = strftime(YearMonthFormat, format = "%Y-%m") #Jahr-Monat
-google_data_by_month = google_data %>% aggregate(Spedition...Deutschland. ~ YearMonth , data = ., mean)
+google_data = read.csv("data/google_data.csv")
+google_data
+google_data$YearMonth = google_data$Woche %>% as.Date() %>% strftime(., format = "%Y-%m") 
 
-google_data_by_month$number = 1:nrow(google_data_by_month)
-google_data_by_month
-plot(x=google_data_by_month$number, y=google_data_by_month$Spedition...Deutschland., type = "l")
+google_data_month = google_data[c("YearMonth","Spedition...Deutschland.", "Transport...Deutschland.")] %>% aggregate(. ~ YearMonth , ., mean)
+google_data_month
 
 
+shipments_month = shipments[c("YearMonth","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% aggregate(. ~ YearMonth , ., mean)
 
-wilke = shipments %>% aggregate(total_revenue ~ YearMonth , data = ., mean)
-wilke$number = 1:nrow(wilke)
-wilke
-plot(x=wilke$number, y=wilke$total_revenue, type = "l")
-
-#correlations = data.frame(cor(shipments$, google_data$Spedition...Deutschland.))
+shipments_google_month <- merge(google_data_month,shipments_month,by=c("YearMonth","YearMonth")) 
+shipments_google_month
+shipments_google_month_cor = total[c("Spedition...Deutschland.","Transport...Deutschland.","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% cor() %>% data.frame()
+shipments_google_month_cor
 
 ```
 
