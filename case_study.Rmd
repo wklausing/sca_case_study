@@ -58,7 +58,13 @@ Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
     https://ec.europa.eu/eurostat/databrowser/view/naida_10_gdp/default/table?lang=de
     
     Noch Daten 2017-2020 suchen zu:
-    # Import & Export
+    
+    # Import & Exportl
+    a) Einzelhandel - monatliche Daten:
+    https://ec.europa.eu/eurostat/databrowser/view/EI_BSRT_M_R2__custom_560747/default/table?lang=de
+    b) Euro area 19 international trade - monthly data:
+    https://ec.europa.eu/eurostat/databrowser/view/ei_etea19_m/default/table?lang=en
+    
     # Grippe oder generell Gesundheit von Menschen
     # Benzinpreise, e.g. Diesel #erledigt
     # Verkehrsunfälle
