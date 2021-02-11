@@ -210,13 +210,13 @@ shipments_uncancelled = subset(shipments, cancellation_reason == "" & first_stop
 
 ```{r}
 # die Marge über die Monate nach business_model aggregieren
-marge_YearMonth = aggregate(marge ~ first_stop_requested_arrival_to_YearMonth, shipments_uncancelled, mean)
+marge_YearMonth = aggregate(total_margin ~ first_stop_requested_arrival_to_YearMonth, shipments_uncancelled, mean)
 
 ```
 
 ```{r}
 #Liniendiagramm des Demand der Periode Shanghai über die 60 Perioden (Januar 2016-Dezember 2020)
-ggplot(marge_YearMonth, aes(x = seq(1,length(c(marge_YearMonth$first_stop_requested_arrival_to_YearMonth)),1), y = marge, group = 1)) + 
+ggplot(marge_YearMonth, aes(x = seq(1,length(c(marge_YearMonth$first_stop_requested_arrival_to_YearMonth)),1), y = total_margin, group = 1)) + 
   geom_line() +
   
   # Umbenennung der x-Achse
@@ -227,7 +227,7 @@ ggplot(marge_YearMonth, aes(x = seq(1,length(c(marge_YearMonth$first_stop_reques
 
 ***(2) Visuelle Exploration (mit Aggregation)***
 ### (2.1) Shipments Gegenueberstellung: total_cost und total_revenue
-```{r eval=TRUE}
+```{r eval=FALSE}
 # Umsatz aggrerieren
 df_Revenue = data.frame(aggregate(
   total_revenue ~ business_model + fulfilment_strategy, data=TableBind, sum))
