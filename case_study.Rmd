@@ -367,6 +367,8 @@ Erkenntnisse:
 2019-52 (23.12.2019), 2020-01(30.12.2019-05.01.2020), 2020-36 bis 2020-38 (31.08.2020-20.09.2020) 
 
 #TODO Verhaeltnis zwischen tatseachliche Daten und dem Forecast hier aufzeigen
+#TODO Year-Month: nicht nötig, beide data sets werden über die Spalte Wochenkalender miteinander verbunden und sins somit auch vergleichbar.
+
 ```{r}
 # Subset von tatsaechlich realisierten Margen von 3PL Shipments, aggregiert nach Wochen
 # install.packages("tidyverse")
@@ -390,10 +392,9 @@ margin <- merge(margin, margin_week, by= "first_stop_requested_arrival_to_week")
 margin$forecasted_margin_3pl_Euro = round( (margin$forecasted_revenue_3pl*(margin$forecasted_margin_3pl/100)),2)
 ```
 
-
 ```{r}
 #Visualisierung des Verhaeltnises zwischen tatseachliche Daten und dem Forecast 
-# Liniendiagram von forcasted_margin
+
 ggplot(data = margin, aes(x = first_stop_requested_arrival_to_week, group=1)) + 
   geom_line(aes(y = forecasted_margin_3pl_Euro), colour="red") + 
   geom_line(aes(y = realisierte_Marge), colour="darkgreen") +
@@ -407,7 +408,7 @@ ggplot(data = margin, aes(x = first_stop_requested_arrival_to_week, group=1)) +
   scale_x_discrete(breaks = margin$first_stop_requested_arrival_to_week[seq(1, length(margin$first_stop_requested_arrival_to_week), by = 5)]) 
 
 ```
-
+# TODO: Legende
 
 
 ## (2.7) Visualisierung der zeitlichen Veränderung des Anteils von cancelled_shipment_count_3pl 
@@ -417,7 +418,8 @@ margin$cancel_rate_3pl = round( ((margin$shipment_count_3pl-margin$non_cancelled
 
 #Visualisierung
 plot_ly(data = margin,x= ~first_stop_requested_arrival_to_week,   
-        y= ~cancel_rate_3pl ,type = "bar")
+        y= ~cancel_rate_3pl ,type = "bar")%>% 
+  layout(title = 'Cancellation rate in 3PL Shipments')
 
 ```
 
@@ -443,13 +445,13 @@ margin$forecasted_margin_3pl_spot_Euro = round( (margin$forecasted_revenue_3pl_s
 # Visualisierung
 plot_ly(data = margin,x= ~first_stop_requested_arrival_to_week,   
         y= ~forecasted_margin_3pl_custom_rate_Euro,type = "bar", name = "custom_rate") %>%  
-        add_trace(y= ~forecasted_margin_3pl_spot_Euro, name ="spot")%>% 
-        layout(yaxis = list(title = 'margin in Euro'), barmode = 'stack')
+        add_trace(y= ~forecasted_margin_3pl_spot_Euro, name ="spot")%>%
+        layout(title = "Custom rate shipments - Spot shipments ", yaxis = list(title = 'margin in Euro'), barmode = 'stack')
 
 
 ```
 Erkenntnis: Mehr Marge mit Customrate (Contract) als mit spot (Marktpreis)
-#TODO Titel und Year-Month noch setzen
+#TODOYear-Month noch setzen
 
 
 
@@ -475,13 +477,9 @@ stop count: 2,3,4,5,6,7
 OTD: ontime (1), belated (0) 
 
 ```{r}
-##shipments_without_cancellation = subset(shipments, shipment_state != "cancelled")
+#Hinzufügen einer Spalte `OTD` unter der Bedingung das die Lieferung pünktlich war
 
-##shipments_without_cancellation$margin = shipments_without_cancellation$total_revenue - shipments_without_cancellation$total_cost
-
-##inspect(shipments_without_cancellation)
-
-shipments_uncancelled
+shipments_uncancelled$OTD = ifelse(shipments_uncancelled$last_stop_agreed_arrival_to >= shipments_uncancelled$last_stop_actual_arrival, TRUE, FALSE)  
 ```
 
 ## (4.2)  Categorical-numerical associations 
@@ -495,7 +493,9 @@ shipments_uncancelled %>%
     summarize(mean_margin = mean(total_margin, na.rm = TRUE))
 
 ```
-
+```{r}
+tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$business_model ,sum)
+```
 ```{r}
 # VIsualisierung
 ggplot(shipments_uncancelled, 
@@ -509,17 +509,17 @@ Erkenntnis: Die 3PL Shipments machen einen wesentlichen Anteil an den gesamten S
 b. custom rate shipment
 ```{r}
 # durchschnittliche Marge, aggregiert nach custom rate shipment (falsch, wahr)
-  shipments_without_cancellation %>%
+  shipments_uncancelled %>%
     group_by(custom_rate_shipment) %>%
-    summarize(mean_margin = mean(margin, na.rm = TRUE))
+    summarize(mean_margin = mean(total_margin, na.rm = TRUE))
 
 ```
 ```{r}
-  tapply(shipments_without_cancellation$margin ,shipments_without_cancellation$custom_rate_shipment ,sum)
+  tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$custom_rate_shipment ,sum)
 ```
 ```{r}
 # Visualisierung
-ggplot(shipments_without_cancellation, 
+ggplot(shipments_uncancelled, 
        aes(factor(custom_rate_shipment), 
        fill = factor(custom_rate_shipment))) +
        geom_bar()
@@ -529,26 +529,26 @@ Erkenntnis: Der Profit hängt auch davon ab, ob es hier  ein spot shipment oder 
 c. fulfillment strategy: bulk, pallet, fullTruck
 ```{r}
 # durchschnittliche Marge, aggregiert nach fulfillment strategy (bulk, fullTRuck, palett)
-  shipments_without_cancellation %>%
+  shipments_uncancelled %>%
     group_by(fulfilment_strategy) %>%
-    summarize(mean_margin = mean(margin, na.rm = TRUE))
+    summarize(mean_margin = mean(total_margin, na.rm = TRUE))
 ```
 ```{r}
-tapply(shipments_without_cancellation$margin ,shipments_without_cancellation$fulfilment_strategy ,sum)
+tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$fulfilment_strategy ,sum)
 ```
 
 ```{r}
 # Visualisierung
-ggplot(shipments_without_cancellation, 
+ggplot(shipments_uncancelled, 
        aes(factor(fulfilment_strategy), 
        fill = factor(fulfilment_strategy))) +
        geom_bar()
 ```
 
 ```{r}
-xtabs(~ custom_rate_shipment + fulfilment_strategy, data = shipments_without_cancellation)
+xtabs(~ custom_rate_shipment + fulfilment_strategy, data = shipments_uncancelled)
 ```
-Erkenntnis: Bei der Fulfillment-Strategie fullTruck sind ca. 2/3 der Shipments aus custom rate (mit pauschal festem Preis), somit kann nur geringe Gewinnmarge generiert werden im Vergleich zu der Marge von den Aufträgen auf dem Spotmarkt. (Der Preis wird für einzelne Stücke von Bulk-Waren oder Paletten berechnet und ändert sich auf Wochenbasis)
+Erkenntnis: Bei der Fulfillment-Strategie fullTruck sind ca. 2/3 der Shipments aus custom rate (mit pauschal festem Preis), somit kann nur geringe Gewinnmarge generiert werden im Vergleich zu der erzielten Marge von den Aufträgen auf dem Spotmarkt. (Der Preis wird für einzelne Stücke von Bulk-Waren oder Paletten berechnet und ändert sich auf Wochenbasis)
 
 d. Lane domain
 **Unterschied**
@@ -558,39 +558,79 @@ international: Transport nur zwischen Ländern ausschließlich Deutchland
 national: nur innerhalb von Deutschland
 ```{r}
 # durchschnittliche Marge, aggregiert nach lane domain (export, import, national, international)
-  shipments_without_cancellation %>%
+  shipments_uncancelled %>%
     group_by(lane_domain) %>%
-    summarize(mean_margin = mean(margin, na.rm = TRUE))
+    summarize(mean_margin = mean(total_margin, na.rm = TRUE))
 ```
 
 ```{r}
-tapply(shipments_without_cancellation$margin ,shipments_without_cancellation$lane_domain ,sum)
+tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$lane_domain ,sum)
 ```
 
 ```{r}
-ggplot(shipments_without_cancellation, 
+ggplot(shipments_uncancelled, 
        aes(factor(lane_domain), 
        fill = factor(lane_domain))) +
        geom_bar()
 ```
 
 e. OTD
+```{r}
+# durchschnittliche Marge, aggregiert nach lane domain (export, import, national, international)
+  shipments_uncancelled %>%
+    group_by(OTD) %>%
+    summarize(mean_margin = mean(total_margin, na.rm = TRUE))
+```
+```{r}
+tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$OTD ,sum)
+```
+
+```{r}
+ggplot(shipments_uncancelled, 
+       aes(factor(OTD), 
+       fill = factor(OTD))) +
+       geom_bar()
+```
 
 ## (4.3) Numerical-numerical associations
 (Zusammenhang zwischen der Gewinnmarge (numerical) und internem Faktor: stop count (numerical)
 ```{r}
-cor(shipments_without_cancellation$stops_count, shipments_without_cancellation$margin)
-cor(shipments_without_cancellation$stops_count, shipments_without_cancellation$margin, method = "kendall")
-cor(shipments_without_cancellation$stops_count, shipments_without_cancellation$margin, method = "spearman")
+cor(shipments_uncancelled$stops_count, shipments_uncancelled$total_margin)
+cor(shipments_uncancelled$stops_count, shipments_uncancelled$total_margin, method = "kendall")
+cor(shipments_uncancelled$stops_count, shipments_uncancelled$total_margin, method = "spearman")
 ```
 Ergebnisse:
-Correlation coeff. : -0.02591123
-Correlation coeff. (Kendall-Model):-0.03360171
-Correlation coeff. (Spearman-Model)-0.0413169
+Correlation coeff. :  -0.02870281
+Correlation coeff. (Kendall-Model): -0.03849449
+Correlation coeff. (Spearman-Model): -0.04730923
+=> zu geringe Korrelation zwischen stop_counts und total_margin
 
 Exkurs:
 Kendall’s correlation coefficient is often smaller than Spearman’s correlation coefficient. Although Spearman’s is used more widely, it is more sensitive to errors and discrepancies in the data than Kendall’s.
-**TO DO** : zu entscheiden, welche oder ob überhaupt interne Faktoren bei der Vorhersagemodellen berücksichtigt werden sollten?
+
+**Zwischenfazit** Die folgenden internen Faktoren: business_model, custom_rate_shipment, fulfiillment_strategy und OTD werden zum Aufbau eines linearen Regressionsmodell verwendet.
+
+## (4.3) Vorbereitung für das Erstellen des Regressionsmodells im Teil B
+```{r}
+# Convert to factor (for binary variables)
+
+shipments_uncancelled$business_model <- as.factor(shipments_uncancelled$business_model)
+
+
+shipments_uncancelled$custom_rate_shipment <- as.factor(shipments_uncancelled$custom_rate_shipment)
+
+
+shipments_uncancelled$OTD <- as.factor(shipments_uncancelled$OTD)
+
+```
+
+```{r}
+# Convert to factor (for not binary variables)
+
+fullfilment_strategy_dummies <- model.matrix(~fulfilment_strategy -1, data = shipments_uncancelled)
+head(fullfilment_strategy_dummies)
+
+```
 
 
 ***(5) Verschiedene Methoden der deskriptiven Statistik (Clustering, Zeitreihenanalyse...)***
