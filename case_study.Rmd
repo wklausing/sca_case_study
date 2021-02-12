@@ -33,27 +33,19 @@ Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
 
 • *Visuelle Exploration*
 - Datenbereinigung 
-- Grafik Cost und Renvue
-- Grafik zu (transport_price_booked + transport_cost_assigned) 
-- Grafik zu Marge allein um Schwankungen zu identifizieren
+- Grafik Cost, Reveue & Margin > Trend (Zeitreihenanalyse) > Cancellation Reasons
+- Grafik zu transport_price_booked + transport_cost_assigned > Begruendung
 
-• Kennzahlen und Reporting:
-  - *Identifikation von Muster (zB Saisonalitäten, Trends, ...)*
-  - *Korrelationen* 
-    > Interne Korrelation #Dinh
-    > Externe Daten #Anny, Wilke, Toke
-    
-    
+• *Korrelationen* 
+- Externe Korrelation > Benzin, ... # Hier fehlen noch Daten
+- Interne Korrelation > Kosten/Umsatz/Margin/Stops_Count
+
+• *Descriptive Statistik *  (Times Series/Clustering)
 
     
     # Nutzung von Computern und dem Internet durch Beschäftigte
     # Spaeter anschauen und ausprobieren, moeglicherweise zu generisch
     https://ec.europa.eu/eurostat/databrowser/view/isoc_ci_cm_pn2/default/table?lang=de
-    
-    # BIP und Hauptkomponenten - ausgewählte internationale Jahresdaten
-    # Zu generisch
-    https://ec.europa.eu/eurostat/databrowser/view/naida_10_gdp/default/table?lang=de
-    
     
     >>Noch Daten 2017-2020 suchen zu:
     
@@ -71,9 +63,16 @@ Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
       
       Notiz:
       # Wetterdaten sind nicht aufschlussreich
+      
+      Externen Daten suchen (Alle):
+      # Transportpreis
+      # Konjunktur von Volkswirtschaft
+      # BIP und Hauptkomponenten - ausgewählte internationale Jahresdaten
+         https://ec.europa.eu/eurostat/databrowser/view/naida_10_gdp/default/table?lang=de
+      # DSLV-Kostenindex: sämtliche Abwicklungskosten (Personal, Treibstoff  Maut und Sachkosten)
+      # Mautkosten
+      # Personalkosten (Fahrer, Lieferung)
     
-    
-  - *Methoden der deskriptiven Statistik (Clustering, Times Series...)* #Toke
   
 Versuchen Sie einen möglichst guten Überblick über die Shipment-Daten zu generieren. 
 Gehen Sie dabei schon gezielt auf die *Marge* ein (sowohl die *zeitliche Entwicklung* als auch identifizierte Zusammenhänge). Achten Sie bei Ihren Interpretationen auf die Gültigkeit von Aussagen über Kausalitäten.
@@ -782,7 +781,7 @@ ggplot(data = NULL) +
 
 ***Aufgabe B: Vorhersagemodelle****
 Das Ziel dieser Aufgabe ist die Erstellung von Prognosemodellen zur Abschätzung der Unternehmensmarge. 
-Erstellen Sie zu diesem Zweck zunächst ein Modell basierend auf multivari ater Regression, welches die Marge einer Buchung/ eines Shipments in Abhängigkeit relevanter Einflussfaktoren vorhersagt. Das Modell soll systematisch erstellt werden, indem mehrere Kombinationen von erklärenden Variablen gegeneinander getestet werden und eine begrün- dete Empfehlung für das beste Modell gegeben wird. Als Art der Modellierung wird hierbei die multivariate Lineare Regression vorgeschlagen. Überlegen Sie, wie dieses Modell in die Un- ternehmensprozesse eingebunden werden kann. Das Modell soll eher eine Erklärungs- als eine Vorhersagefunktion erfüllen.
+Erstellen Sie zu diesem Zweck zunächst ein Modell basierend auf multivariater Regression, welches die Marge einer Buchung/ eines Shipments in Abhängigkeit relevanter Einflussfaktoren vorhersagt. Das Modell soll systematisch erstellt werden, indem mehrere Kombinationen von erklärenden Variablen gegeneinander getestet werden und eine begründete Empfehlung für das beste Modell gegeben wird. Als Art der Modellierung wird hierbei die multivariate Lineare Regression vorgeschlagen. Überlegen Sie, wie dieses Modell in die Unternehmensprozesse eingebunden werden kann. *Das Modell soll eher eine Erklärungs- als eine Vorhersagefunktion erfüllen*.
 Erstellen Sie weiterhin ein Modell, welches für die Vorhersage der zukünftigen Entwicklung der Unternehmensmarge genutzt werden kann. Hierbei sind mehrere Lösungen denkbar. Ach- ten Sie hier besonders auf die Realisierbarkeit bezüglich des Modelleinsatzes im Unternehmen.
 Folgende Daten stehen Ihnen zur Erstellung der Modelle zur Verfügung:
 Unternehmensinterne Daten
@@ -794,6 +793,13 @@ Sie können weitere Variablen recherchieren, die einen Einfluss auf die Unterneh
 • Feriendaten, Feiertags-Daten, Event-Daten
 Diese Beispiele sind lediglich ein Vorschlag. 
 Sie können weitere Variablen verwenden, die aus Ihrer Sicht für die Erstellung des Modelles relevant sind. Die Auswahl muss nachvollziehbar begründet werden.
+
+###TODO
+*Prognosemodell*
+ >> multivariater Regression
+ >> Mehrere Kombinationen gegeneinander testen
+ >> Bestes Model am Ende analysieren und Aussagen treffen zur vorherigen Erkenntnissen
+
 
 SCA – WiSe 20/21 Aufgabenstellung zur Case Study
 Bitte achten Sie bei der Auswahl der beschreibenden Variablen auf die Verlässlichkeit der verwendeten Datenquelle. Empfohlene Datenquellen für die Auswahl der Variablen sind bei- spielsweise:

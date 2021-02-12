@@ -322,6 +322,13 @@ success_rate
 ```{r eval = false}
 # Shipments: Balkendiagram für cancellation_reason
 shipments[shipments$cancellation_reason != "",]$cancellation_reason %>% table(.) %>%  barplot(., names=unique(shipments[shipments$cancellation_reason != "",]$cancellation_reason), las=2, cex.names=.6)
+
+# TODO: Untersuchung in September 2020 die Cancellation Zahlen mit den Umsaetzen sowie Grund
+# Erkenntnis: Spediteur nicht gefunden ist relativ hoch
+
+
+shipments[shipments$cancellation_reason != "",] %>% aggregate(cancellation_reason ~ YearMonth, ., length)
+
 ```
 
 ```{r eval = false}
@@ -412,6 +419,8 @@ shipments_google_month = merge(shipments_google_month,diesel,by=c("YearMonth","Y
 shipments_google_month_cor = shipments_google_month[c("Dieselkraftstoff","Superbenzin",  "Spedition...Deutschland.","Transport...Deutschland.","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% cor() %>% data.frame()
 
 shipments_google_month_cor
+
+#TODO Instafreight als Korrelation untersuchen
 ```
 
 
