@@ -28,18 +28,22 @@ Ziel der Aufgabe ist der Bericht von etwaigen Erkenntnissen über die Daten,
 die Sie im Laufe der Projektbearbeitung erlangt haben. 
 Zudem soll gezielt über die in der Fallstudienbeschreibung geforderten Punkte berichtet werden. 
 Die Daten sollen angemessen aufbereitet und visualisiert werden. 
-Wenn möglich sollen Handlungsempfehlungen aus den Erkenntnissen abgeleitet werden. 
-Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
+Wenn möglich sollen Handlungsempfehlungen aus den Erkenntnissen abgeleitet werden. [...]
+Versuchen Sie einen möglichst guten Überblick über die Shipment-Daten zu generieren. 
+Gehen Sie dabei schon gezielt auf die *Marge* ein (sowohl die *zeitliche Entwicklung* als auch identifizierte Zusammenhänge). Achten Sie bei Ihren Interpretationen auf die Gültigkeit von Aussagen über Kausalitäten.
+Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche. 
+Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten, die Ihnen besonders wichtig und präsentationswürdig erscheinen. Bereiten Sie gegebenenfalls ein Portfolio im *Back-Up* Ihrer Präsentation vor, um auf Anschlussfragen reagieren zu können. Sie sollten bei Ihrer Vorstellung dieser Teilaufgabe versuchen Zusammenhänge zu interpretieren und Implikationen abzuleiten, selbst wenn Ihre erarbeiteten Inhalte durch experimentelle Untersuchungen entstanden sind.
 
-### Vorgehen bei der Präsentation am 15.02
 
+###TODO Aufgabe A
 • *Visuelle Exploration*
+Vorgehen bei der Präsentation am 15.02
 - Erste Ueberblick anhand Grafiken
 - Datenbereinigung 
-- Grafik Cost, Reveue & Margin > Trend (Zeitreihenanalyse) > Cancellation Reasons
+- Grafik Cost, Revenue & Margin > Trend (Zeitreihenanalyse) > Cancellation Reasons
 - Grafik zu transport_price_booked + transport_cost_assigned > Begruendung
 - Grafik Cancellation_reason und evlt. mit 
-  transport_state/transport_stage/business_model/business_strategy miteinander untersuchen # noch nicht erledigt
+  transport_state/transport_stage/business_model/business_strategy miteinander untersuchen # Noch nicht erledigt
 
 • *Korrelationen* 
 - Externe Korrelation > Benzin, ...                         # Hier fehlen weitere Daten
@@ -48,7 +52,6 @@ Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
 • *Descriptive Statistik *  
 - Times Series/Clustering                                   # Noch ausstehend
 
-    
     >>> Korrelation Daten 2017-2020 suchen <<<
       # Nutzung von Computern und dem Internet durch Beschäftigte
       https://ec.europa.eu/eurostat/databrowser/view/isoc_ci_cm_pn2/default/table?lang=de
@@ -74,10 +77,6 @@ Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
       # Personalkosten (Fahrer, Lieferung)
       # Notiz: Wetterdaten nicht nutzen, da sind nicht aufschlussreich
   
-Versuchen Sie einen möglichst guten Überblick über die Shipment-Daten zu generieren. 
-Gehen Sie dabei schon gezielt auf die *Marge* ein (sowohl die *zeitliche Entwicklung* als auch identifizierte Zusammenhänge). Achten Sie bei Ihren Interpretationen auf die Gültigkeit von Aussagen über Kausalitäten.
-Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche. 
-Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten, die Ihnen besonders wichtig und präsentationswürdig erscheinen. Bereiten Sie gegebenenfalls ein Portfolio im *Back-Up* Ihrer Präsentation vor, um auf Anschlussfragen reagieren zu können. Sie sollten bei Ihrer Vorstellung dieser Teilaufgabe versuchen Zusammenhänge zu interpretieren und Implikationen abzuleiten, selbst wenn Ihre erarbeiteten Inhalte durch experimentelle Untersuchungen entstanden sind.
 
 
 
@@ -801,8 +800,10 @@ Diese Beispiele sind lediglich ein Vorschlag. Sie können weitere Variablen verw
  >> Multivariater Regression also schauen, wenn Korrelation über 80%, dann eine Variable einfach rausnehmen
  >> Mehrere Kombinationen gegeneinander testen
  >> Bestes Model am Ende analysieren und Aussagen treffen zur vorherigen Erkenntnissen
-
-
+ 
+ >> Verwendete Variablen fuer Korrelation im Vorhersagemodell:
+    >> Dieselkraffstoff
+  
 
 SCA – WiSe 20/21 Aufgabenstellung zur Case Study
 Bitte achten Sie bei der Auswahl der beschreibenden Variablen auf die Verlässlichkeit der verwendeten Datenquelle. Empfohlene Datenquellen für die Auswahl der Variablen sind bei- spielsweise:
@@ -816,9 +817,7 @@ Zu B: Das erste Modell soll hauptsächlich eine erklärende Funktion erfüllen. 
 • Falls Ihre vorgeschlagene Gesamtlösung Modellierungen enthält, die über die in A und B entwickelten Lösungen hinausgeht, müssen Sie diese nicht implementieren. Es ge- nügt ein Ausblick.
 
 
->> Verwendete Variablen fuer Korrelation im Vorhersagemodell:
-  >> Dieselkraffstoff
-  
+
 
 
 
