@@ -441,7 +441,7 @@ ggplot(data = margin, aes(x = first_stop_requested_arrival_to_week, group=1)) +
 
 
 
-## (2.10) Visualisierung der zeitlichen Veränderung des Anteils von cancelled_shipment_count_3pl 
+### (2.10) Visualisierung der zeitlichen Veränderung des Anteils von cancelled_shipment_count_3pl 
 ```{r}
 #Anteil von cancelled_shipment_count_3pl berechnen
 margin$cancel_rate_3pl = round( ((margin$shipment_count_3pl-margin$non_cancelled_shipment_count_3pl)/margin$shipment_count_3pl)*100,2) 
@@ -462,7 +462,7 @@ Moeglicher Grund: Zu dieser Zeit fand die erstmalige Covid-19-Ausbreitung in Chi
 Moeglicher Grund:zweite Welle der Corona-Pandemie
 
 
-## (2.11) Visualisierung der Profite aus custom rate shipments und spot shipments
+### (2.11) Visualisierung der Profite aus custom rate shipments und spot shipments
 **Unterschied zwischen custom rate shipments und spot shipments**
 Bei jeder Custom Rate wird ein Vertrag mit festen Transportpreisen mit dem Kunden geschlossen und die Transportpreise gehalten werden müssen. # Frage: Wer legt den Preis fuer Transport fest?
 Bei dem Gegenstück der Custom Rate shipments, der Spot shipments, kann der Preis jederzeit angepasst werden. Dies passiert normalerweise auf einer wöchentlichen Basis.
@@ -494,11 +494,11 @@ Erkenntnis: Mehr Marge mit Customrate (Contract) als mit spot (Marktpreis)
 
 
 
-***(4) Korrelationen***
+### (3) Korrelationen 
 
 **Interne Faktoren**
 
-## (4.1) Subset von not cancelled shipments: 
+### (3.1) Subset von not cancelled shipments: 
 Berücksichtigt werden nur die nicht stornierten Shipments und folgende internen Faktoren:
 business model: 3PL, 4PL 
 custom rate shipment: FALSCH, WAHR 
@@ -513,7 +513,7 @@ OTD: ontime (1), belated (0)
 shipments_uncancelled$OTD = ifelse(shipments_uncancelled$last_stop_agreed_arrival_to >= shipments_uncancelled$last_stop_actual_arrival, TRUE, FALSE)  
 ```
 
-## (4.2)  Categorical-numerical associations 
+### (3.2)  Categorical-numerical associations 
 (Zusammenhang zwischen der Gewinnmarge (numerical) und internen Faktoren: business model, custom rate shipment, fulfillment strategy und lane domain (categorical))
 
 a. business model
@@ -523,12 +523,13 @@ shipments_uncancelled %>%
     group_by(business_model) %>%
     summarize(mean_margin = mean(total_margin, na.rm = TRUE))
 
-```
-```{r}
+
+
 tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$business_model ,sum)
-```
-```{r}
-# VIsualisierung
+
+
+
+# Visualisierung
 ggplot(shipments_uncancelled, 
        aes(factor(business_model), 
        fill = factor(business_model))) +
@@ -537,6 +538,7 @@ ggplot(shipments_uncancelled,
 Erkenntnis: Die 3PL Shipments machen einen wesentlichen Anteil an den gesamten Shipments aus und außerdem bringen sie dem Unternehmen im Durchschnitt eine positive Gewinnmarge im Vergleich zu 4PL-Shipments.
 (also positver Zusammenhang zwischen 3PL Shipments als ein Typ von business model und der Marge)!
 
+
 b. custom rate shipment
 ```{r}
 # durchschnittliche Marge, aggregiert nach custom rate shipment (falsch, wahr)
@@ -544,18 +546,20 @@ b. custom rate shipment
     group_by(custom_rate_shipment) %>%
     summarize(mean_margin = mean(total_margin, na.rm = TRUE))
 
-```
-```{r}
-  tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$custom_rate_shipment ,sum)
-```
-```{r}
-# Visualisierung
-ggplot(shipments_uncancelled, 
+
+
+ tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$custom_rate_shipment ,sum)
+ 
+ 
+ 
+ # Visualisierung
+   ggplot(shipments_uncancelled, 
        aes(factor(custom_rate_shipment), 
        fill = factor(custom_rate_shipment))) +
        geom_bar()
 ```
 Erkenntnis: Der Profit hängt auch davon ab, ob es hier  ein spot shipment oder custom rate shipment ist. Bei den custom rate shipment muss es mit einem festen Transportpreis durchgeführt werden und somit schwanken sich die Margen stärker. Bei dem Gegenstück der Custom Rate shipments, der Spot shipments, können wir den Preis jederzeit anpassen. Deswegen kann mit wenigeren spot shipments eine deutlich höhere Summe der Marge errreicht werden.
+
 
 c. fulfillment strategy: bulk, pallet, fullTruck
 ```{r}
@@ -563,10 +567,11 @@ c. fulfillment strategy: bulk, pallet, fullTruck
   shipments_uncancelled %>%
     group_by(fulfilment_strategy) %>%
     summarize(mean_margin = mean(total_margin, na.rm = TRUE))
-```
-```{r}
+
+
 tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$fulfilment_strategy ,sum)
 ```
+
 
 ```{r}
 # Visualisierung
@@ -592,40 +597,32 @@ national: nur innerhalb von Deutschland
   shipments_uncancelled %>%
     group_by(lane_domain) %>%
     summarize(mean_margin = mean(total_margin, na.rm = TRUE))
-```
 
-```{r}
+
 tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$lane_domain ,sum)
 ```
 
-```{r}
-ggplot(shipments_uncancelled, 
-       aes(factor(lane_domain), 
-       fill = factor(lane_domain))) +
-       geom_bar()
 
-#TODO Vorschlag: Ein 
-```
-
-e. OTD
+### (3.3) OTD
 ```{r}
 # durchschnittliche Marge, aggregiert nach lane domain (export, import, national, international)
   shipments_uncancelled %>%
     group_by(OTD) %>%
     summarize(mean_margin = mean(total_margin, na.rm = TRUE))
-```
-```{r}
-tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$OTD ,sum)
-```
 
-```{r}
+
+tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$OTD ,sum)
+
+
+
 ggplot(shipments_uncancelled, 
        aes(factor(OTD), 
        fill = factor(OTD))) +
        geom_bar()
 ```
 
-## (4.3) Numerical-numerical associations
+
+### (3.4) Numerical-numerical associations
 (Zusammenhang zwischen der Gewinnmarge (numerical) und internem Faktor: stop count (numerical)
 ```{r}
 cor(shipments_uncancelled$stops_count, shipments_uncancelled$total_margin)
@@ -643,7 +640,8 @@ Kendall’s correlation coefficient is often smaller than Spearman’s correlati
 
 **Zwischenfazit** Die folgenden internen Faktoren: business_model, custom_rate_shipment, fulfiillment_strategy und OTD werden zum Aufbau eines linearen Regressionsmodell verwendet.
 
-## (4.3) Vorbereitung für das Erstellen des Regressionsmodells im Teil B
+
+### (3.5) Vorbereitung für das Erstellen des Regressionsmodells im Teil B
 ```{r}
 # Convert to factor (for binary variables)
 
@@ -666,8 +664,8 @@ head(fullfilment_strategy_dummies)
 ```
 
 
-***(5) Verschiedene Methoden der deskriptiven Statistik (Zeitreihenanalyse...)***
-### (5.1) Zeitreihenanalyse
+### (4) Deskriptiven Statistik (Zeitreihenanalyse)***
+### (4.1) Zeitreihenanalyse
 ```{r eval=TRUE}
 ts_marge = ts(marge_YearMonth$total_margin, frequency = 12)
 
@@ -687,8 +685,8 @@ round(m_marge$residuals,2)
 ```
 Erstellen einer Nachfragevorhersage mit der 'forcast' Funktion und dem Modell 'm_marge_3PL' für ein weiteres Jahr also 12 Perioden
 ```{r}
-#Vorhersage erstelle und in 'fcast_Shangh' speichern
-fcast_marge = forecast(m_marge,12)
+#Vorhersage erstellen
+fcast_marge = forecast(m_marge, 12)
 #Anzeigen der Vorhersage
 fcast_marge
 ```
@@ -726,7 +724,7 @@ Erkenntnisse:
 -keine Saisonalitäten identifiziert
 -leichter Trend nach oben
 
-## prozentuale Marge Zeitreihenanalyse
+### (4.2) Prozentuale Marge Zeitreihenanalyse
 ```{r}
 marge_percent = shipments_uncancelled[c("first_stop_requested_arrival_to_YearMonth", "total_revenue", "total_cost", "total_margin")] %>%
   aggregate(.~first_stop_requested_arrival_to_YearMonth,.,mean) %>%
@@ -750,14 +748,19 @@ cat("\n","\n","Residuen:","\n")
 round(m_marge_percent$residuals,2)
 ```
 Erstellen einer Nachfragevorhersage mit der 'forcast' Funktion und dem Modell 'm_marge_3PL' für ein weiteres Jahr also 12 Perioden
+
+### (4.3) Vorhersage Marge
 ```{r}
-#Vorhersage erstelle und in 'fcast_Shangh' speichern
+#Vorhersage erstellen
 fcast_marge_percent = forecast(m_marge_percent,12)
 #Anzeigen der Vorhersage
 fcast_marge_percent
 ```
 
 Visualiesierung der Vorhersage ("forecast") und der ursprünglichen Nachfragen ("original") in einem Liniendiagramm über die Perioden. Es wurde ein Liniendiagramm gewählt, da es den fließenden Verlauf zwischen den Perioden anzeigen lässt und dadurch wie eng die beiden Linien der Vorhersage und der Origanlwerte über die Zeit auseinander liegen, lässt sich die Güte des Modells beobachten
+
+
+### (4.3) Visualisierung Vorhersage
 ```{r}
 # Hintergrund erzeugen 
 ggplot(data = NULL) + 
@@ -784,10 +787,14 @@ ggplot(data = NULL) +
 ```
 
 
-***Aufgabe B: Vorhersagemodelle****
+
+
+
+
+### Aufgabe B
+***Vorhersagemodelle***
 Das Ziel dieser Aufgabe ist die Erstellung von Prognosemodellen zur Abschätzung der Unternehmensmarge. 
-Erstellen Sie zu diesem Zweck zunächst ein Modell basierend auf multivariater Regression, welches die Marge einer Buchung/ eines Shipments in Abhängigkeit relevanter Einflussfaktoren vorhersagt. Das Modell soll systematisch erstellt werden, indem mehrere Kombinationen von erklärenden Variablen gegeneinander getestet werden und eine begründete Empfehlung für das beste Modell gegeben wird. Als Art der Modellierung wird hierbei die multivariate Lineare Regression vorgeschlagen. Überlegen Sie, wie dieses Modell in die Unternehmensprozesse eingebunden werden kann. *Das Modell soll eher eine Erklärungs- als eine Vorhersagefunktion erfüllen*.
-Erstellen Sie weiterhin ein Modell, welches für die Vorhersage der zukünftigen Entwicklung der Unternehmensmarge genutzt werden kann. Hierbei sind mehrere Lösungen denkbar. 
+Erstellen Sie zu diesem Zweck zunächst ein Modell basierend auf multivariater Regression, welches die Marge einer Buchung/ eines Shipments in Abhängigkeit relevanter Einflussfaktoren vorhersagt. Das Modell soll systematisch erstellt werden, indem mehrere Kombinationen von erklärenden Variablen gegeneinander getestet werden und eine begründete Empfehlung für das beste Modell gegeben wird. Als Art der Modellierung wird hierbei die multivariate Lineare Regression vorgeschlagen. Überlegen Sie, wie dieses Modell in die Unternehmensprozesse eingebunden werden kann. *Das Modell soll eher eine Erklärungs- als eine Vorhersagefunktion erfüllen*.Erstellen Sie weiterhin ein Modell, welches für die Vorhersage der zukünftigen Entwicklung der Unternehmensmarge genutzt werden kann. Hierbei sind mehrere Lösungen denkbar. 
 Achten Sie hier besonders auf die Realisierbarkeit bezüglich des Modelleinsatzes im Unternehmen.
 Folgende Daten stehen Ihnen zur Erstellung der Modelle zur Verfügung:
 Unternehmensinterne Daten
@@ -799,7 +806,7 @@ Sie können weitere Variablen recherchieren, die einen Einfluss auf die Unterneh
 • Feriendaten, Feiertags-Daten, Event-Daten
 Diese Beispiele sind lediglich ein Vorschlag. Sie können weitere Variablen verwenden, die aus Ihrer Sicht für die Erstellung des Modelles relevant sind. Die Auswahl muss nachvollziehbar begründet werden.
 
-###TODO Aufgabe B
+
 *Prognosemodell*
  >> Eventuell zwei Vorhersagen machen zu: Interne Daten und Externe Daten
  >> Multivariater Regression also schauen, wenn Korrelation über 80%, dann eine Variable einfach rausnehmen
