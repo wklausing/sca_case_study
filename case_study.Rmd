@@ -39,7 +39,7 @@ Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten,
 • *Visuelle Exploration*
 Vorgehen bei der Präsentation am 15.02
 - Erste Ueberblick anhand Grafiken                                                          # Anny
-- Datenbereinigung                                                                          # Anny ueberpruefen/Grafik erstellen
+- Datenbereinigung > ueberpruefen/Grafik erstellen                                          # Anny 
 - Grafik Cost, Revenue & Margin > Trend (Zeitreihenanalyse) > Cancellation Reasons          # Dinh
 - Grafik zu transport_price_booked + transport_cost_assigned > Begruendung                  # Anny
 - Grafik Cancellation_reason und evlt. mit                                                  # Dinh
@@ -47,10 +47,10 @@ Vorgehen bei der Präsentation am 15.02
 - PowerPoint Präsentation Inhalt schon mal vorbereiten                                      # Anny
   
 • *Korrelationen* 
-- Externe Korrelation > Benzin, ...(Hier fehlen weitere Daten)                              # Wilke
+- Externe Korrelation > Benzin, ...(Hier fehlen weitere 3-4 Daten)                          # Wilke
 - Interne Korrelation > Kosten/Umsatz/Margin/Stops_Count                                    # Wilke
 
-• *Descriptive Statistik *  
+• *Descriptive Statistik*  
 - Times Series (Noch ausstehend)                                                            # Toke 
 
     >>> Korrelation Daten 2017-2020 suchen <<<
