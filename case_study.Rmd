@@ -184,6 +184,26 @@ shipments <- shipments %>%
 saveRDS(shipments, "data/shipments.rds")
 saveRDS(margin, "data/margins.rds")
 ```
+
+# Cancellation Reason Grafiken
+```{r}
+shipments_cancellation_reason = shipments %>% count(YearMonth, cancellation_reason)
+
+
+ggplot(subset(shipments_cancellation_reason, cancellation_reason == "" & YearMonth <= "2020-12"))+
+  geom_line(aes(YearMonth,n,group = cancellation_reason)) +
+  scale_x_discrete(breaks = shipments_cancellation_reason$YearMonth[seq(1, length(shipments_cancellation_reason$YearMonth), by = 40)])
+
+ggplot(subset(shipments_cancellation_reason, cancellation_reason != "" & YearMonth <= "2020-12"))+
+  geom_line(aes(YearMonth,n,group = cancellation_reason, color=cancellation_reason)) +
+  scale_x_discrete(breaks = shipments_cancellation_reason$YearMonth[seq(1, length(shipments_cancellation_reason$YearMonth), by = 40)])
+
+ggplot(subset(shipments_cancellation_reason, cancellation_reason != "" & cancellation_reason != "customer_not_ready" & cancellation_reason != "other"& cancellation_reason != "self_cancelled" & YearMonth <= "2020-12"))+
+  geom_line(aes(YearMonth,n,group = cancellation_reason, color=cancellation_reason)) +
+  scale_x_discrete(breaks = shipments_cancellation_reason$YearMonth[seq(1, length(shipments_cancellation_reason$YearMonth), by = 40)])
+```
+
+
 ***Vorbereiteten Daten aus RDS Dateien einlesen***
 ```{r eval=TRUE}
 shipments = readRDS(file = "data/shipments.rds")
@@ -650,7 +670,7 @@ ts_marge = ts(marge_YearMonth$total_margin, frequency = 12)
 #Die 'cat' Funktion dient lediglich für eine bessere Übersicht indem sie Absätze im Output erzeugt
 # Modell automatisch erstellen lassen
 cat("\n","\n","Modell:","\n")
-m_marge = ets(ts_marge, model = "ZZZ")
+m_marge = ets(ts_marge, model = "ZAA")
 # (1) Modellzusammenfassung ausgeben lassen
 m_marge
 
