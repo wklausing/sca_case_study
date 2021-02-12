@@ -42,7 +42,8 @@ Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten,
 ### (1.1) CSV Dateien einlesen 
 ```{r eval=FALSE}
 # Shipments Daten einlesen und ins richtige Format bringen.
-shipments <- read.csv("data/shipment_FINAL_20210115.csv")
+diesel <- read.csv("data/dieselPreiseMonat.csv", sep=";")
+
 # Timestamps
 shipments$shipment_created_at = as.POSIXct(shipments$shipment_created_at,tz=Sys.timezone())
 
@@ -134,8 +135,6 @@ shipments = shipments[!is.na(shipments$shipment_reference), ]
 #12. Die Spalte `country_lane` wird in eine Spalte `origin_country` und eine Spalte ´destination_country´ aufgeteilt 
 shipments <- shipments %>%
   separate(country_lane, c("origin_country","destination_country"), "-->>")
-
-#TODO OTD noch berechnen
 
 # Dataframes abspeichern
 saveRDS(shipments, "data/shipments.rds")
@@ -396,9 +395,6 @@ ggplot(growth_by_year, aes(x=period, y=yearly_growth, group=1))+
 
 ### Korrelation in Shipments und mit Google Data
 ```{r eval=TRUE}
-correlations = shipments[c("stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% cor() %>% data.frame()
-correlations
-
 google_data = read.csv("data/google_data.csv")
 google_data
 google_data$YearMonth = google_data$Woche %>% as.Date() %>% strftime(., format = "%Y-%m") 
@@ -406,14 +402,16 @@ google_data$YearMonth = google_data$Woche %>% as.Date() %>% strftime(., format =
 google_data_month = google_data[c("YearMonth","Spedition...Deutschland.", "Transport...Deutschland.")] %>% aggregate(. ~ YearMonth , ., mean)
 google_data_month
 
-
 shipments_month = shipments[c("YearMonth","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% aggregate(. ~ YearMonth , ., mean)
 
-shipments_google_month <- merge(google_data_month,shipments_month,by=c("YearMonth","YearMonth")) 
+shipments_google_month = merge(google_data_month,shipments_month,by=c("YearMonth","YearMonth")) 
 shipments_google_month
-shipments_google_month_cor = total[c("Spedition...Deutschland.","Transport...Deutschland.","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% cor() %>% data.frame()
-shipments_google_month_cor
 
+diesel <- read.csv("data/dieselPreiseMonat.csv", sep=";")
+shipments_google_month = merge(shipments_google_month,diesel,by=c("YearMonth","YearMonth")) 
+shipments_google_month_cor = shipments_google_month[c("Dieselkraftstoff","Superbenzin",  "Spedition...Deutschland.","Transport...Deutschland.","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% cor() %>% data.frame()
+
+shipments_google_month_cor
 ```
 
 
@@ -433,12 +431,113 @@ shipments[shipments$year == "2020" & shipments$month > "6",] %>% ggplot(data=., 
 
 
 
+*Zeitreihen Analyse*
+```{r eval=TRUE}
+shipments_margin = shipments[shipments$year != "2017" & shipments$year != "2021",] %>% aggregate(total_margin ~ YearMonth, ., mean)
+shipments_margin$period = 1:nrow(shipments_margin)
+shipments_margin
+#ts_shipments = ts(ts_shipments$total_margin, frequency = 12)
+
+ggplot(shipments_margin, aes(x = period, y = total_margin, group = 1)) + 
+  geom_line() +
+  
+  # Umbenennung der x-Achse
+  labs(x = "Periode")
+
+
+ts_shipments = ts(shipments_margin$total_margin, frequency = 12)
+ets_shipments = ets(ts_shipments, model = "ZAA")
+
+cat("\n Zusammenfassung des Modells: \n")
+summary(ets_shipments)
+
+cat("\n Urspruengliche Zeitreihe: \n")
+ets_shipments$x
+
+cat("\n Residiuen: \n")
+ets_shipments$residuals
+
+# Durchschnittliche Abweichung mit  Mean Forecast Error (MFE) berechnen
+# Mittelwert(Urspruengliche Zeitreihe - Vorhersagen fuer den gegebenen Zeitraum) 
+MFE <- round(mean(as.numeric(ets_shipments$x - ets_shipments$fitted)), 4)
+MFE
+
+# Forecast der Variable fcast_Shangh (fuer exponentielle Glaettung) uebergeben
+# Der Output zeigt die Forecast-Werte sowie die oberen und unteren Grenzen 
+# der 80% und 95% Konfidenzintervalle.
+fcast_shipments = forecast(ets_shipments, 12)
+```
+
+*1. DataFrame Original Nr. 1 erstellen*
+```{r}
+# DataFrame erstellen
+df_shipments = data.frame(
+                   period = seq(1, length(fcast_shipments$x), 1), 
+                   value = as.numeric(fcast_shipments$x), 
+                   grp = rep("original", length(fcast_shipments$x)))
+```
+
+*2. DataFrame Vorhersage Nr. 2 erstellen*
+```{r}
+# DataFrame erstellen
+df_shipments_fcast = data.frame(
+  period = seq(1, length(fcast_shipments$fitted) + length(fcast_shipments$mean), 1), 
+  value = c(as.numeric(fcast_shipments$fitted), as.numeric(fcast_shipments$mean)), 
+  grp = rep("fcast", length(fcast_shipments$fitted) + length(fcast_shipments$mean)))
+```
+
+*3. Verbinden der DataFrames Nr. 1 und Nr. 2*
+```{r}
+# Verbinden der Data Frames
+df_EG = rbind(df_shipments, df_shipments_fcast)
+
+# Anzeigen des DataFrame (ausgewaehlte Beobachtungen)
+head(df_EG)
+
+
+ggplot(data = df_EG, aes(x = period, 
+                         y = value, colour = grp)) + 
+  geom_line() +
+
+  # Beschriftung von x-Achse 90 Grad umgedreht
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust=2, size=6))
+```
+*Decompose TS*
+```{r}
+birthsComp <- decompose(ts_shipments)
+birthsComp
+
+plot.ts(birthsComp)
+```
+```{r}
+#install.packages("anomalize")
+library(tidyverse)
+library(anomalize)
+
+#https://otexts.com/fpp2/stl.html
 
 
 
+#shipments von 2018-2020 
+shipments_dates = shipments[shipments$shipment_created_at_date >= "2018-01-01" & shipments$shipment_created_at_date <= "2020-12-31",]
+shipments_dates = shipments_dates[c("shipment_created_at_date","total_margin")]
+
+alldates = seq(as.Date("2018-01-01"), as.Date("2020-12-31"), by="days")#Erzeuge alle Daten von 2018 bis 2020
+dates0 = alldates[!(alldates %in% shipments_dates$shipment_created_at_date)]#Vektor mit alle Daten die shipments_dates fehlen.
+dates_and_margin = data.frame(shipment_created_at_date = dates0, total_margin = 0)#DF mit fehlenden Daten und erzeuge total_margin = 0
+
+shipments_complete_dates = rbind(shipments_dates, dates_and_margin)#Verbinde DFs
+shipments_complete_dates = data[order(data$shipment_created_at_date),]#Sortiere
+
+shipments_complete_dates %>% as_tbl_time(.)
+shipments_complete_dates %>%
+    time_decompose(count) %>%
+    anomalize(remainder) %>%
+    time_recompose() %>%
+    plot_anomalies(time_recomposed = TRUE, ncol = 3, alpha_dots = 0.5)
 
 
-
+```
 
 
 
