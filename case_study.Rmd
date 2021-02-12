@@ -42,15 +42,16 @@ Vorgehen bei der Präsentation am 15.02
 - Datenbereinigung                                                                          # Anny ueberpruefen/Grafik erstellen
 - Grafik Cost, Revenue & Margin > Trend (Zeitreihenanalyse) > Cancellation Reasons          # Dinh
 - Grafik zu transport_price_booked + transport_cost_assigned > Begruendung                  # Anny
-- Grafik Cancellation_reason und evlt. mit 
-  transport_state/transport_stage/business_model/business_strategy miteinander untersuchen  #Dinh
+- Grafik Cancellation_reason und evlt. mit                                                  # Dinh
+  transport_state/transport_stage/business_model/business_strategy miteinander untersuchen
+- PowerPoint Präsentation Inhalt schon mal vorbereiten                                      # Anny
   
 • *Korrelationen* 
-- Externe Korrelation > Benzin, ...                         # Wilke - Hier fehlen weitere Daten
-- Interne Korrelation > Kosten/Umsatz/Margin/Stops_Count    # Noch ausstehend
+- Externe Korrelation > Benzin, ...(Hier fehlen weitere Daten)                              # Wilke
+- Interne Korrelation > Kosten/Umsatz/Margin/Stops_Count                                    # Wilke
 
 • *Descriptive Statistik *  
-- Times Series                                              # Toke - Noch ausstehend
+- Times Series (Noch ausstehend)                                                            # Toke 
 
     >>> Korrelation Daten 2017-2020 suchen <<<
       # Nutzung von Computern und dem Internet durch Beschäftigte
