@@ -325,6 +325,10 @@ shipments[shipments$cancellation_reason != "",]$cancellation_reason %>% table(.)
 
 # TODO: Untersuchung in September 2020 die Cancellation Zahlen mit den Umsaetzen sowie Grund
 # Erkenntnis: Spediteur nicht gefunden ist relativ hoch
+
+
+shipments[shipments$cancellation_reason != "",] %>% aggregate(cancellation_reason ~ YearMonth, ., length)
+
 ```
 
 ```{r eval = false}
