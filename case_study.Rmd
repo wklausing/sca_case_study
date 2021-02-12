@@ -54,9 +54,10 @@ Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
     # Zu generisch
     https://ec.europa.eu/eurostat/databrowser/view/naida_10_gdp/default/table?lang=de
     
-    Noch Daten 2017-2020 suchen zu:
     
-    # Import & Exportl
+    >>Noch Daten 2017-2020 suchen zu:
+    
+    # Import & Export
     a) Einzelhandel - monatliche Daten:
     https://ec.europa.eu/eurostat/databrowser/view/EI_BSRT_M_R2__custom_560747/default/table?lang=de
     b) Euro area 19 international trade - monthly data:
@@ -65,7 +66,11 @@ Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
     # Grippe oder generell Gesundheit von Menschen
     # Benzinpreise, e.g. Diesel #erledigt
     # Verkehrsunfälle
-    # (Wetter Vergleich von domain_lane also zwischen Länder DE>>NL)
+    # Anzahl der Suchanfrage von "Instafreight" in Google-Trends. Erkenntnis: Schlechtes Marketing
+      https://trends.google.com/trends/explore?date=today%205-y&geo=DE&q=InstaFreight
+      
+      Notiz:
+      # Wetterdaten sind nicht aufschlussreich
     
     
   - *Methoden der deskriptiven Statistik (Clustering, Times Series...)* #Toke
@@ -780,6 +785,11 @@ Bitte achten Sie bei der Auswahl der beschreibenden Variablen auf die Verlässli
 
 Zu B: Das erste Modell soll hauptsächlich eine erklärende Funktion erfüllen. Dabei wird die Frage beantwortet: „Welchen Einfluss haben gewisse Faktoren auf die Marge eines Shipments?“. Die Ergebnisse davon sollten in A einfließen. Das zweite Modell soll ein nutzbares Modell sein, welches dem Unternehmen eine Vorhersage über die zukünf- tige Entwicklung der Marge ermöglicht. Hier können Shipments beispielsweise auf Tage, Wochen oder Monate aggregiert werden. Achten Sie bei der Modellierung da- rauf, dass die notwendigen Daten zum Vorhersagezeitpunkt zugänglich sein müssen. Die Erkenntnisse aus dem ersten Modell sind hierbei sicherlich sinnvoll einzubringen.
 • Falls Ihre vorgeschlagene Gesamtlösung Modellierungen enthält, die über die in A und B entwickelten Lösungen hinausgeht, müssen Sie diese nicht implementieren. Es ge- nügt ein Ausblick.
+
+
+>> Verwendete Variablen fuer Korrelation im Vorhersagemodell:
+  >> Dieselkraffstoff
+  
 
 
 
