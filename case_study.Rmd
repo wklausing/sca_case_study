@@ -664,8 +664,10 @@ head(fullfilment_strategy_dummies)
 ```
 
 
-### (4) Deskriptiven Statistik (Zeitreihenanalyse)***
-### (4.1) Zeitreihenanalyse
+
+### (4) Deskriptive Statistik (Zeitreihenanalyse)
+
+## (4.1) Zeitreihenanalyse
 ```{r eval=TRUE}
 ts_marge = ts(marge_YearMonth$total_margin, frequency = 12)
 
