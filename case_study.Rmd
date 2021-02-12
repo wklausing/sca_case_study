@@ -9,7 +9,6 @@ Library Packages
 ```{r eval=TRUE}
 #rm(list = ls())
 library("readr")
-#install.packages("dplyr")
 library("dplyr") 
 library("zoo")
 library("forecast")
@@ -18,9 +17,7 @@ library("ggplot2")
 library("Metrics")
 library("dummies")
 library("janitor")
-#install.packages("plotly")
 library("plotly") 
-#install.packages("janitor")
 library("janitor")
 library("tidyr")
 #update.packages()
@@ -35,10 +32,10 @@ Wenn möglich sollen Handlungsempfehlungen aus den Erkenntnissen abgeleitet werd
 Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
 
 • *Visuelle Exploration*
-- Datenbereinigung #Wilke, erledigt
-- Grafik Cost und Renvue #Wilke, erledigt
-- Grafik zu (transport_price_booked + transport_cost_assigned) #Anny, erledigt
-- Grafik zu Marge allein um Schwankungen zu identifizieren #Anny, erledigt
+- Datenbereinigung 
+- Grafik Cost und Renvue
+- Grafik zu (transport_price_booked + transport_cost_assigned) 
+- Grafik zu Marge allein um Schwankungen zu identifizieren
 
 • Kennzahlen und Reporting:
   - *Identifikation von Muster (zB Saisonalitäten, Trends, ...)*
@@ -578,6 +575,8 @@ ggplot(shipments_uncancelled,
        aes(factor(lane_domain), 
        fill = factor(lane_domain))) +
        geom_bar()
+
+#TODO Vorschlag: Ein 
 ```
 
 e. OTD
