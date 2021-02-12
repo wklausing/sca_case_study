@@ -38,19 +38,19 @@ Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten,
 ###TODO Aufgabe A
 • *Visuelle Exploration*
 Vorgehen bei der Präsentation am 15.02
-- Erste Ueberblick anhand Grafiken
-- Datenbereinigung 
-- Grafik Cost, Revenue & Margin > Trend (Zeitreihenanalyse) > Cancellation Reasons
-- Grafik zu transport_price_booked + transport_cost_assigned > Begruendung
+- Erste Ueberblick anhand Grafiken                                                          # Anny
+- Datenbereinigung                                                                          # Anny ueberpruefen/Grafik erstellen
+- Grafik Cost, Revenue & Margin > Trend (Zeitreihenanalyse) > Cancellation Reasons          # Dinh
+- Grafik zu transport_price_booked + transport_cost_assigned > Begruendung                  # Anny
 - Grafik Cancellation_reason und evlt. mit 
-  transport_state/transport_stage/business_model/business_strategy miteinander untersuchen # Noch nicht erledigt
-
+  transport_state/transport_stage/business_model/business_strategy miteinander untersuchen  #Dinh
+  
 • *Korrelationen* 
-- Externe Korrelation > Benzin, ...                         # Hier fehlen weitere Daten
+- Externe Korrelation > Benzin, ...                         # Wilke - Hier fehlen weitere Daten
 - Interne Korrelation > Kosten/Umsatz/Margin/Stops_Count    # Noch ausstehend
 
 • *Descriptive Statistik *  
-- Times Series/Clustering                                   # Noch ausstehend
+- Times Series                                              # Toke - Noch ausstehend
 
     >>> Korrelation Daten 2017-2020 suchen <<<
       # Nutzung von Computern und dem Internet durch Beschäftigte
@@ -378,6 +378,10 @@ groupbind
 
 ### (2.6) Visualisierung der zeitlichen Entwicklung von dem prognostizierten (prozentualen) wöchentlichen Profit
 ```{r}
+# YearMonthFormat = as.Date(shipments$shipment_created_at)
+# shipments$YearMonth = strftime(YearMonthFormat, format = "%Y-%m") #Jahr-Monat
+
+
 ggplot(data = margin, aes(x = first_stop_requested_arrival_to_week, y = forecasted_margin_3pl, group=1)) +
   geom_line()+
   geom_point()+
@@ -794,7 +798,7 @@ Sie können weitere Variablen recherchieren, die einen Einfluss auf die Unterneh
 • Feriendaten, Feiertags-Daten, Event-Daten
 Diese Beispiele sind lediglich ein Vorschlag. Sie können weitere Variablen verwenden, die aus Ihrer Sicht für die Erstellung des Modelles relevant sind. Die Auswahl muss nachvollziehbar begründet werden.
 
-###TODO
+###TODO Aufgabe B
 *Prognosemodell*
  >> Eventuell zwei Vorhersagen machen zu: Interne Daten und Externe Daten
  >> Multivariater Regression also schauen, wenn Korrelation über 80%, dann eine Variable einfach rausnehmen
@@ -803,6 +807,9 @@ Diese Beispiele sind lediglich ein Vorschlag. Sie können weitere Variablen verw
  
  >> Verwendete Variablen fuer Korrelation im Vorhersagemodell:
     >> Dieselkraffstoff
+    >> ... weitere Daten fehlen
+    >> ...
+    >> ...
   
 
 SCA – WiSe 20/21 Aufgabenstellung zur Case Study
