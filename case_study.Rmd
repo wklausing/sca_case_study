@@ -31,53 +31,54 @@ Die Daten sollen angemessen aufbereitet und visualisiert werden.
 Wenn möglich sollen Handlungsempfehlungen aus den Erkenntnissen abgeleitet werden. 
 Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
 
+### Vorgehen bei der Präsentation am 15.02
+
 • *Visuelle Exploration*
+- Erste Ueberblick anhand Grafiken
 - Datenbereinigung 
 - Grafik Cost, Reveue & Margin > Trend (Zeitreihenanalyse) > Cancellation Reasons
 - Grafik zu transport_price_booked + transport_cost_assigned > Begruendung
+- Grafik Cancellation_reason und evlt. mit 
+  transport_state/transport_stage/business_model/business_strategy miteinander untersuchen # noch nicht erledigt
 
 • *Korrelationen* 
-- Externe Korrelation > Benzin, ... # Hier fehlen noch Daten
-- Interne Korrelation > Kosten/Umsatz/Margin/Stops_Count
+- Externe Korrelation > Benzin, ...                         # Hier fehlen weitere Daten
+- Interne Korrelation > Kosten/Umsatz/Margin/Stops_Count    # Noch ausstehend
 
-• *Descriptive Statistik *  (Times Series/Clustering)
+• *Descriptive Statistik *  
+- Times Series/Clustering                                   # Noch ausstehend
 
     
-    # Nutzung von Computern und dem Internet durch Beschäftigte
-    # Spaeter anschauen und ausprobieren, moeglicherweise zu generisch
-    https://ec.europa.eu/eurostat/databrowser/view/isoc_ci_cm_pn2/default/table?lang=de
+    >>> Korrelation Daten 2017-2020 suchen <<<
+      # Nutzung von Computern und dem Internet durch Beschäftigte
+      https://ec.europa.eu/eurostat/databrowser/view/isoc_ci_cm_pn2/default/table?lang=de
     
-    >>Noch Daten 2017-2020 suchen zu:
+    >>> Import & Export Korrelation
+      a) Einzelhandel - monatliche Daten:
+      https://ec.europa.eu/eurostat/databrowser/view/EI_BSRT_M_R2__custom_560747/default/table?lang=de
+      b) Euro area 19 international trade - monthly data:
+      https://ec.europa.eu/eurostat/databrowser/view/ei_etea19_m/default/table?lang=en
     
-    # Import & Export
-    a) Einzelhandel - monatliche Daten:
-    https://ec.europa.eu/eurostat/databrowser/view/EI_BSRT_M_R2__custom_560747/default/table?lang=de
-    b) Euro area 19 international trade - monthly data:
-    https://ec.europa.eu/eurostat/databrowser/view/ei_etea19_m/default/table?lang=en
-    
-    # Grippe oder generell Gesundheit von Menschen
-    # Benzinpreise, e.g. Diesel #erledigt
-    # Verkehrsunfälle
-    # Anzahl der Suchanfrage von "Instafreight" in Google-Trends. Erkenntnis: Schlechtes Marketing
+    >>> Weitere Externen Daten suchen #Alle
+      # Grippe oder generell Gesundheit von Menschen
+      # Diesel #erledigt
+      # Verkehrsunfälle
+      # Anzahl der Suchanfrage von "Instafreight" in Google-Trends. Erkenntnis: Schlechtes Marketing
       https://trends.google.com/trends/explore?date=today%205-y&geo=DE&q=InstaFreight
-      
-      Notiz:
-      # Wetterdaten sind nicht aufschlussreich
-      
-      Externen Daten suchen (Alle):
       # Transportpreis
-      # Konjunktur von Volkswirtschaft
+      # Konjunktur von Volkswirtschaft oder BIP(?)
       # BIP und Hauptkomponenten - ausgewählte internationale Jahresdaten
          https://ec.europa.eu/eurostat/databrowser/view/naida_10_gdp/default/table?lang=de
       # DSLV-Kostenindex: sämtliche Abwicklungskosten (Personal, Treibstoff  Maut und Sachkosten)
       # Mautkosten
       # Personalkosten (Fahrer, Lieferung)
-    
+      # Notiz: Wetterdaten nicht nutzen, da sind nicht aufschlussreich
   
 Versuchen Sie einen möglichst guten Überblick über die Shipment-Daten zu generieren. 
 Gehen Sie dabei schon gezielt auf die *Marge* ein (sowohl die *zeitliche Entwicklung* als auch identifizierte Zusammenhänge). Achten Sie bei Ihren Interpretationen auf die Gültigkeit von Aussagen über Kausalitäten.
 Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche. 
-Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten, die Ihnen besonders wichtig und präsentationswürdig erscheinen. Bereiten Sie gegebenenfalls ein Portfolio im Back-Up Ihrer Präsentation vor, um auf Anschlussfragen reagieren zu können. Sie sollten bei Ihrer Vorstellung dieser Teilaufgabe versuchen Zusammenhänge zu interpretieren und Implikationen abzuleiten, selbst wenn Ihre erarbeiteten Inhalte durch experimentelle Untersuchungen entstanden sind.
+Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten, die Ihnen besonders wichtig und präsentationswürdig erscheinen. Bereiten Sie gegebenenfalls ein Portfolio im *Back-Up* Ihrer Präsentation vor, um auf Anschlussfragen reagieren zu können. Sie sollten bei Ihrer Vorstellung dieser Teilaufgabe versuchen Zusammenhänge zu interpretieren und Implikationen abzuleiten, selbst wenn Ihre erarbeiteten Inhalte durch experimentelle Untersuchungen entstanden sind.
+
 
 
 ***(1) Datenvorbereitung***
@@ -782,23 +783,25 @@ ggplot(data = NULL) +
 ***Aufgabe B: Vorhersagemodelle****
 Das Ziel dieser Aufgabe ist die Erstellung von Prognosemodellen zur Abschätzung der Unternehmensmarge. 
 Erstellen Sie zu diesem Zweck zunächst ein Modell basierend auf multivariater Regression, welches die Marge einer Buchung/ eines Shipments in Abhängigkeit relevanter Einflussfaktoren vorhersagt. Das Modell soll systematisch erstellt werden, indem mehrere Kombinationen von erklärenden Variablen gegeneinander getestet werden und eine begründete Empfehlung für das beste Modell gegeben wird. Als Art der Modellierung wird hierbei die multivariate Lineare Regression vorgeschlagen. Überlegen Sie, wie dieses Modell in die Unternehmensprozesse eingebunden werden kann. *Das Modell soll eher eine Erklärungs- als eine Vorhersagefunktion erfüllen*.
-Erstellen Sie weiterhin ein Modell, welches für die Vorhersage der zukünftigen Entwicklung der Unternehmensmarge genutzt werden kann. Hierbei sind mehrere Lösungen denkbar. Ach- ten Sie hier besonders auf die Realisierbarkeit bezüglich des Modelleinsatzes im Unternehmen.
+Erstellen Sie weiterhin ein Modell, welches für die Vorhersage der zukünftigen Entwicklung der Unternehmensmarge genutzt werden kann. Hierbei sind mehrere Lösungen denkbar. 
+Achten Sie hier besonders auf die Realisierbarkeit bezüglich des Modelleinsatzes im Unternehmen.
 Folgende Daten stehen Ihnen zur Erstellung der Modelle zur Verfügung:
 Unternehmensinterne Daten
-Sie erhalten zwei Datensätzen von Instafreight, welche im beigefügten PDF näher beschrieben werden. Der eine Datensatz beschreibt die Shipments der letzten 3 Jahre, der andere Daten- satz beschreibt die wöchentliche Marge in dem Zeitraum.
+Sie erhalten zwei Datensätzen von Instafreight, welche im beigefügten PDF näher beschrieben werden. Der eine Datensatz beschreibt die Shipments der letzten 3 Jahre, der andere Datensatz beschreibt die wöchentliche Marge in dem Zeitraum.
 Weitere Daten für die Bearbeitung der Fallstudie
-Sie können weitere Variablen recherchieren, die einen Einfluss auf die Unternehmensmarge haben und die Modellergebnisse entsprechend verbessern können. Folgende Variablen könn- ten beispielsweise verwendet werden:
+Sie können weitere Variablen recherchieren, die einen Einfluss auf die Unternehmensmarge haben und die Modellergebnisse entsprechend verbessern können. Folgende Variablen könnten beispielsweise verwendet werden:
 • Wetterdaten
 • Entwicklung der Kaufkraft, Bevölkerungszuwachs
 • Feriendaten, Feiertags-Daten, Event-Daten
-Diese Beispiele sind lediglich ein Vorschlag. 
-Sie können weitere Variablen verwenden, die aus Ihrer Sicht für die Erstellung des Modelles relevant sind. Die Auswahl muss nachvollziehbar begründet werden.
+Diese Beispiele sind lediglich ein Vorschlag. Sie können weitere Variablen verwenden, die aus Ihrer Sicht für die Erstellung des Modelles relevant sind. Die Auswahl muss nachvollziehbar begründet werden.
 
 ###TODO
 *Prognosemodell*
- >> multivariater Regression
+ >> Eventuell zwei Vorhersagen machen zu: Interne Daten und Externe Daten
+ >> Multivariater Regression also schauen, wenn Korrelation über 80%, dann eine Variable einfach rausnehmen
  >> Mehrere Kombinationen gegeneinander testen
  >> Bestes Model am Ende analysieren und Aussagen treffen zur vorherigen Erkenntnissen
+
 
 
 SCA – WiSe 20/21 Aufgabenstellung zur Case Study
