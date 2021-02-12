@@ -35,8 +35,8 @@ Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche.
 Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten, die Ihnen besonders wichtig und präsentationswürdig erscheinen. Bereiten Sie gegebenenfalls ein Portfolio im *Back-Up* Ihrer Präsentation vor, um auf Anschlussfragen reagieren zu können. Sie sollten bei Ihrer Vorstellung dieser Teilaufgabe versuchen Zusammenhänge zu interpretieren und Implikationen abzuleiten, selbst wenn Ihre erarbeiteten Inhalte durch experimentelle Untersuchungen entstanden sind.
 
 
-###TODO Aufgabe A
-• *Visuelle Exploration*
+### Aufgabe A
+• *(1) Datenformatierung & (2) Visuelle Exploration*
 Vorgehen bei der Präsentation am 15.02
 - Erste Ueberblick anhand Grafiken                                                          # Anny
 - Datenbereinigung > ueberpruefen/Grafik erstellen                                          # Anny 
@@ -46,12 +46,14 @@ Vorgehen bei der Präsentation am 15.02
   transport_state/transport_stage/business_model/business_strategy miteinander untersuchen
 - PowerPoint Präsentation Inhalt schon mal vorbereiten                                      # Anny
   
-• *Korrelationen* 
+• *(3) Descriptive Statistik*  
+- Times Series (Noch ausstehend)                                                            # Toke   
+- Saisonalitaeten Begruendung
+  
+• *(4) Korrelationen* 
 - Externe Korrelation > Benzin, ...(Hier fehlen weitere 3-4 Daten)                          # Wilke
 - Interne Korrelation > Kosten/Umsatz/Margin/Stops_Count                                    # Wilke
 
-• *Descriptive Statistik*  
-- Times Series (Noch ausstehend)                                                            # Toke 
 
     >>> Korrelation Daten 2017-2020 suchen <<<
       # Nutzung von Computern und dem Internet durch Beschäftigte
@@ -391,14 +393,15 @@ ggplot(data = margin, aes(x = first_stop_requested_arrival_to_week, y = forecast
   ggtitle(label = "Instafreight: Weekly Margin (2018-2021)") +
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
   scale_x_discrete(breaks = margin$first_stop_requested_arrival_to_week[seq(1, length(margin$first_stop_requested_arrival_to_week), by = 10)])
+
+#TODO Verhaeltnis zwischen tatseachliche Daten und dem Forecast hier aufzeigen
+#TODO Year-Month: nicht nötig, beide data sets werden über die Spalte Wochenkalender miteinander verbunden und sins somit auch vergleichbar.
 ```
 Erkenntnisse:
 + sehr schwankende Profite, aber vor Ende des 2019 ist die Gewinnmarge nie negativ.
 + 5 kritische Zeitpunkte (negative prozentuale Profite):
 2019-52 (23.12.2019), 2020-01(30.12.2019-05.01.2020), 2020-36 bis 2020-38 (31.08.2020-20.09.2020) 
 
-#TODO Verhaeltnis zwischen tatseachliche Daten und dem Forecast hier aufzeigen
-#TODO Year-Month: nicht nötig, beide data sets werden über die Spalte Wochenkalender miteinander verbunden und sins somit auch vergleichbar.
 
 
 ### (2.9) Margen von 3PL Shipments nach Wochen aggregiert
@@ -432,11 +435,13 @@ ggplot(data = margin, aes(x = first_stop_requested_arrival_to_week, group=1)) +
   
   scale_x_discrete(breaks = margin$first_stop_requested_arrival_to_week[seq(1, length(margin$first_stop_requested_arrival_to_week), by = 5)]) 
 
-```
+# TODO: Bug fixen
 # TODO: Legende
+```
 
 
-## (2.7) Visualisierung der zeitlichen Veränderung des Anteils von cancelled_shipment_count_3pl 
+
+## (2.10) Visualisierung der zeitlichen Veränderung des Anteils von cancelled_shipment_count_3pl 
 ```{r}
 #Anteil von cancelled_shipment_count_3pl berechnen
 margin$cancel_rate_3pl = round( ((margin$shipment_count_3pl-margin$non_cancelled_shipment_count_3pl)/margin$shipment_count_3pl)*100,2) 
@@ -446,6 +451,8 @@ plot_ly(data = margin,x= ~first_stop_requested_arrival_to_week,
         y= ~cancel_rate_3pl ,type = "bar")%>% 
   layout(title = 'Cancellation rate in 3PL Shipments')
 
+#TODO Covid Daten raussuchen
+#TODO Year-Month
 ```
 
 Erkenntnisse: 
@@ -453,10 +460,9 @@ Erkenntnisse:
 Moeglicher Grund: Zu dieser Zeit fand die erstmalige Covid-19-Ausbreitung in China statt, was zum Exporteinbruch und folglich weiterer Unterbrechung von Lieferketten in Deutchland bzw. im Europa fuehrte.
 + Weitere Peaks am Ende des Jahres 2020 sind auch zu erkennen 
 Moeglicher Grund:zweite Welle der Corona-Pandemie
-#TODO Covid Daten raussuchen
-#TODO Year-Month
 
-## (2.8) Visualisierung der Profite aus custom rate shipments und spot shipments
+
+## (2.11) Visualisierung der Profite aus custom rate shipments und spot shipments
 **Unterschied zwischen custom rate shipments und spot shipments**
 Bei jeder Custom Rate wird ein Vertrag mit festen Transportpreisen mit dem Kunden geschlossen und die Transportpreise gehalten werden müssen. # Frage: Wer legt den Preis fuer Transport fest?
 Bei dem Gegenstück der Custom Rate shipments, der Spot shipments, kann der Preis jederzeit angepasst werden. Dies passiert normalerweise auf einer wöchentlichen Basis.
@@ -473,22 +479,22 @@ plot_ly(data = margin,x= ~first_stop_requested_arrival_to_week,
         add_trace(y= ~forecasted_margin_3pl_spot_Euro, name ="spot")%>%
         layout(title = "Custom rate shipments - Spot shipments ", yaxis = list(title = 'margin in Euro'), barmode = 'stack')
 
-
+#TODO Year-Month noch setzen
 ```
 Erkenntnis: Mehr Marge mit Customrate (Contract) als mit spot (Marktpreis)
-#TODOYear-Month noch setzen
 
 
 
-### (2.3) Bereitsvorhandene Vorhersage aus Margin visualisieren. 
-# Vorhersage Daten existieren schon. Erst in Teil B neue Vorhersage machen.
-***(3) Kennzahlen und Reporting von Verfahren identifizierte Muster zB Saisonalitäten, Trends, ...***
-```{r eval=TRUE}
+### (2.12) Vorhandene Vorhersage aus Margin visualisieren
+```{r}
+#TODO Vorhersage Daten existieren schon, deshalb nur visualieren. Erst in Teil B neue Vorhersage machen.
+
 
 ```
 
 
-***(4) Korrelationen + Externe Faktoren (Noch zu finden!)***
+
+***(4) Korrelationen***
 
 **Interne Faktoren**
 
@@ -660,7 +666,8 @@ head(fullfilment_strategy_dummies)
 ```
 
 
-***(5) Verschiedene Methoden der deskriptiven Statistik (Clustering, Zeitreihenanalyse...)***
+***(5) Verschiedene Methoden der deskriptiven Statistik (Zeitreihenanalyse...)***
+### (5.1) Zeitreihenanalyse
 ```{r eval=TRUE}
 ts_marge = ts(marge_YearMonth$total_margin, frequency = 12)
 
