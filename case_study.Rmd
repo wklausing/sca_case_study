@@ -49,10 +49,7 @@ Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
     # Nutzung von Computern und dem Internet durch Beschäftigte
     # Spaeter anschauen und ausprobieren, moeglicherweise zu generisch
     https://ec.europa.eu/eurostat/databrowser/view/isoc_ci_cm_pn2/default/table?lang=de
-    
-    # BIP und Hauptkomponenten - ausgewählte internationale Jahresdaten
-    # Zu generisch
-    https://ec.europa.eu/eurostat/databrowser/view/naida_10_gdp/default/table?lang=de
+  
     
     
     >>Noch Daten 2017-2020 suchen zu:
@@ -71,7 +68,15 @@ Zu diesem Zweck können Sie beispielsweise folgendes nutzen:
       
       Notiz:
       # Wetterdaten sind nicht aufschlussreich
-    
+      
+      Zu suchen:
+      # Transportpreis
+      # Konjunktur von Volkswirtschaft
+      # BIP und Hauptkomponenten - ausgewählte internationale Jahresdaten
+         https://ec.europa.eu/eurostat/databrowser/view/naida_10_gdp/default/table?lang=de
+      # DSLV-Kostenindex: sämtliche Abwicklungskosten (Personal, Treibstoff  Maut und Sachkosten)
+      # Mautkosten
+      # Personalkosten (Fahrer, Lieferung)
     
   - *Methoden der deskriptiven Statistik (Clustering, Times Series...)* #Toke
   
