@@ -279,6 +279,7 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
   xlab("Date") +  
   ylab("Euro") +
   ggtitle(label = "Instafreight: Umsatz, Kosten und Marge (2017-2021)") +
+  theme_classic()+
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
     #y-Achse Zahlen als Integer-Wert deklarieren
     scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
@@ -291,15 +292,16 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
   xlab("Date") +  
   ylab("Euro") +
   ggtitle(label = "Instafreight: Marge (2017-2021)") +
+  theme_classic()+
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
     #y-Achse Zahlen als Integer-Wert deklarieren
     scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1))))) +
     # Periode in 6 Jahrsabstaenden wiedergeben
     scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)])
 
-#TODO Y besser darstellen
 #TODO Legende fehlt
 #TODO geom_smooth()
+#TODO entscheiden nach welcher Datumsspalte die Marge abgebildet werden soll (siehe Grafik oberhalb)
 ```
 
 ### (2.5) Ein Liniendiagramm zu Shipment transport_price_booked + transport_cost_assigned
@@ -320,11 +322,11 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
   xlab("Date") +  
   ylab("Euro") +
   ggtitle(label = "Instafreight: Buchungspreis, Transportkosten und Differenz (2017-2021)") +
+  theme_classic()+
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
   #y-Achse Zahlen als Integer-Wert deklarieren
   scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
   scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)])
-
 
 
 # Liniendiagramm Differenz
@@ -333,30 +335,54 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
   xlab("Date") +  
   ylab("Euro") +
   ggtitle(label = "Instafreight: Differenz zu Buchungs- und Transportkoste (2017-2021)") +
+  theme_classic()+
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
   #y-Achse Zahlen als Integer-Wert deklarieren
   scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
   scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)])
 
-#TODO Y besser darstellen
 #TODO Legende fehlt
+# Ersten Diagramm existiert bereits so ähnlich oberhalb
 ```
 
 ### (2.6) Grafiken zu Cancellation Reasons
 ```{r}
-shipments_cancellation_reason = shipments %>% count(YearMonth, cancellation_reason)
+# die Anzahl des jeweiligen Stornierungsgrunds im jeweiligen Monat aggreggieren
+shipments_cancellation_reason = shipments %>% count(first_stop_requested_arrival_to_YearMonth, cancellation_reason)
 
-ggplot(subset(shipments_cancellation_reason, cancellation_reason == "" & YearMonth <= "2020-12"))+
-  geom_line(aes(YearMonth,n,group = cancellation_reason)) +
-  scale_x_discrete(breaks = shipments_cancellation_reason$YearMonth[seq(1, length(shipments_cancellation_reason$YearMonth), by = 40)])
+# Hintergrung und Daten füllen
+ggplot(subset(shipments_cancellation_reason, cancellation_reason == "" & first_stop_requested_arrival_to_YearMonth <= "2020-12"))+
+  # Linien der Stornierungsgründe hinzufügen
+  geom_line(aes(first_stop_requested_arrival_to_YearMonth,n,group = cancellation_reason)) +
+  # die x Achse übersichtlicher gestalten, indem nicht alle Daten angegeben werden
+  scale_x_discrete(breaks = shipments_cancellation_reason$first_stop_requested_arrival_to_YearMonth[seq(1, length(shipments_cancellation_reason$first_stop_requested_arrival_to_YearMonth), by = 35)])+
+  #Diagramm Titel hinzufügen
+  ggtitle(label = "Auftagsentwicklung (2018-2020")+
+  #Bennenung der x und y Achse
+  xlab("Datum")+
+  ylab("Anzahl Aufträge")+
+  # Grafik design ändern
+  theme_classic()
 
-ggplot(subset(shipments_cancellation_reason, cancellation_reason != "" & YearMonth <= "2020-12"))+
-  geom_line(aes(YearMonth,n,group = cancellation_reason, color=cancellation_reason)) +
-  scale_x_discrete(breaks = shipments_cancellation_reason$YearMonth[seq(1, length(shipments_cancellation_reason$YearMonth), by = 40)])
+# Vorgehen Analog zu ersten Diagramm
+ggplot(subset(shipments_cancellation_reason, cancellation_reason != "" & first_stop_requested_arrival_to_YearMonth <= "2020-12"))+
+  geom_line(aes(first_stop_requested_arrival_to_YearMonth,n,group = cancellation_reason, color=cancellation_reason)) +
+  scale_x_discrete(breaks = shipments_cancellation_reason$first_stop_requested_arrival_to_YearMonth[seq(1, length(shipments_cancellation_reason$first_stop_requested_arrival_to_YearMonth), by = 50)])+
+  ggtitle(label = "Auftragsstornierung (2018-2020")+
+  xlab("Datum")+
+  ylab("Anzahl Stornierung nach Grund")+
+  labs(color = "Stornierungsgrund")+
+  theme_classic()
 
-ggplot(subset(shipments_cancellation_reason, cancellation_reason != "" & cancellation_reason != "customer_not_ready" & cancellation_reason != "other"& cancellation_reason != "self_cancelled" & YearMonth <= "2020-12"))+
-  geom_line(aes(YearMonth,n,group = cancellation_reason, color=cancellation_reason)) +
-  scale_x_discrete(breaks = shipments_cancellation_reason$YearMonth[seq(1, length(shipments_cancellation_reason$YearMonth), by = 40)])
+# Vorgehen Analog zu ersten Diagramm
+ggplot(subset(shipments_cancellation_reason, cancellation_reason != "" & cancellation_reason != "customer_not_ready" & cancellation_reason != "other"& cancellation_reason != "self_cancelled" & first_stop_requested_arrival_to_YearMonth <= "2020-12"))+
+  geom_line(aes(first_stop_requested_arrival_to_YearMonth,n,group = cancellation_reason, color=cancellation_reason)) +
+  scale_x_discrete(breaks = shipments_cancellation_reason$first_stop_requested_arrival_to_YearMonth[seq(1, length(shipments_cancellation_reason$first_stop_requested_arrival_to_YearMonth), by = 50)])+
+  ggtitle(label = "Auftragsstornierung (2018-2020")+
+  xlab("Datum")+
+  ylab("Anzahl Stornierung nach Grund")+
+  labs(color = "Stornierungsgrund")+
+  theme_classic()
 ```
 
 
@@ -367,35 +393,56 @@ group1 = aggregate(transport_price_booked ~
 group2 = aggregate(transport_cost_assigned  ~ 
                      fulfilment_strategy + business_model, data=shipments, sum)
 
+count_shipments = shipments_uncancelled %>%
+  count(fulfilment_strategy,business_model)
+  # Spaltenname "n" umbennen
+  colnames(count_shipments)[3] = "Anzahl_Aufträge"
+
 differenz = group1[3] - group2[3]
 colnames(differenz) = "differenz"
 
-# Spalten von Dataframes werden verbunden
-groupbind = cbind(group1, group2[3], differenz)
+# Dataframes zusammenfügen
+groupbind = group1 %>%
+  inner_join(group2, c("fulfilment_strategy","business_model")) %>%
+  inner_join(count_shipments, c("fulfilment_strategy","business_model"))
 groupbind
 
-#TODO: Datenbereinigen mit unique() und ungleich null
-#TODO: Grafik von entstandene Kosten bei Lieferung waere gut
+# Spalte mit den durchschnittlichen differenzen zw. transport_price_booked und transport_cost_assigned ermitteln (durchschnittlich höchte Marge nach fulfilment_strategy und business_model)
+groupbind =groupbind %>%
+  mutate(Mean_Differenz = (transport_price_booked - transport_cost_assigned) / Anzahl_Aufträge)
+
+
+# Säulendiagramm zum Vergleich
+ggplot(groupbind, aes(fulfilment_strategy, Mean_Differenz, fill = business_model))+
+  geom_col(position = "dodge")+
+  ggtitle(label = "Durchschnittliche Marge nach filfilment_strategy (2018-2020")+
+  theme_classic()
+
+#TODO: Datenbereinigen mit unique() und ungleich null ??
 ```
 
 ### (2.8) Visualisierung der zeitlichen Entwicklung von dem prognostizierten (prozentualen) wöchentlichen Profit
 ```{r}
 # YearMonthFormat = as.Date(shipments$shipment_created_at)
 # shipments$YearMonth = strftime(YearMonthFormat, format = "%Y-%m") #Jahr-Monat
+# total_revenue aus Shipments mit margin joinen um den forecast mit dem wirklichen Revenue zu vergleichen
+margin = margin %>%
+  inner_join(aggregate(total_revenue ~ CalenderWeek, subset(shipments_uncancelled, business_model == "3PL"),sum), c("first_stop_requested_arrival_to_week" = "CalenderWeek")) 
 
+# Berechnen der Differenz der waren Revenues vs der prognistizierten
+margin = margin %>%
+  mutate(differenz_fcast_actual = forecasted_revenue_3pl- total_revenue)
 
-ggplot(data = margin, aes(x = first_stop_requested_arrival_to_week, y = forecasted_margin_3pl, group=1)) +
-  geom_line()+
-  geom_point()+
-  
+# Plotten der Differenz zwischen forcats revenue und actual revenue
+ggplot(data = margin) +
+ geom_line(aes(x = first_stop_requested_arrival_to_week, y = differenz_fcast_actual, group = 1), color = "darkgreen")+
+   
   xlab("Week") +  
-  ylab("Prozent (%)") +
-  ggtitle(label = "Instafreight: Weekly Margin (2018-2021)") +
+  ylab("Euro") +
+  ggtitle(label = "Weekly Margin forecasted vs. actual (2018-2021)") +
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
   scale_x_discrete(breaks = margin$first_stop_requested_arrival_to_week[seq(1, length(margin$first_stop_requested_arrival_to_week), by = 10)])
 
-#TODO Verhaeltnis zwischen tatseachliche Daten und dem Forecast hier aufzeigen
-#TODO Year-Month: nicht nötig, beide data sets werden über die Spalte Wochenkalender miteinander verbunden und sins somit auch vergleichbar.
 ```
 Erkenntnisse:
 + sehr schwankende Profite, aber vor Ende des 2019 ist die Gewinnmarge nie negativ.
@@ -433,7 +480,7 @@ ggplot(data = margin, aes(x = first_stop_requested_arrival_to_week, group=1)) +
   ggtitle(label = "Instafreight: Forecast vs. Reality (2018-2021)") +
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
   
-  scale_x_discrete(breaks = margin$first_stop_requested_arrival_to_week[seq(1, length(margin$first_stop_requested_arrival_to_week), by = 5)]) 
+  scale_x_discrete(breaks = margin$first_stop_requested_arrival_to_week[seq(1, length(margin$first_stop_requested_arrival_to_week), by = 10)]) 
 
 # TODO: Bug fixen
 # TODO: Legende
@@ -452,7 +499,7 @@ plot_ly(data = margin,x= ~first_stop_requested_arrival_to_week,
   layout(title = 'Cancellation rate in 3PL Shipments')
 
 #TODO Covid Daten raussuchen
-#TODO Year-Month
+#TODO Year-Month --> existiert bereits weiter oben
 ```
 
 Erkenntnisse: 
