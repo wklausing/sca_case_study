@@ -281,7 +281,7 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
   geom_line(aes(y = total_cost), colour="red") + 
   geom_line(aes(y = total_revenue), colour="darkgreen") +
   geom_line(aes(y = margin), colour="black") + 
-
+  
   xlab("Date") +  
   ylab("Euro") +
   ggtitle(label = "Instafreight: Umsatz, Kosten und Marge (2017-2021)") +
@@ -289,22 +289,22 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
     #y-Achse Zahlen als Integer-Wert deklarieren
     scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
     scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)]) 
-  #Hinzufügen von Regressionslinie
+  
 ```  
+
 ```{r}
 # Alternative mit plot_ly
 plot_ly(data = shipments_week_aggregated,x= ~YearMonth,   
         y= ~total_cost,type = "scatter", mode = "lines", name = "Total Cost") %>%  
         add_trace(y= ~total_revenue,type = "scatter", mode = "lines", name = "Total Revenue")%>%
         add_trace(y= ~margin,type = "scatter", mode = "lines", name = "Margin")%>%
+        #Hinzufügen von Regressionslinie
         add_lines(x=~YearMonth, y=predict(lm(margin~total_revenue, data = shipments_week_aggregated)), line=list(dash="solid", width = 1.5, color=NULL), name="Trend_Margin")%>%
         layout(title = "Instafreight: Umsatz, Kosten und Marge (2017-2021)", yaxis = list(title = 'Euro'))
 
 ```
 
-
 ```{r eval=TRUE}
-
 # Zweites Liniendiagram nur mit Marge
 ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
   geom_line(aes(y = margin), colour="black") + 
@@ -321,6 +321,16 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
 #TODO Legende fehlt
 #TODO geom_smooth()
 ```
+
+```{r}
+# Alternative mit plot_ly
+plot_ly(data = shipments_week_aggregated,x= ~YearMonth,   
+        y= ~margin,type = "scatter", mode = "lines", name = "Total Cost") %>%  
+        #Hinzufügen von Regressionslinie
+        add_lines(x=~YearMonth, y=predict(lm(margin~total_revenue, data = shipments_week_aggregated)), line=list(dash="solid", width = 1.5, color=NULL), name="Trend_Margin")%>%
+        layout(title = "Instafreight: Margin and Trend (2017-2021)", yaxis = list(title = 'Euro'))
+```
+
 
 ### (2.5) Ein Liniendiagramm zu Shipment transport_price_booked + transport_cost_assigned
 ```{r eval=TRUE}
