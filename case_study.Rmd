@@ -183,6 +183,8 @@ shipments <- shipments %>%
   separate(country_lane, c("origin_country","destination_country"), "-->>")
 
 #TODO OTD noch berechnen
+#Hinzufügen einer Spalte `OTD` unter der Bedingung das die Lieferung pünktlich war
+shipments$OTD = ifelse(shipments$last_stop_agreed_arrival_to >= shipments$last_stop_actual_arrival, TRUE, FALSE)
 
 # Dataframes abspeichern
 saveRDS(shipments, "data/shipments.rds")
