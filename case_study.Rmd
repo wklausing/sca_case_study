@@ -245,11 +245,11 @@ ggplot(marge_YearMonth, aes(x = seq(1,length(c(marge_YearMonth$first_stop_reques
 ```{r eval=FALSE}
 # Umsatz aggrerieren
 df_Revenue = data.frame(aggregate(
-  total_revenue ~ business_model + fulfilment_strategy, data=TableBind, sum))
+  total_revenue ~ business_model + fulfilment_strategy, data= shipments, sum))
 
 # Kosten aggrerieren
 df_Cost = data.frame(aggregate(
-  total_cost ~ business_model + fulfilment_strategy, data=TableBind, sum))
+  total_cost ~ business_model + fulfilment_strategy, data= shipments, sum))
 
 # Beide DataFrames mergen
 df_Compare = cbind(df_Revenue, df_Cost$total_cost)
@@ -272,12 +272,16 @@ shipments_week_aggregated = shipments[c("YearMonth", "total_revenue", "total_cos
 shipments_week_aggregated$margin = 
   shipments_week_aggregated$total_revenue - shipments_week_aggregated$total_cost
 shipments_week_aggregated 
+```
+
+```{r eval=TRUE}
 
 # Liniendiagram von Kosten, Umsatz und Marge
 ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) + 
   geom_line(aes(y = total_cost), colour="red") + 
   geom_line(aes(y = total_revenue), colour="darkgreen") +
   geom_line(aes(y = margin), colour="black") + 
+
   xlab("Date") +  
   ylab("Euro") +
   ggtitle(label = "Instafreight: Umsatz, Kosten und Marge (2017-2021)") +
@@ -285,7 +289,20 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
     #y-Achse Zahlen als Integer-Wert deklarieren
     scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
     scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)]) 
+  #Hinzufügen von Regressionslinie
+```  
+```{r}
+# Alternative mit plot_ly
+plot_ly(data = shipments_week_aggregated,x= ~YearMonth,   
+        y= ~total_cost,type = "scatter", mode = "lines", name = "Total Cost") %>%  
+        add_trace(y= ~total_revenue,type = "scatter", mode = "lines", name = "Total Revenue")%>%
+        add_trace(y= ~margin,type = "scatter", mode = "lines", name = "Margin")%>%
+        layout(title = "Instafreight: Umsatz, Kosten und Marge (2017-2021)", yaxis = list(title = 'Euro'))
 
+```
+
+
+```{r eval=TRUE}
 
 # Zweites Liniendiagram nur mit Marge
 ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
