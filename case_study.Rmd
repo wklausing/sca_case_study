@@ -306,8 +306,10 @@ plot_ly(data = shipments_week_aggregated,x= ~YearMonth,
 
 ```{r eval=TRUE}
 # Zweites Liniendiagram nur mit Marge
-ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
-  geom_line(aes(y = margin), colour="black") + 
+ggplot(data = shipments_week_aggregated, aes(x = YearMonth, y = margin, group=1)) +
+  geom_line(colour="black") + 
+  # Hinzufügen von Trend-Linie
+  geom_smooth(method="gam", formula = y ~s(x))+
   xlab("Date") +  
   ylab("Euro") +
   ggtitle(label = "Instafreight: Marge (2017-2021)") +
@@ -319,7 +321,7 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
 
 #TODO Y besser darstellen
 #TODO Legende fehlt
-#TODO geom_smooth()
+
 ```
 
 ```{r}
