@@ -205,6 +205,122 @@ str(shipments)
 head(margin)
 str(margin)
 ```
+```{r}
+shipments_clean = shipments %>%
+  select(-shipment_reference,-smh_accepted_last_state_change,-first_stop_requested_arrival_to,-last_stop_requested_arrival_to_date,-last_stop_requested_arrival_to)
+
+shipments_clean_info = shipments_clean %>%
+  select(-shipment_created_at,-smh_accepted_first_state_change,-first_stop_requested_arrival_to_date,-first_stop_actual_arrival,-last_stop_agreed_arrival_to,-last_stop_actual_arrival,-year,-month,-day)
+
+shipments_clean_dates = shipments_clean %>%
+  select(-shipment_state,-shipment_stage,-business_model,-custom_rate_shipment,-fulfilment_strategy,-lane_domain,-origin_country,-destination_country,-year,-month,-day)
+
+
+shipments_clean_info
+shipments_clean_dates
+
+```
+# Allgemeine Auswertungen
+
+**Datenbereinigung:**
+
+```{r}
+subset(shipments, cancellation_reason =="") %>%
+  count(OTD)
+```
+
+
+## Prüfen der Länder Codes
+```{r}
+origin_count = subset(shipments %>%
+  count(origin_country), n > 100 )
+  colnames(origin_count)= c("country", "Anzahl_origin")
+
+destination_count = subset(shipments %>%
+  count(destination_country), n > 100 )
+  colnames(destination_count)= c("country", "Anzahl_destination")
+#ToDO origins droppen
+country_count = origin_count %>%
+  full_join(destination_count, c("country"))
+
+ggplot(data =subset(shipments %>%
+  count(origin_country), n > 100 & origin_country != "DE"))+
+  geom_col(aes(origin_country,n) ,fill = "darkslategray4")
+
+ggplot(data =subset(shipments %>%
+  count(destination_country), n > 100 & destination_country != "DE"))+
+  geom_col(aes(destination_country,n), fill = "darkslategray")
+  
+subset(shipments_uncancelled %>%
+  count(origin_country,destination_country), n > 1500) %>%
+  mutate(lane_domain = paste(origin_country, destination_country, sep ="-"))
+
+
+
+ggplot( data = subset(shipments_uncancelled %>%
+  count(origin_country,destination_country), n > 1500) %>%
+  mutate(lane_domain = paste(origin_country, destination_country, sep ="-"))) +
+  geom_col(aes(lane_domain, n), fill = "darkslategray")+
+  theme_classic()+
+  labs(
+   x = element_blank(),
+    y= "Anzahl Aufträge",
+   title = "Anzahl Aufträge bestimmter Lane Domains")
+```
+# Anzahl der Stops pro uncancalled Auftrag
+```{r}
+subset(shipments_clean_info, cancellation_reason == "") %>%
+  count(stops_count)
+
+ggplot(data = subset(shipments_clean_info, cancellation_reason == "") %>%
+  count(stops_count))+
+  geom_col(aes(stops_count,n))+
+  ylab("Anzahl Aufträge")+
+  xlab("Anzahl Stops")+
+  theme_classic()+
+  ggtitle("Anzahl Aufträge nach Anzahl stops")
+```
+
+```{r}
+custom_rate_Nr = shipments_clean_info %>%
+  count(custom_rate_shipment)
+        
+  colnames(custom_rate_Nr)[2]= "Gesamtanzahl_Aufträge"
+
+storno_Nr = subset(shipments_clean_info, cancellation_reason != "") %>%
+  count(custom_rate_shipment)
+
+colnames(storno_Nr)[2]= "Stornierte_Aufträge"
+
+ggplot(data = custom_rate_Nr %>%
+  inner_join(storno_Nr, c("custom_rate_shipment")) %>%
+  mutate(Anteil_Storno = Stornierte_Aufträge / Gesamtanzahl_Aufträge))+
+  geom_col(aes(custom_rate_shipment,Anteil_Storno, fill = c("red","blue")))+
+  theme_classic()+
+  labs(
+    title = "Anteil Stornierte Aufträge",
+    y = "Anteil stornierte Aufträge"
+  )+
+  theme(legend.position = "none")
+```
+Erkenntniss: Aufträge im Rahmen con Kontrakten werden mehr als doppelt so häufig storniert als Spot Aufträge
+
+```{r}
+shipments_clean_info %>%
+  count(lane_domain)
+
+subset(shipments_clean_info, lane_domain == "international") %>%
+  count(origin_country)
+```
+
+
+
+
+
+
+
+
+
 
 
 ***(2) Visuelle Exploration***
@@ -452,7 +568,8 @@ groupbind =groupbind %>%
 ggplot(groupbind, aes(fulfilment_strategy, Mean_Differenz, fill = business_model))+
   geom_col(position = "dodge")+
   ggtitle(label = "Durchschnittliche Marge nach filfilment_strategy (2018-2020")+
-  theme_classic()
+  theme_classic()+
+  ylab("Euro")
 
 #TODO: Datenbereinigen mit unique() und ungleich null ??
 ```
@@ -800,7 +917,8 @@ ggplot(data = NULL) +
                              colour = 'forecast'))+
   
   # Umbenennung der x- und y-Achsen
-  labs(y="Marge in EUR", x="Periode")
+  labs(y="Marge in EUR", x="Periode")+
+  theme_classic()
   
   # Farben fuer Beschriftungen festlegen
   scale_colour_manual(breaks = c("forecast", "original"), values = c("red", "blue"))
@@ -865,7 +983,8 @@ ggplot(data = NULL) +
                              colour = 'original')) + 
   
   # Umbenennung der x- und y-Achsen
-  labs(y="prozentuale Marge 3PL", x="Periode")
+  labs(y="prozentuale Marge 3PL", x="Periode")+
+  theme_classic()
   
   # Farben fuer Beschriftungen festlegen
   scale_colour_manual(breaks = c("forecast", "original"), values = c("red", "blue"))
