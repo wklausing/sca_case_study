@@ -215,6 +215,8 @@ shipments_clean_info = shipments_clean %>%
 shipments_clean_dates = shipments_clean %>%
   select(-shipment_state,-shipment_stage,-business_model,-custom_rate_shipment,-fulfilment_strategy,-lane_domain,-origin_country,-destination_country,-year,-month,-day)
 
+shipments_uncancelled = subset(shipments, cancellation_reason =="")
+
 
 shipments_clean_info
 shipments_clean_dates
@@ -313,8 +315,76 @@ subset(shipments_clean_info, lane_domain == "international") %>%
   count(origin_country)
 ```
 
+##Korrelation mit eigenem Dataframe prüfen
+```{r}
+# welche lane_domain wirft am meisten Marge ab?
 
+marge_lane_domain = aggregate(total_margin ~ lane_domain , shipments_uncancelled, sum) %>%
+  full_join(
+shipments_uncancelled %>%
+count(lane_domain), c("lane_domain")) %>%
+  mutate(Marge_pro_Auftrag = total_margin/n)
 
+ggplot(data = marge_lane_domain)+
+  geom_col(aes(lane_domain,Marge_pro_Auftrag, fill=lane_domain))+
+  labs(
+    x = element_blank(),
+    y = "Marge pro Auftrag",
+    title = "Marge in Abhängigkeit von der lane_domain"
+  )+
+  theme(
+    axis.ticks = element_blank(),
+    plot.title = element_text(size = 16, face = "bold"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    axis.text.x = element_blank(),
+     panel.grid = element_blank(),
+    panel.grid.major.y = element_line(
+      # Set the color to white
+      color = "grey60",
+      # Set the size to 0.5
+      size = 0.1,
+      # Set the line type to dotted
+      linetype = "dashed"
+    ),
+    axis.text = element_text( color = "grey40"),
+    legend.text = element_text( color = "grey40")
+  )
+```
+
+```{r}
+marge_custom_rate_shipment = aggregate(total_margin ~ custom_rate_shipment , shipments_uncancelled, sum) %>%
+  full_join(
+shipments_uncancelled %>%
+count(custom_rate_shipment), c("custom_rate_shipment")) %>%
+  mutate(Marge_pro_Auftrag = total_margin/n)
+
+ggplot(data = marge_custom_rate_shipment)+
+  geom_col(aes(custom_rate_shipment,Marge_pro_Auftrag, fill=custom_rate_shipment))+
+  labs(
+    x = element_blank(),
+    y = "Marge pro Auftrag",
+    title = "Marge in Abhängigkeit von der custom_rate_shipment"
+  )+
+  theme(
+    axis.ticks = element_blank(),
+    plot.title = element_text(size = 16, face = "bold"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    axis.text.x = element_blank(),
+     panel.grid = element_blank(),
+    panel.grid.major.y = element_line(
+      # Set the color to white
+      color = "grey60",
+      # Set the size to 0.5
+      size = 0.1,
+      # Set the line type to dotted
+      linetype = "dashed"
+    ),
+    axis.text = element_text( color = "grey40"),
+    legend.text = element_text( color = "grey40")
+  )
+```
 
 
 
