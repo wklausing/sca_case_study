@@ -385,7 +385,24 @@ ggplot(data = marge_custom_rate_shipment)+
     legend.text = element_text( color = "grey40")
   )
 ```
+```{r}
+# azahl spot vs. Kontrakt Aufträge nach fulfilment strategy
+ggplot(data = shipments_uncancelled %>%
+count(custom_rate_shipment, fulfilment_strategy))+
+  geom_col(aes(fulfilment_strategy,n, fill = custom_rate_shipment), position = "dodge")
+```
 
+```{r}
+# Wie viele stops sind typisch für die verschiedenen lane domains
+ggplot(data = shipments_uncancelled %>%
+  count(lane_domain,stops_count) %>%
+full_join(
+shipments_uncancelled %>%
+count(stops_count),c("stops_count")) %>%
+  mutate(Anteil = n.x/n.y))+
+  geom_point(aes(stops_count,Anteil, color = lane_domain))
+
+```
 
 
 
