@@ -297,6 +297,7 @@ plot_ly(data = shipments_week_aggregated,x= ~YearMonth,
         y= ~total_cost,type = "scatter", mode = "lines", name = "Total Cost") %>%  
         add_trace(y= ~total_revenue,type = "scatter", mode = "lines", name = "Total Revenue")%>%
         add_trace(y= ~margin,type = "scatter", mode = "lines", name = "Margin")%>%
+        add_lines(x=~YearMonth, y=predict(lm(margin~total_revenue, data = shipments_week_aggregated)), line=list(dash="solid", width = 1.5, color=NULL), name="Trend_Margin")%>%
         layout(title = "Instafreight: Umsatz, Kosten und Marge (2017-2021)", yaxis = list(title = 'Euro'))
 
 ```
