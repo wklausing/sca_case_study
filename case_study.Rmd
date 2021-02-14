@@ -566,6 +566,7 @@ plot_ly(data = shipments_week_aggregated,x= ~YearMonth,
 
 #TODO fitted value raus
 #TODO National und International + jeweilige Marge insgesamt 4 Grafiken
+#TODO Zahlen zu jeweiligen Domain_Lane
 ```
 
 ```{r eval=TRUE}
