@@ -164,12 +164,12 @@ shipments$total_margin = shipments$total_revenue - shipments$total_cost
 
 # Erzeuge Spalte für Jahr. Monat, Tag
 shipments = shipments %>%
-  dplyr::mutate(year = lubridate::year(shipment_created_at), 
-                month = lubridate::month(shipment_created_at), 
-                day = lubridate::day(shipment_created_at))
+  dplyr::mutate(year = lubridate::year(first_stop_agreed_arrival_to), 
+                month = lubridate::month(first_stop_agreed_arrival_to), 
+                day = lubridate::day(first_stop_agreed_arrival_to))
 
 # Jahr-Monat Spalte
-shipments$YearMonth = shipments$shipment_created_at %>% as.Date() %>% strftime(., format = "%Y-%m") 
+shipments$YearMonth = shipments$first_stop_agreed_arrival_to %>% as.Date() %>% strftime(., format = "%Y-%m") 
 
 
 # Margin Daten einlesen 
@@ -214,8 +214,7 @@ ggplot(data = shipments, aes(x=total_revenue, y=total_cost))+
     x="Gesamt Umsatz",
     y="Gesamt Kosten",
     title = "Ausreißer Erkennen Kosten vs. Umsatz"
-  )+
-  theme1 # Vorher
+  ) #+ theme1 # Vorher
 # Bereinigung der erkannten Ausreißer
 shipments = shipments[shipments$total_revenue < 5000 & shipments$total_revenue > -1000 & shipments$total_cost > -1000,]
 
@@ -226,8 +225,7 @@ ggplot(data = shipments, aes(x=total_revenue, y=total_cost))+
     x="Gesamt Umsatz",
     y="Gesamt Kosten",
     title = "Ausreißer Erkennen Kosten vs. Umsatz"
-  )+
-  theme1 # Nachher
+  )# + theme1 # Nachher
 
 #10. transport_cost_assigned und transport_price_booked dürfen nur größer/gleich 0 sein. 
 shipments = shipments[shipments$transport_cost_assigned >= 0 & shipments$transport_price_booked >= 0,]
