@@ -101,6 +101,23 @@ Vorgehen bei der Präsentation am 15.02
   
 
 
+Story telling:
+*Visuelle Exploration*
+1. Alle Länder (national vs. International, export vs. import) #Fehlt: Anzahl Aufträge, Legende, Begruendung
+2. National wählen, da mehr Aufträge!
+3. National Marge, Umsatz und Kosten visualisieren #Fehlt: Zweite Grafik nur mit DE, Legende, Marge reingezoomed
+3. National OTD visualisieren
+5. National Transportkosten und TransportAssigned
+
+*Zeitreihenanalyse National*
+1. Zeitreihenanalyse der Marge
+2. Zeitreihenanalyse der Fullfillment_Strategy, Business Model
+
+*Korrelation National*
+- Intern
+- Extern
+
+
 
 ***(1) Datenvorbereitung***
 ### (1.1) CSV Dateien einlesen und Formatierung
