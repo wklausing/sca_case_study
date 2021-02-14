@@ -68,6 +68,7 @@ Vorgehen bei der Präsentation am 15.02
 • *(3) Descriptive Statistik*  
 - Times Series (Noch ausstehend)                                                            # Toke   
 - Saisonalitaeten Begruendung
+- Fehlerkennzahlen
   
 • *(4) Korrelationen* 
 - Externe Korrelation > Benzin, ...(Hier fehlen weitere 3-4 Daten)                          # Wilke
