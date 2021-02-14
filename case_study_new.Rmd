@@ -23,13 +23,20 @@ library("tidyr")
 #update.packages()
 
 #Standard theme für Grafiken erstellen
-theme1 =   theme(
-    axis.ticks = element_blank(),
+theme_standard =    theme(
     plot.title = element_text(size = 16, face = "bold"),
     legend.position = "bottom",
     legend.title = element_blank(),
      panel.grid = element_blank(),
     panel.grid.major.y = element_line(
+      # Set the color to white
+      color = "grey60",
+      # Set the size to 0.5
+      size = 0.1,
+      # Set the line type to dotted
+      linetype = "dashed"
+    ),
+    panel.grid.major.x = element_line(
       # Set the color to white
       color = "grey60",
       # Set the size to 0.5
@@ -195,7 +202,7 @@ ggplot(data = shipments, aes(x=total_revenue, y=total_cost))+
     y="Gesamt Kosten",
     title = "Ausreißer Erkennen Kosten vs. Umsatz"
   )+
-  theme1 # Vorher
+  theme_standard # Vorher
 # Bereinigung der erkannten Ausreißer
 shipments = shipments[shipments$total_revenue < 5000 & shipments$total_revenue > -1000 & shipments$total_cost > -1000,]
 
@@ -207,7 +214,7 @@ ggplot(data = shipments, aes(x=total_revenue, y=total_cost))+
     y="Gesamt Kosten",
     title = "Ausreißer Erkennen Kosten vs. Umsatz"
   )+
-  theme1 # Nachher
+  theme_standard # Nachher
 
 #10. transport_cost_assigned und transport_price_booked dürfen nur größer/gleich 0 sein. 
 shipments = shipments[shipments$transport_cost_assigned >= 0 & shipments$transport_price_booked >= 0,]
@@ -297,30 +304,8 @@ ggplot(marge_YearMonth, aes(x = seq(1,length(c(marge_YearMonth$first_stop_reques
   # Umbenennung der x-Achse
   labs(x = "Periode",
        y = "Durchschnittliche Marge",
-       title =  "Entwicklung der Durchschnittliche Marge (2018-2020)")+ theme(
-    plot.title = element_text(size = 16, face = "bold"),
-    legend.position = "bottom",
-    legend.title = element_blank(),
-     panel.grid = element_blank(),
-    panel.grid.major.y = element_line(
-      # Set the color to white
-      color = "grey60",
-      # Set the size to 0.5
-      size = 0.1,
-      # Set the line type to dotted
-      linetype = "dashed"
-    ),
-    panel.grid.major.x = element_line(
-      # Set the color to white
-      color = "grey60",
-      # Set the size to 0.5
-      size = 0.1,
-      # Set the line type to dotted
-      linetype = "dashed"
-    ),
-    axis.text = element_text( color = "grey40"),
-    legend.text = element_text( color = "grey40")
-  )
+       title =  "Entwicklung der Durchschnittliche Marge (2018-2020)")+theme_standard
+  
 
 # TODO: Legende fehlt
 ```
@@ -347,11 +332,11 @@ df_Compare
 # azahl spot vs. Kontrakt Aufträge nach fulfilment strategy
 ggplot(data = shipments_uncancelled %>%
 count(custom_rate_shipment, fulfilment_strategy))+
-  geom_col(aes(fulfilment_strategy,n, fill = custom_rate_shipment), position = "dodge")
+  geom_col(aes(fulfilment_strategy,n, fill = custom_rate_shipment), position = "dodge")+theme_standard
 
 ggplot(data = shipments_uncancelled %>%
 count(custom_rate_shipment, lane_domain))+
-  geom_col(aes(lane_domain,n, fill = custom_rate_shipment), position = "dodge")
+  geom_col(aes(lane_domain,n, fill = custom_rate_shipment), position = "dodge")+theme_standard
 ```
 
 ### (2.5) Abhängigkeoit der Marge von Kontrakt und Spot Aufträgen
@@ -505,7 +490,30 @@ ggplot( data = subset(shipments_uncancelled %>%
   geom_label(aes(lane_domain,n,label=n),label.r = unit(0.15, "lines"),
              label.size = 0.1,
              label.padding = unit(0.2, "lines")
-)
+)+ theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+     panel.grid = element_blank(),
+    panel.grid.major.y = element_line(
+      # Set the color to white
+      color = "grey60",
+      # Set the size to 0.5
+      size = 0.1,
+      # Set the line type to dotted
+      linetype = "dashed"
+    ),
+    panel.grid.major.x = element_line(
+      # Set the color to white
+      color = "grey60",
+      # Set the size to 0.5
+      size = 0.1,
+      # Set the line type to dotted
+      linetype = "dashed"
+    ),
+    axis.text = element_text( color = "grey40"),
+    legend.text = element_text( color = "grey40")
+  )
 ```
 
 ### (2.4) Zwei Liniendiagramme zu Shipment Kosten, Umsatz und Marge
@@ -570,7 +578,7 @@ ggplot(data = shipments_YearMonth_aggregated, aes(x = first_stop_requested_arriv
     #y-Achse Zahlen als Integer-Wert deklarieren
     scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1))))) +
     # Periode in 6 Jahrsabstaenden wiedergeben
-    scale_x_discrete(breaks = shipments_YearMonth_aggregated$first_stop_requested_arrival_to_YearMonth[seq(1, length(shipments_YearMonth_aggregated$first_stop_requested_arrival_to_YearMonth), by = 2)])
+    scale_x_discrete(breaks = shipments_YearMonth_aggregated$first_stop_requested_arrival_to_YearMonth[seq(1, length(shipments_YearMonth_aggregated$first_stop_requested_arrival_to_YearMonth), by = 2)])+theme_standard
 
 ```
 
@@ -602,7 +610,7 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
   xlab("Date") +  
   ylab("Euro") +
   ggtitle(label = "Instafreight: Buchungspreis, Transportkosten und Differenz (2017-2021)") +
-  theme_classic()+
+  theme_standard+
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
   #y-Achse Zahlen als Integer-Wert deklarieren
   scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
@@ -615,7 +623,7 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
   xlab("Date") +  
   ylab("Euro") +
   ggtitle(label = "Instafreight: Differenz zu Buchungs- und Transportkoste (2017-2021)") +
-  theme_classic()+
+  theme_standard+
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
   #y-Achse Zahlen als Integer-Wert deklarieren
   scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
@@ -642,7 +650,7 @@ ggplot(subset(shipments_cancellation_reason, cancellation_reason == "" & first_s
   xlab("Datum")+
   ylab("Anzahl Aufträge")+
   # Grafik design ändern
-  theme_classic()
+  theme_standard
 
 # Vorgehen Analog zu ersten Diagramm
 ggplot(subset(shipments_cancellation_reason, cancellation_reason != "" & first_stop_requested_arrival_to_YearMonth <= "2020-12"))+
@@ -652,7 +660,7 @@ ggplot(subset(shipments_cancellation_reason, cancellation_reason != "" & first_s
   xlab("Datum")+
   ylab("Anzahl Stornierung nach Grund")+
   labs(color = "Stornierungsgrund")+
-  theme_classic()
+theme_standard
 
 # Vorgehen Analog zu ersten Diagramm
 ggplot(subset(shipments_cancellation_reason, cancellation_reason != "" & cancellation_reason != "customer_not_ready" & cancellation_reason != "other"& cancellation_reason != "self_cancelled" & first_stop_requested_arrival_to_YearMonth <= "2020-12"))+
@@ -662,7 +670,7 @@ ggplot(subset(shipments_cancellation_reason, cancellation_reason != "" & cancell
   xlab("Datum")+
   ylab("Anzahl Stornierung nach Grund")+
   labs(color = "Stornierungsgrund")+
-  theme_classic()
+  theme_standard
 ```
 
 
