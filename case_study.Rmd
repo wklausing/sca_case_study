@@ -110,9 +110,11 @@ Story telling:
 5. National Transportkosten und TransportAssigned
 
 *Zeitreihenanalyse National*
+1. Zeitreihenanalyse der Marge
+2. Zeitreihenanalyse der Fullfillment_Strategy, Business Model
 
 *Korrelation National*
--Intern
+- Intern
 - Extern
 
 
