@@ -9,6 +9,7 @@ Library Packages
 ```{r}
 #rm(list = ls())
 library("tidyverse")
+library("forecast")
 ```
 
 ***Aufgabe A: Erkenntnisgewinn***
@@ -700,5 +701,17 @@ ggplot(data = df_EG, aes(x = period,
 
 
 
+```{r}
+shipments$diff = shipments$shipment_created_at - shipments$first_stop_agreed_arrival_to
+shipments$diff 
 
+shipments$difference_created_agreed_date = difftime(shipments$first_stop_agreed_arrival_to, shipments$shipment_created_at, units = "days")
+plot(x=shipments$shipment_created_at, y=shipments$difference_created_agreed_date, "l")
+
+plot_data = shipments %>% aggregate(difference_created_agreed_date ~ YearMonth, ., mean)
+plot(x=shipments$YearMonth, y=shipments$difference_created_agreed_date, "l")
+
+aggregate(. ~ YearMonth , ., mean)
+
+```
 
