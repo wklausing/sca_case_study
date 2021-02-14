@@ -704,7 +704,7 @@ groupbind =groupbind %>%
 ggplot(groupbind, aes(fulfilment_strategy, Mean_Differenz, fill = business_model))+
   geom_col(position = "dodge")+
   ggtitle(label = "Durchschnittliche Marge nach filfilment_strategy (2018-2020")+
-  theme_classic()
+  theme_standard
 
 #TODO: Datenbereinigen mit unique() und ungleich null ??
 ```
