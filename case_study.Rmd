@@ -101,6 +101,20 @@ Vorgehen bei der Präsentation am 15.02
   
 
 
+Story telling:
+*Visuelle Exploration*
+1. Alle Länder (national vs. International, export vs. import)
+2. National wählen, da mehr Aufträge!
+3. National OTD visualisieren
+4. National Marge, Umsatz und Kosten visualisieren
+5. National Transportkosten und TransportAssigned
+
+*Zeitreihenanalyse National*
+
+*Korrelation National*
+-Intern
+- Extern
+
 
 ***(1) Datenvorbereitung***
 ### (1.1) CSV Dateien einlesen und Formatierung
