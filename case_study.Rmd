@@ -21,6 +21,25 @@ library("plotly")
 library("janitor")
 library("tidyr")
 #update.packages()
+
+#Standard theme für Grafiken erstellen
+theme1 =   theme(
+    axis.ticks = element_blank(),
+    plot.title = element_text(size = 16, face = "bold"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+     panel.grid = element_blank(),
+    panel.grid.major.y = element_line(
+      # Set the color to white
+      color = "grey60",
+      # Set the size to 0.5
+      size = 0.1,
+      # Set the line type to dotted
+      linetype = "dashed"
+    ),
+    axis.text = element_text( color = "grey40"),
+    legend.text = element_text( color = "grey40")
+  )
 ```
 
 ***Aufgabe A: Erkenntnisgewinn***
@@ -168,9 +187,27 @@ shipments = shipments[-1,]
 shipments = shipments[shipments$transport_price_booked >= 0 & shipments$transport_cost_assigned >= 0,]
 
 #9. Ausreißer bei total_revenue und total_cost entfernen.
-plot(x=shipments$total_revenue, y=shipments$total_cost)# Vorher
+ggplot(data = shipments, aes(x=total_revenue, y=total_cost))+
+  geom_point()+
+  theme_classic()+
+  labs(
+    x="Gesamt Umsatz",
+    y="Gesamt Kosten",
+    title = "Ausreißer Erkennen Kosten vs. Umsatz"
+  )+
+  theme1 # Vorher
+# Bereinigung der erkannten Ausreißer
 shipments = shipments[shipments$total_revenue < 5000 & shipments$total_revenue > -1000 & shipments$total_cost > -1000,]
-plot(x=shipments$total_revenue, y=shipments$total_cost)# Nachher
+
+ggplot(data = shipments, aes(x=total_revenue, y=total_cost))+
+  geom_point()+
+  theme_classic()+
+  labs(
+    x="Gesamt Umsatz",
+    y="Gesamt Kosten",
+    title = "Ausreißer Erkennen Kosten vs. Umsatz"
+  )+
+  theme1 # Nachher
 
 #10. transport_cost_assigned und transport_price_booked dürfen nur größer/gleich 0 sein. 
 shipments = shipments[shipments$transport_cost_assigned >= 0 & shipments$transport_price_booked >= 0,]
@@ -204,6 +241,17 @@ str(shipments)
 
 head(margin)
 str(margin)
+```
+### (1.5) Spalten ergänzen
+```{r}
+
+```
+
+
+
+### (1.6) Subsets erstellen
+```{r}
+
 ```
 
 
