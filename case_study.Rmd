@@ -104,6 +104,8 @@ Vorgehen bei der Präsentation am 15.02
 Story telling:
 *Visuelle Exploration*
 1. Alle Länder (national vs. International, export vs. import) #Fehlt: Anzahl Aufträge, Legende, Begruendung
+1.1 Contract Aufträge (Cancellation)
+
 2. National wählen, da mehr Aufträge!
 3. National Marge, Umsatz und Kosten visualisieren #Fehlt: Zweite Grafik nur mit DE, Legende, Marge reingezoomed
 3. National OTD visualisieren
@@ -548,7 +550,8 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
     #y-Achse Zahlen als Integer-Wert deklarieren
     scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
     scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)]) 
-  
+
+# TODO 2017 rausnehmen!
 ```  
 
 ```{r}
@@ -561,6 +564,8 @@ plot_ly(data = shipments_week_aggregated,x= ~YearMonth,
         add_lines(x=~YearMonth, y=predict(lm(margin~total_revenue, data = shipments_week_aggregated)), line=list(dash="solid", width = 1.5, color=NULL), name="fitted values_Margin")%>%
         layout(title = "Instafreight: Umsatz, Kosten und Marge (2017-2021)", yaxis = list(title = 'Euro'))
 
+#TODO fitted value raus
+#TODO National und International + jeweilige Marge insgesamt 4 Grafiken
 ```
 
 ```{r eval=TRUE}
@@ -573,7 +578,7 @@ ggplot(data = shipments_YearMonth_aggregated, aes(x = first_stop_requested_arriv
   geom_smooth(method="gam", formula = y ~s(x))+
   xlab("Date") +  
   ylab("Euro") +
-  ggtitle(label = "Instafreight: Marge (2017-2021)") +
+  ggtitle(label = "Instafreight: Marge (2018-2020)") +
   theme_classic()+
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8),plot.title = element_text(size = 16, face = "bold")) + 
     #y-Achse Zahlen als Integer-Wert deklarieren
@@ -870,6 +875,9 @@ ggplot(shipments_uncancelled,
        aes(factor(business_model), 
        fill = factor(business_model))) +
       geom_bar()
+
+
+#TODO zweite Tabelle erstellen
 ```
 Erkenntnis: Die 3PL Shipments machen einen wesentlichen Anteil an den gesamten Shipments aus und außerdem bringen sie dem Unternehmen im Durchschnitt eine positive Gewinnmarge im Vergleich zu 4PL-Shipments.
 (also positver Zusammenhang zwischen 3PL Shipments als ein Typ von business model und der Marge)!
