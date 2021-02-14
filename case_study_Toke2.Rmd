@@ -168,9 +168,27 @@ shipments = shipments[-1,]
 shipments = shipments[shipments$transport_price_booked >= 0 & shipments$transport_cost_assigned >= 0,]
 
 #9. Ausreißer bei total_revenue und total_cost entfernen.
-plot(x=shipments$total_revenue, y=shipments$total_cost)# Vorher
+ggplot(data = shipments, aes(x=total_revenue, y=total_cost))+
+  geom_point()+
+  theme_classic()+
+  labs(
+    x="Gesamt Umsatz",
+    y="Gesamt Kosten",
+    title = "Ausreißer Erkennen Kosten vs. Umsatz"
+  )+
+  theme1 # Vorher
+# Bereinigung der erkannten Ausreißer
 shipments = shipments[shipments$total_revenue < 5000 & shipments$total_revenue > -1000 & shipments$total_cost > -1000,]
-plot(x=shipments$total_revenue, y=shipments$total_cost)# Nachher
+
+ggplot(data = shipments, aes(x=total_revenue, y=total_cost))+
+  geom_point()+
+  theme_classic()+
+  labs(
+    x="Gesamt Umsatz",
+    y="Gesamt Kosten",
+    title = "Ausreißer Erkennen Kosten vs. Umsatz"
+  )+
+  theme1 # Nachher
 
 #10. transport_cost_assigned und transport_price_booked dürfen nur größer/gleich 0 sein. 
 shipments = shipments[shipments$transport_cost_assigned >= 0 & shipments$transport_price_booked >= 0,]
@@ -185,6 +203,25 @@ shipments <- shipments %>%
 #TODO OTD noch berechnen
 #Hinzufügen einer Spalte `OTD` unter der Bedingung das die Lieferung pünktlich war
 shipments$OTD = ifelse(shipments$last_stop_agreed_arrival_to >= shipments$last_stop_actual_arrival, TRUE, FALSE)
+
+# Standard Theme erstellen
+theme1 =   theme(
+    axis.ticks = element_blank(),
+    plot.title = element_text(size = 16, face = "bold"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+     panel.grid = element_blank(),
+    panel.grid.major.y = element_line(
+      # Set the color to white
+      color = "grey60",
+      # Set the size to 0.5
+      size = 0.1,
+      # Set the line type to dotted
+      linetype = "dashed"
+    ),
+    axis.text = element_text( color = "grey40"),
+    legend.text = element_text( color = "grey40")
+  )
 
 # Dataframes abspeichern
 saveRDS(shipments, "data/shipments.rds")
@@ -215,8 +252,13 @@ shipments_clean_info = shipments_clean %>%
 shipments_clean_dates = shipments_clean %>%
   select(-shipment_state,-shipment_stage,-business_model,-custom_rate_shipment,-fulfilment_strategy,-lane_domain,-origin_country,-destination_country,-year,-month,-day)
 
-shipments_uncancelled = subset(shipments, cancellation_reason =="")
+shipments = subset(shipments, first_stop_requested_arrival_to_YearMonth >= "2018-01" & 
+                       first_stop_requested_arrival_to_YearMonth <= "2020-12")
 
+# Erschaffen eines subsets von shipments ohne stornierte Aufträge von 2018-2020
+shipments_uncancelled = subset(shipments, cancellation_reason == "" & 
+                       first_stop_requested_arrival_to_YearMonth >= "2018-01" & 
+                       first_stop_requested_arrival_to_YearMonth <= "2020-12" )
 
 shipments_clean_info
 shipments_clean_dates
@@ -297,7 +339,7 @@ colnames(storno_Nr)[2]= "Stornierte_Aufträge"
 ggplot(data = custom_rate_Nr %>%
   inner_join(storno_Nr, c("custom_rate_shipment")) %>%
   mutate(Anteil_Storno = Stornierte_Aufträge / Gesamtanzahl_Aufträge))+
-  geom_col(aes(custom_rate_shipment,Anteil_Storno, fill = c("red","blue")))+
+  geom_col(aes(custom_rate_shipment,Anteil_Storno, fill = c("blue","red")))+
   theme_classic()+
   labs(
     title = "Anteil Stornierte Aufträge",
@@ -385,8 +427,65 @@ ggplot(data = marge_custom_rate_shipment)+
     legend.text = element_text( color = "grey40")
   )
 ```
+```{r}
+# azahl spot vs. Kontrakt Aufträge nach fulfilment strategy
+ggplot(data = shipments_uncancelled %>%
+count(custom_rate_shipment, fulfilment_strategy))+
+  geom_col(aes(fulfilment_strategy,n, fill = custom_rate_shipment), position = "dodge")
+
+ggplot(data = shipments_uncancelled %>%
+count(custom_rate_shipment, lane_domain))+
+  geom_col(aes(lane_domain,n, fill = custom_rate_shipment), position = "dodge")
+```
+
+```{r}
+# Wie viele stops sind typisch für die verschiedenen lane domains
+ggplot(data = shipments_uncancelled %>%
+  count(lane_domain,stops_count) %>%
+full_join(
+shipments_uncancelled %>%
+count(stops_count),c("stops_count")) %>%
+  mutate(Anteil = n.x/n.y))+
+  geom_line(aes(stops_count,Anteil, color = lane_domain))+
+  labs(
+    x = "Anzahl Stops",
+    title = "Anzahl an Stops für die jeweilige der lane domain"
+  )+ theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+     panel.grid = element_blank(),
+    panel.grid.major.y = element_line(
+      # Set the color to white
+      color = "grey60",
+      # Set the size to 0.5
+      size = 0.1,
+      # Set the line type to dotted
+      linetype = "dashed"
+    ),
+    panel.grid.major.x = element_line(
+      # Set the color to white
+      color = "grey60",
+      # Set the size to 0.5
+      size = 0.1,
+      # Set the line type to dotted
+      linetype = "dashed"
+    ),
+    axis.text = element_text( color = "grey40"),
+    legend.text = element_text( color = "grey40")
+  )
+
+```
+
+```{r}
+shipments %>%
+  count(first_stop_requested_arrival_to_YearMonth)
+
+shipments_uncancelled %>%
+  count(first_stop_requested_arrival_to_YearMonth)
 
 
+```
 
 
 
@@ -409,11 +508,6 @@ shipments <- shipments %>%
 
 # (2.2) Liniendiagram zu Margin der gesamten 36 Perioden (2018-2020)
 ```{r}
-# Erschaffen eines subsets von shipments ohne stornierte Aufträge von 2018-2020
-shipments_uncancelled = subset(shipments, cancellation_reason == "" & 
-                       first_stop_requested_arrival_to_YearMonth >= "2018-01" & 
-                       first_stop_requested_arrival_to_YearMonth <= "2020-12" )
-
 # die Marge über die Monate nach business_model aggregieren
 marge_YearMonth = aggregate(total_margin ~ first_stop_requested_arrival_to_YearMonth, shipments_uncancelled, mean)
 
@@ -422,7 +516,32 @@ ggplot(marge_YearMonth, aes(x = seq(1,length(c(marge_YearMonth$first_stop_reques
   geom_line() +
   
   # Umbenennung der x-Achse
-  labs(x = "Periode")
+  labs(x = "Periode",
+       y = "Durchschnittliche Marge",
+       title =  "Entwicklung der Durchschnittliche Marge (2018-2020)")+ theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+     panel.grid = element_blank(),
+    panel.grid.major.y = element_line(
+      # Set the color to white
+      color = "grey60",
+      # Set the size to 0.5
+      size = 0.1,
+      # Set the line type to dotted
+      linetype = "dashed"
+    ),
+    panel.grid.major.x = element_line(
+      # Set the color to white
+      color = "grey60",
+      # Set the size to 0.5
+      size = 0.1,
+      # Set the line type to dotted
+      linetype = "dashed"
+    ),
+    axis.text = element_text( color = "grey40"),
+    legend.text = element_text( color = "grey40")
+  )
 
 # TODO: Legende fehlt
 ```
@@ -492,8 +611,10 @@ plot_ly(data = shipments_week_aggregated,x= ~YearMonth,
 ```
 
 ```{r eval=TRUE}
+
+shipments_YearMonth_aggregated = aggregate(total_margin~first_stop_requested_arrival_to_YearMonth, shipments, sum)
 # Zweites Liniendiagram nur mit Marge
-ggplot(data = shipments_week_aggregated, aes(x = YearMonth, y = margin, group=1)) +
+ggplot(data = shipments_YearMonth_aggregated, aes(x = first_stop_requested_arrival_to_YearMonth, y = total_margin, group=1)) +
   geom_line(colour="black") + 
   # Hinzufügen von Trend-Linie
   geom_smooth(method="gam", formula = y ~s(x))+
@@ -501,19 +622,12 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, y = margin, group=1)
   ylab("Euro") +
   ggtitle(label = "Instafreight: Marge (2017-2021)") +
   theme_classic()+
-  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8),plot.title = element_text(size = 16, face = "bold")) + 
     #y-Achse Zahlen als Integer-Wert deklarieren
     scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1))))) +
     # Periode in 6 Jahrsabstaenden wiedergeben
-    scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)])
-
-#TODO Legende fehlt
-<<<<<<< HEAD
-#TODO geom_smooth()
-#TODO entscheiden nach welcher Datumsspalte die Marge abgebildet werden soll (siehe Grafik oberhalb)
-=======
-
->>>>>>> afeaf00c0ec6bcd122cfb840bf2371ae41958f13
+    scale_x_discrete(breaks = shipments_YearMonth_aggregated$first_stop_requested_arrival_to_YearMonth[seq(1, length(shipments_YearMonth_aggregated$first_stop_requested_arrival_to_YearMonth), by = 2)])
+                     
 ```
 
 ```{r}
@@ -584,7 +698,23 @@ ggplot(subset(shipments_cancellation_reason, cancellation_reason == "" & first_s
   xlab("Datum")+
   ylab("Anzahl Aufträge")+
   # Grafik design ändern
-  theme_classic()
+  theme_classic()+
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+     panel.grid = element_blank(),
+    panel.grid.major.y = element_line(
+      # Set the color to white
+      color = "grey60",
+      # Set the size to 0.5
+      size = 0.1,
+      # Set the line type to dotted
+      linetype = "dashed"
+    ),
+    axis.text = element_text( color = "grey40"),
+    legend.text = element_text( color = "grey40")
+  )
 
 # Vorgehen Analog zu ersten Diagramm
 ggplot(subset(shipments_cancellation_reason, cancellation_reason != "" & first_stop_requested_arrival_to_YearMonth <= "2020-12"))+
@@ -937,7 +1067,7 @@ head(fullfilment_strategy_dummies)
 
 ### (4) Zeitreihenanalyse
 
-## (4.1) Zeitreihenanalyse
+## (4.1) Zeitreihenanalyse Total Marge
 ```{r eval=TRUE}
 ts_marge = ts(marge_YearMonth$total_margin, frequency = 12)
 
@@ -1032,7 +1162,6 @@ fcast_marge_percent
 
 Visualiesierung der Vorhersage ("forecast") und der ursprünglichen Nachfragen ("original") in einem Liniendiagramm über die Perioden. Es wurde ein Liniendiagramm gewählt, da es den fließenden Verlauf zwischen den Perioden anzeigen lässt und dadurch wie eng die beiden Linien der Vorhersage und der Origanlwerte über die Zeit auseinander liegen, lässt sich die Güte des Modells beobachten
 
-
 ### (4.3) Visualisierung Vorhersage
 ```{r}
 # Hintergrund erzeugen 
@@ -1060,9 +1189,181 @@ ggplot(data = NULL) +
   scale_colour_manual(breaks = c("forecast", "original"), values = c("red", "blue"))
 ```
 
+### (4.4) Zeitreihenanalyse Aufträge
+```{r}
+shipment_count_YearMonth = shipments_uncancelled %>% count(first_stop_requested_arrival_to_YearMonth)
+
+colnames(shipment_count_YearMonth)[2] = "Anzahl_Aufträge"
+
+```
+
+```{r eval=TRUE}
+ts_Aufträge = ts(shipment_count_YearMonth$Anzahl_Aufträge, frequency = 12)
+
+#Die 'cat' Funktion dient lediglich für eine bessere Übersicht indem sie Absätze im Output erzeugt
+# Modell automatisch erstellen lassen
+cat("\n","\n","Modell:","\n")
+m_Aufträge = ets(ts_Aufträge, model = "ZAA")
+# (1) Modellzusammenfassung ausgeben lassen
+m_Aufträge
+
+# (2) Ausgabe ursprüngliche Zeitreihe
+cat("\n","\n","Ursprüngliche Zeitreihe:","\n")
+ts_Aufträge
+# (3) Residuen ausgeben
+cat("\n","\n","Residuen:","\n")
+round(m_Aufträge$residuals,2)
+```
+
+### (4.3) Vorhersage Auftragslage
+```{r}
+#Vorhersage erstellen
+fcast_Aufträge = forecast(m_Aufträge,12)
+#Anzeigen der Vorhersage
+fcast_Aufträge
+```
+
+### (4.4) Visualisierung Vorhersage
+```{r}
+# Hintergrund erzeugen 
+ggplot(data = NULL) + 
+  
+  # Erste Linie hinzufuegen (keine Daten; X-Achse = Reihe von 1 bis laenge fitting Werten und Forecast Werten)
+  geom_line(data = NULL, aes(x=seq(1,length(c(fcast_Aufträge$fitted, fcast_Aufträge$mean)),1), 
+                             # Y-Achse = Kombination von fitting Werten und Forecast Werten
+                             y= c(as.numeric(fcast_Aufträge$fitted),as.numeric(fcast_Aufträge$mean)), 
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'forecast')) +
+  
+  # Zweite Linie hinzufuegen (Keine Daten; X-Achse = Reihe von 1 bis laenge Beobachtungen)
+  geom_line(data = NULL, aes(x=seq(1,length(fcast_Aufträge$x),1), 
+                             # Y-Achse = Beobachtungen
+                             y= as.numeric(fcast_Aufträge$x),
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'original')) + 
+  
+  # Umbenennung der x- und y-Achsen
+  labs(y="Anzahl Aufträge", x="Periode")+
+  theme_classic()
+  
+  # Farben fuer Beschriftungen festlegen
+  scale_colour_manual(breaks = c("forecast", "original"), values = c("red", "blue"))
+```
+
+### (4.5) Zeitreihenanalyse fulfimemt Strategie
+```{r}
+fulfillment_count_YearMonth = shipments_uncancelled %>% count(first_stop_requested_arrival_to_YearMonth, fulfilment_strategy)
+
+colnames(shipment_count_YearMonth)[3] = "Anzahl_Aufträge"
+
+```
+
+```{r}
+fulfillment_count_YearMonth_reshaped= reshape(fulfillment_count_YearMonth,
+                         timevar="fulfilment_strategy",
+                         idvar = c("first_stop_requested_arrival_to_YearMonth"),
+                         direction = "wide")
+colnames(fulfillment_count_YearMonth_reshaped)=c("YearMonth","Anzahl_Bulk", "Anzahl_fullTruck", "Anzahl_Pallet")
+head(fulfillment_count_YearMonth_reshaped)
+```
+
+```{r eval=TRUE}
+ts_Bulk = ts(fulfillment_count_YearMonth_reshaped$Anzahl_Bulk, frequency = 12)
+ts_fullTruck = ts(fulfillment_count_YearMonth_reshaped$Anzahl_fullTruck, frequency = 12)
+ts_Pallet = ts(fulfillment_count_YearMonth_reshaped$Anzahl_Pallet, frequency = 12)
 
 
+#Die 'cat' Funktion dient lediglich für eine bessere Übersicht indem sie Absätze im Output erzeugt
+# Modell automatisch erstellen lassen
+cat("\n","\n","Modell:","\n")
+m_Bulk = ets(ts_Bulk, model = "ZZZ")
+m_fullTruck = ets(ts_fullTruck, model = "ZZZ")
+m_Pallet = ets(ts_Pallet, model = "ZZZ")
 
+# (1) Modellzusammenfassung ausgeben lassen
+m_Bulk
+m_fullTruck
+m_Pallet
+
+# (2) Ausgabe ursprüngliche Zeitreihe
+cat("\n","\n","Ursprüngliche Zeitreihe:","\n")
+ts_Bulk
+ts_fullTruck
+ts_Pallet
+
+# (3) Residuen ausgeben
+cat("\n","\n","Residuen:","\n")
+round(m_Bulk$residuals,2)
+round(m_fullTruck$residuals,2)
+round(m_Pallet$residuals,2)
+
+```
+
+### (4.5) Vorhersage Auftragslage
+```{r}
+#Vorhersage erstellen
+fcast_Bulk = forecast(m_Bulk,12)
+fcast_fullTruck = forecast(m_fullTruck,12)
+fcast_Pallet = forecast(m_Pallet,12)
+
+#Anzeigen der Vorhersage
+fcast_Bulk
+fcast_fullTruck
+fcast_Pallet
+```
+### (4.5) Visualisierung Vorhersage
+```{r}
+## Vorhersage FullTrucks
+# Hintergrund erzeugen 
+ggplot(data = NULL) + 
+  
+  # Erste Linie hinzufuegen (keine Daten; X-Achse = Reihe von 1 bis laenge fitting Werten und Forecast Werten)
+  geom_line(data = NULL, aes(x=seq(1,length(c(fcast_fullTruck$fitted, fcast_fullTruck$mean)),1), 
+                             # Y-Achse = Kombination von fitting Werten und Forecast Werten
+                             y= c(as.numeric(fcast_fullTruck$fitted),as.numeric(fcast_fullTruck$mean)), 
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'forecast')) +
+  
+  # Zweite Linie hinzufuegen (Keine Daten; X-Achse = Reihe von 1 bis laenge Beobachtungen)
+  geom_line(data = NULL, aes(x=seq(1,length(fcast_fullTruck$x),1), 
+                             # Y-Achse = Beobachtungen
+                             y= as.numeric(fcast_fullTruck$x),
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'original')) + 
+  
+  # Umbenennung der x- und y-Achsen
+  labs(y="Anzahl Aufträge", x="Periode")+
+  theme_classic()
+  
+  # Farben fuer Beschriftungen festlegen
+  scale_colour_manual(breaks = c("forecast", "original"), values = c("red", "blue"))
+  
+  
+  ## Vorhersage Pallet
+  # Hintergrund erzeugen 
+ggplot(data = NULL) + 
+  
+  # Erste Linie hinzufuegen (keine Daten; X-Achse = Reihe von 1 bis laenge fitting Werten und Forecast Werten)
+  geom_line(data = NULL, aes(x=seq(1,length(c(fcast_Pallet$fitted, fcast_Pallet$mean)),1), 
+                             # Y-Achse = Kombination von fitting Werten und Forecast Werten
+                             y= c(as.numeric(fcast_Pallet$fitted),as.numeric(fcast_Pallet$mean)), 
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'forecast')) +
+  
+  # Zweite Linie hinzufuegen (Keine Daten; X-Achse = Reihe von 1 bis laenge Beobachtungen)
+  geom_line(data = NULL, aes(x=seq(1,length(fcast_Pallet$x),1), 
+                             # Y-Achse = Beobachtungen
+                             y= as.numeric(fcast_Pallet$x),
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'original')) + 
+  
+  # Umbenennung der x- und y-Achsen
+  labs(y="Anzahl Aufträge", x="Periode")+
+  theme_classic()
+  
+  # Farben fuer Beschriftungen festlegen
+  scale_colour_manual(breaks = c("forecast", "original"), values = c("red", "blue"))
+```
 
 
 ### Aufgabe B
