@@ -103,7 +103,7 @@ Vorgehen bei der Präsentation am 15.02
 
 Story telling:
 *Visuelle Exploration*
-1. Alle Länder (national vs. International, export vs. import)
+1. Alle Länder (Anzahl Aufträge, national vs. International, export vs. import)
 2. National wählen, da mehr Aufträge!
 3. National OTD visualisieren
 4. National Marge, Umsatz und Kosten visualisieren
