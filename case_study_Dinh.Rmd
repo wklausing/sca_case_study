@@ -774,6 +774,25 @@ Erkenntnis: Die 3PL Shipments machen einen wesentlichen Anteil an den gesamten S
 (also positver Zusammenhang zwischen 3PL Shipments als ein Typ von business model und der Marge)!
 
 
+```{r}
+# durchschnittliche Marge, aggregiert nach Geschaefstmodell (neu)
+
+# subset seit der Einfuehrung des neuen Geschaeftsmodell 4PL (ab 08.11.2019)
+shipments_uncancelled_ab_2019_11 = subset(shipments_uncancelled, first_stop_requested_arrival_to_date >= "2019-11-08")
+
+# durchschnittliche Marge, aggregiert nach Geschaefstmodell
+shipments_uncancelled_ab_2019_11 %>%
+    group_by(business_model) %>%
+    summarize(mean_margin = mean(total_margin, na.rm = TRUE))
+
+# Visualisierung
+ggplot(shipments_uncancelled_ab_2019_11, 
+       aes(factor(business_model), 
+       fill = factor(business_model))) +
+      geom_bar()
+
+```
+
 
 b. custom rate shipment
 ```{r}
@@ -841,7 +860,7 @@ tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$lane_domain ,su
 
 ### (3.3) OTD
 ```{r}
-# durchschnittliche Marge, aggregiert nach lane domain (export, import, national, international)
+# durchschnittliche Marge, aggregiert nach OTD
   shipments_uncancelled %>%
     group_by(OTD) %>%
     summarize(mean_margin = mean(total_margin, na.rm = TRUE))
@@ -856,6 +875,7 @@ ggplot(shipments_uncancelled_ohne_NA,
        fill = factor(OTD))) +
        geom_bar()
 ```
+
 
 
 ### (3.4) Numerical-numerical associations
