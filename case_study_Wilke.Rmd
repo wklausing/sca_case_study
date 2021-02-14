@@ -375,10 +375,6 @@ ggplot(growth_by_month, aes(x=period, y=monthly_growth, group=1))+
   geom_line(color="red") +
   ggtitle(label = "Wachstum von Total Revenue pro Monat")
 
-ggplot(growth_by_month[growth_by_year$period != 1,], aes(x=period, y=monthly_growth, group=1))+
-  geom_line(color="red") +
-  ggtitle(label = "Wachstum von Total Revenue pro Monat")
-
 
 # Wachstum für Jahre. Nur volle Jahre.
 growth_by_year = shipments[shipments$year != "2017" & shipments$year != "2021",] %>% aggregate(total_revenue ~ year, data = ., sum)
@@ -511,13 +507,7 @@ ggplot(data = df_EG, aes(x = period,
   # Beschriftung von x-Achse 90 Grad umgedreht
   theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust=2, size=6))
 ```
-*Decompose TS*
-```{r}
-birthsComp <- decompose(ts_shipments)
-birthsComp
 
-plot.ts(birthsComp)
-```
 ```{r}
 #install.packages("anomalize")
 library(tidyverse)
@@ -528,6 +518,7 @@ library(anomalize)
 
 
 #shipments von 2018-2020 
+shipments$shipment_created_at_date = shipments$shipment_created_at %>% as.Date()
 shipments_dates = shipments[shipments$shipment_created_at_date >= "2018-01-01" & shipments$shipment_created_at_date <= "2020-12-31",]
 shipments_dates = shipments_dates[c("shipment_created_at_date","total_margin")]
 
@@ -538,15 +529,176 @@ dates_and_margin = data.frame(shipment_created_at_date = dates0, total_margin = 
 shipments_complete_dates = rbind(shipments_dates, dates_and_margin)#Verbinde DFs
 shipments_complete_dates = data[order(data$shipment_created_at_date),]#Sortiere
 
-shipments_complete_dates %>% as_tbl_time(.)
+shipments_complete_dates = shipments_complete_dates %>% aggregate(total_margin ~ shipment_created_at_date, ., mean) %>% as_tibble(.)
 shipments_complete_dates %>%
-    time_decompose(count) %>%
+    time_decompose(total_margin) %>%
     anomalize(remainder) %>%
     time_recompose() %>%
     plot_anomalies(time_recomposed = TRUE, ncol = 3, alpha_dots = 0.5)
 
+#Auto Einstellungen
+shipments_complete_dates %>%
+    time_decompose(total_margin) %>%
+    anomalize(remainder) %>%
+    time_recompose() %>%
+    plot_anomalies(time_recomposed = TRUE, ncol = 3, alpha_dots = 0.5)
+
+#Einstellung frequency = 1 Woche, Trend= 1 Jahr. Plot
+shipments_complete_dates %>%
+    time_decompose(total_margin) %>%
+    anomalize(remainder) %>%
+  plot_anomaly_decomposition()
+
+#Einstellung frequency = 1 Woche, Trend= 1 Jahr
+shipments_complete_dates %>%
+    time_decompose(total_margin, frequency = "1 week", trend = "1 year") %>%
+    anomalize(remainder) %>%
+    time_recompose() %>%
+    plot_anomalies(time_recomposed = TRUE, ncol = 3, alpha_dots = 0.5)
+
+#Einstellung frequency = 1 Woche, Trend= 1 Jahr. Plot
+shipments_complete_dates %>%
+    time_decompose(total_margin, frequency = "1 week", trend = "1 year") %>%
+    anomalize(remainder) %>%
+  plot_anomaly_decomposition()
+
+# Decomposed shipments data set
+decomposed_shipments = shipments_complete_dates %>% time_decompose(total_margin, frequency = "1 week", trend = "1 year") %>% anomalize(remainder)
+
+plot(x=decomposed_shipments$shipment_created_at_date,y=decomposed_shipments$remainder)
+
+# Jahr-Monat Spalte
+decomposed_shipments$YearMonth = decomposed_shipments$shipment_created_at_date %>% as.Date() %>% strftime(., format = "%Y-%m") 
+
+# Anomalien entfernen
+decomposed_shipments = decomposed_shipments[decomposed_shipments$anomaly == "No",]
+decomposed_shipments$anomaly = NULL
+
+# Aggregieren auf JahrMonat
+decomposed_shipments_month = decomposed_shipments %>% aggregate(. ~ YearMonth, ., mean)
+
+# Verbinden mit shipments_google_month_cor
+shipments_google_month = merge(shipments_google_month,decomposed_shipments_month,by=c("YearMonth","YearMonth")) 
+shipments_google_month
+
+shipments_google_month_cor = shipments_google_month[c("observed", "season","trend","remainder","Dieselkraftstoff","Superbenzin",  "Spedition...Deutschland.","Transport...Deutschland.","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% cor() %>% data.frame()
+shipments_google_month_cor
+
+
+
+
 
 ```
+
+```{r eval=TRUE}
+# Google/Diesel/Shipments Daten 
+google_data = read.csv("data/google_data.csv")
+google_data$YearMonth = google_data$Woche %>% as.Date() %>% strftime(., format = "%Y-%m") 
+
+google_data_month = google_data[c("YearMonth","Spedition...Deutschland.", "Transport...Deutschland.")] %>% aggregate(. ~ YearMonth , ., mean)
+
+shipments_month = shipments[c("YearMonth","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% aggregate(. ~ YearMonth , ., mean)
+
+shipments_google_month = merge(google_data_month,shipments_month,by=c("YearMonth","YearMonth")) 
+
+diesel <- read.csv("data/dieselPreiseMonat.csv", sep=";")
+shipments_google_month = merge(shipments_google_month,diesel,by=c("YearMonth","YearMonth")) 
+
+# Season/trend Bereinigte Daten von Shipments
+decomposed_shipments = shipments_complete_dates %>% time_decompose(total_margin, frequency = "auto", trend = "auto") %>% anomalize(remainder)
+
+plot(x=decomposed_shipments$shipment_created_at_date,y=decomposed_shipments$remainder)
+
+# Jahr-Monat Spalte
+decomposed_shipments$YearMonth = decomposed_shipments$shipment_created_at_date %>% as.Date() %>% strftime(., format = "%Y-%m") 
+
+# Anomalien entfernen
+decomposed_shipments = decomposed_shipments[decomposed_shipments$anomaly == "No",]
+decomposed_shipments$anomaly = NULL
+
+# Aggregieren auf JahrMonat
+decomposed_shipments_month = decomposed_shipments %>% aggregate(. ~ YearMonth, ., mean)
+
+# Verbinden mit shipments_google_month_cor
+shipments_google_month = merge(shipments_google_month,decomposed_shipments_month,by=c("YearMonth","YearMonth")) 
+shipments_google_month
+
+shipments_google_month_cor = shipments_google_month[c("observed", "season","trend","remainder","Dieselkraftstoff","Superbenzin",  "Spedition...Deutschland.","Transport...Deutschland.","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% cor() %>% data.frame()
+shipments_google_month_cor
+```
+
+
+
+*Zeitreihen Analyse*
+```{r eval=TRUE}
+shipments_complete_dates
+
+ggplot(shipments_complete_dates, aes(x = shipment_created_at_date, y = total_margin, group = 1)) + 
+  geom_line() +
+  
+  # Umbenennung der x-Achse
+  labs(x = "Periode")
+
+
+ts_shipments = ts(shipments_complete_dates$total_margin, frequency = 12)
+ets_shipments = ets(ts_shipments, model = "ZAA")
+
+cat("\n Zusammenfassung des Modells: \n")
+summary(ets_shipments)
+
+cat("\n Urspruengliche Zeitreihe: \n")
+ets_shipments$x
+
+cat("\n Residiuen: \n")
+ets_shipments$residuals
+
+# Durchschnittliche Abweichung mit  Mean Forecast Error (MFE) berechnen
+# Mittelwert(Urspruengliche Zeitreihe - Vorhersagen fuer den gegebenen Zeitraum) 
+MFE <- round(mean(as.numeric(ets_shipments$x - ets_shipments$fitted)), 4)
+MFE
+
+# Forecast der Variable fcast_Shangh (fuer exponentielle Glaettung) uebergeben
+# Der Output zeigt die Forecast-Werte sowie die oberen und unteren Grenzen 
+# der 80% und 95% Konfidenzintervalle.
+fcast_shipments = forecast(ets_shipments, 12)
+```
+
+*1. DataFrame Original Nr. 1 erstellen*
+```{r}
+# DataFrame erstellen
+df_shipments = data.frame(
+                   period = seq(1, length(fcast_shipments$x), 1), 
+                   value = as.numeric(fcast_shipments$x), 
+                   grp = rep("original", length(fcast_shipments$x)))
+```
+
+*2. DataFrame Vorhersage Nr. 2 erstellen*
+```{r}
+# DataFrame erstellen
+df_shipments_fcast = data.frame(
+  period = seq(1, length(fcast_shipments$fitted) + length(fcast_shipments$mean), 1), 
+  value = c(as.numeric(fcast_shipments$fitted), as.numeric(fcast_shipments$mean)), 
+  grp = rep("fcast", length(fcast_shipments$fitted) + length(fcast_shipments$mean)))
+```
+
+*3. Verbinden der DataFrames Nr. 1 und Nr. 2*
+```{r}
+# Verbinden der Data Frames
+df_EG = rbind(df_shipments, df_shipments_fcast)
+
+# Anzeigen des DataFrame (ausgewaehlte Beobachtungen)
+head(df_EG)
+
+
+ggplot(data = df_EG, aes(x = period, 
+                         y = value, colour = grp)) + 
+  geom_line() +
+
+  # Beschriftung von x-Achse 90 Grad umgedreht
+  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust=2, size=6))
+```
+
+
 
 
 
