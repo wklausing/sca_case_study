@@ -683,11 +683,9 @@ margin$cancel_rate_3pl = round( ((margin$shipment_count_3pl-margin$non_cancelled
 
 #Visualisierung
 plot_ly(data = margin,x= ~first_stop_requested_arrival_to_week,   
-        y= ~cancel_rate_3pl ,type = "bar")%>% 
-  layout(title = 'Cancellation rate in 3PL Shipments')
-
-#TODO Covid Daten raussuchen
-#TODO Year-Month --> existiert bereits weiter oben
+        y= ~cancel_rate_3pl ,type = "bar", color = I("darkred"))%>% 
+        layout(title = 'Cancellation rate in 3PL Shipments (Europaweit)', xaxis = list(title = 'Monat', dtick= 10)) 
+  
 ```
 
 Erkenntnisse: 
