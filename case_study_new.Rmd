@@ -228,6 +228,7 @@ shipments$OTD = ifelse(shipments$last_stop_agreed_arrival_to >= shipments$last_s
 # Dataframes abspeichern
 saveRDS(shipments, "data/shipments.rds")
 saveRDS(margin, "data/margins.rds")
+write.csv(shipments, "data/shipments.csv")
 ```
 
 ```{r}
@@ -284,12 +285,12 @@ shipments_clean = shipments %>%
 
 # subset, dass nur qualitative Informationen enthält um eine Übersicht zu erlangen
 shipments_clean_info = shipments_clean %>%
-  select(-shipment_created_at,-smh_accepted_first_state_change,-first_stop_requested_arrival_to_date,-first_stop_actual_arrival,-last_stop_agreed_arrival_to,-last_stop_actual_arrival,-year,-month,-day)
+  select(-shipment_created_at,-smh_accepted_first_state_change,-first_stop_requested_arrival_to_date,-first_stop_actual_arrival,-last_stop_agreed_arrival_to,-last_stop_actual_arrival)
 
 
 # subset, dasss nur Datumsinformationen erhält, um einen Überblick zu bekommen
 shipments_clean_dates = shipments_clean %>%
-  select(-shipment_state,-shipment_stage,-business_model,-custom_rate_shipment,-fulfilment_strategy,-lane_domain,-origin_country,-destination_country,-year,-month,-day)
+  select(-shipment_state,-shipment_stage,-business_model,-custom_rate_shipment,-fulfilment_strategy,-lane_domain,-origin_country,-destination_country)
 
 # shipments DF wird auf volle Jahre begrenzt
 shipments = subset(shipments, first_stop_requested_arrival_to_YearMonth >= "2018-01" & 
@@ -1136,10 +1137,10 @@ ggplot(data = NULL) +
                              colour = 'forecast'))+
   
   #Diagramm Titel hinzufügen
-  ggtitle(label = "Margenentwicklung (2018-2020)")+
+  ggtitle(label = "Gesamtmarge Entwicklung (2018-2020)")+
   
   # Umbenennung der x- und y-Achsen
-  labs(y="Ø Marge in EUR", x="Periode")+
+  labs(y="Marge in EUR", x="Periode")+
   theme_classic()+
   theme(
       axis.text = element_text( color = "grey30", size = 12),
@@ -1201,7 +1202,8 @@ ggplot(data = NULL) +
                              y= c(as.numeric(fcast_marge$fitted),as.numeric(fcast_marge$mean)), 
                              # Beschriftung fuer Farbe festlegen
                              colour = 'forecast'))+
-  
+    #Diagramm Titel hinzufügen
+  ggtitle(label = "Durchschnittliche Marge (2018-2020)")+
   # Umbenennung der x- und y-Achsen
   labs(y="Ø Marge in EUR", x="Periode")+
   theme_classic()+
@@ -1278,7 +1280,7 @@ ggplot(data = NULL) +
                              colour = 'original')) + 
   
   # Titel 
-  ggtitle(label = "3PL Margenentwicklung (2018-2020)")+
+  ggtitle(label = "prozentuale 3PL Margenentwicklung (2018-2020)")+
   
   # Umbenennung der x- und y-Achsen
   labs(y="Marge 3PL in %", x="Periode")+
