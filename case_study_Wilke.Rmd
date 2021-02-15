@@ -571,18 +571,17 @@ library(anomalize)
 
 
 #shipments von 2018-2020 
-shipments$shipment_created_at_date = shipments$shipment_created_at %>% as.Date()
-shipments_dates = shipments[shipments$shipment_created_at_date >= "2018-01-01" & shipments$shipment_created_at_date <= "2020-12-31",]
-shipments_dates = shipments_dates[c("shipment_created_at_date","total_margin")]
+shipments$shipment_created_at_date = shipments$first_stop_agreed_arrival_to %>% as.Date()
+shipments_dates = shipments[shipments$first_stop_agreed_arrival_to >= "2018-01-01" & shipments$first_stop_agreed_arrival_to <= "2020-12-31",]
+shipments_dates = shipments_dates[c("first_stop_agreed_arrival_to","total_margin")]
 
 alldates = seq(as.Date("2018-01-01"), as.Date("2020-12-31"), by="days")#Erzeuge alle Daten von 2018 bis 2020
-dates0 = alldates[!(alldates %in% shipments_dates$shipment_created_at_date)]#Vektor mit alle Daten die shipments_dates fehlen.
-dates_and_margin = data.frame(shipment_created_at_date = dates0, total_margin = 0)#DF mit fehlenden Daten und erzeuge total_margin = 0
-
+dates0 = alldates[!(alldates %in% shipments_dates$first_stop_agreed_arrival_to)]#Vektor mit alle Daten die shipments_dates fehlen.
+dates_and_margin = data.frame(first_stop_agreed_arrival_to = dates0, total_margin = 0)#DF mit fehlenden Daten und erzeuge total_margin = 0
 shipments_complete_dates = rbind(shipments_dates, dates_and_margin)#Verbinde DFs
-shipments_complete_dates = shipments_complete_dates[order(shipments_complete_dates$shipment_created_at_date),]#Sortiere
+shipments_complete_dates = shipments_complete_dates[order(shipments_complete_dates$first_stop_agreed_arrival_to),]#Sortiere
 
-shipments_complete_dates = shipments_complete_dates %>% aggregate(total_margin ~ shipment_created_at_date, ., mean) %>% as_tibble(.)
+shipments_complete_dates = shipments_complete_dates %>% aggregate(total_margin ~ first_stop_agreed_arrival_to, ., mean) %>% as_tibble(.)
 shipments_complete_dates %>%
     time_decompose(total_margin) %>%
     anomalize(remainder) %>%
@@ -600,7 +599,7 @@ shipments_complete_dates %>%
 shipments_complete_dates %>%
     time_decompose(total_margin) %>%
     anomalize(remainder) %>%
-  plot_anomaly_decomposition()
+    plot_anomaly_decomposition()
 
 #Einstellung frequency = 1 Woche, Trend= 1 Jahr
 shipments_complete_dates %>%
@@ -613,15 +612,15 @@ shipments_complete_dates %>%
 shipments_complete_dates %>%
     time_decompose(total_margin, frequency = "1 week", trend = "1 year") %>%
     anomalize(remainder) %>%
-  plot_anomaly_decomposition()
+    plot_anomaly_decomposition()
 
 # Decomposed shipments data set
 decomposed_shipments = shipments_complete_dates %>% time_decompose(total_margin, frequency = "1 week", trend = "1 year") %>% anomalize(remainder)
 
-plot(x=decomposed_shipments$shipment_created_at_date,y=decomposed_shipments$remainder)
+plot(x=decomposed_shipments$first_stop_agreed_arrival_to,y=decomposed_shipments$remainder)
 
 # Jahr-Monat Spalte
-decomposed_shipments$YearMonth = decomposed_shipments$shipment_created_at_date %>% as.Date() %>% strftime(., format = "%Y-%m") 
+decomposed_shipments$YearMonth = decomposed_shipments$first_stop_agreed_arrival_to %>% as.Date() %>% strftime(., format = "%Y-%m") 
 
 # Anomalien entfernen
 decomposed_shipments = decomposed_shipments[decomposed_shipments$anomaly == "No",]
@@ -629,17 +628,6 @@ decomposed_shipments$anomaly = NULL
 
 # Aggregieren auf JahrMonat
 decomposed_shipments_month = decomposed_shipments %>% aggregate(. ~ YearMonth, ., mean)
-
-# Verbinden mit shipments_externals_month_cor
-shipments_google_month = merge(shipments_google_month,decomposed_shipments_month,by=c("YearMonth","YearMonth")) 
-shipments_google_month
-
-shipments_externals_month_cor = shipments_google_month[c("observed", "season","trend","remainder","Dieselkraftstoff","Superbenzin",  "Spedition...Deutschland.","Transport...Deutschland.","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% cor() %>% data.frame()
-shipments_externals_month_cor
-
-
-
-
 
 ```
 
@@ -686,7 +674,7 @@ shipments_externals_month_cor
 ```{r eval=TRUE}
 shipments_complete_dates
 
-ggplot(shipments_complete_dates, aes(x = shipment_created_at_date, y = total_margin, group = 1)) + 
+ggplot(shipments_complete_dates, aes(x = agreed, y = total_margin, group = 1)) + 
   geom_line() +
   
   # Umbenennung der x-Achse
@@ -929,8 +917,9 @@ ggplot(data = NULL, aes(x = m1_2$model$total_margin, y = m1_2_1$residuals)) +
 
 # Korrelationen suchen
   #Shipments
-  shipments = readRDS(file = "data/shipments.rds")
-  shipments2 = shipments[shipments$year >= 2019 & shipments$year <= 2020 & shipments$lane_domain == "national",]
+  shipments2 = readRDS(file = "data/shipments.rds")
+  shipments2 = shipments2[shipments2$year >= 2018 & shipments2$year <= 2020 & shipments2$lane_domain == "national",]
+  shipments2 = shipments2[shipments2$total_margin > 0 & shipments2$total_revenue > 0 & shipments2$total_cost > 0,]
   shipments_cor = shipments2[c("YearMonth","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin","OTD")] %>% aggregate(. ~ YearMonth, ., mean)
   
   #Google Trends
@@ -959,11 +948,16 @@ ggplot(data = NULL, aes(x = m1_2$model$total_margin, y = m1_2_1$residuals)) +
   names(int_Trade_Deutschland)[1] <- "YearMonth"
   shipments_cor = merge(shipments_cor,int_Trade_Deutschland,by=c("YearMonth","YearMonth"),all.x = TRUE)
 
-
+  #Periode erzeugen und Korrelation
   shipments_cor$YearMonth = NULL
 
+  shipments_correlations_total_margin = cor(shipments_cor,shipments_cor[c("total_margin")]) %>% as.data.frame()
+  shipments_correlations_total_margin
+  
   shipments_correlations = shipments_cor %>% cor()
   shipments_correlations
+  
+  
   
   #Barometer
   #Tage mit Korrealtion 
