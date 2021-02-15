@@ -43,8 +43,7 @@ Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten,
 ### (1.1) CSV Dateien einlesen 
 ```{r eval=FALSE}
 # Shipments Daten einlesen und ins richtige Format bringen.
-diesel <- read.csv("data/dieselPreiseMonat.csv", sep=";")
-
+shipments <- read.csv("data/shipment_FINAL_20210115.csv")
 # Timestamps
 shipments$shipment_created_at = as.POSIXct(shipments$shipment_created_at,tz=Sys.timezone())
 
@@ -82,18 +81,20 @@ shipments$total_margin = shipments$total_revenue - shipments$total_cost
 
 # Erzeuge Spalte für Jahr. Monat, Tag
 shipments = shipments %>%
-  dplyr::mutate(year = lubridate::year(shipment_created_at), 
-                month = lubridate::month(shipment_created_at), 
-                day = lubridate::day(shipment_created_at))
+  dplyr::mutate(year = lubridate::year(first_stop_agreed_arrival_to), 
+                month = lubridate::month(first_stop_agreed_arrival_to), 
+                day = lubridate::day(first_stop_agreed_arrival_to))
 
 # Jahr-Monat Spalte
-shipments$YearMonth = shipments$shipment_created_at %>% as.Date() %>% strftime(., format = "%Y-%m") 
+shipments$YearMonth = shipments$first_stop_agreed_arrival_to %>% as.Date() %>% strftime(., format = "%Y-%m") 
 
 
 # Margin Daten einlesen 
 margin <- read.csv2("data/margin_by_week_FINAL_20210115.csv")
 ```
-***Datenbereinigung***
+
+
+### (1.2) Datenbereinigung
 ```{r eval=FALSE}
 # Shipments Datenbereinigung
 #1. Entferne Zeilen mit leerer lane_domain. Betrifft 2 Zeilen.  
@@ -123,9 +124,25 @@ shipments = shipments[-1,]
 shipments = shipments[shipments$transport_price_booked >= 0 & shipments$transport_cost_assigned >= 0,]
 
 #9. Ausreißer bei total_revenue und total_cost entfernen.
-plot(x=shipments$total_revenue, y=shipments$total_cost)# Vorher
+ggplot(data = shipments, aes(x=total_revenue, y=total_cost))+
+  geom_point()+
+  theme_classic()+
+  labs(
+    x="Gesamt Umsatz",
+    y="Gesamt Kosten",
+    title = "Ausreißer Erkennen Kosten vs. Umsatz"
+  ) #+ theme1 # Vorher
+# Bereinigung der erkannten Ausreißer
 shipments = shipments[shipments$total_revenue < 5000 & shipments$total_revenue > -1000 & shipments$total_cost > -1000,]
-plot(x=shipments$total_revenue, y=shipments$total_cost)# Nachher
+
+ggplot(data = shipments, aes(x=total_revenue, y=total_cost))+
+  geom_point()+
+  theme_classic()+
+  labs(
+    x="Gesamt Umsatz",
+    y="Gesamt Kosten",
+    title = "Ausreißer Erkennen Kosten vs. Umsatz"
+  )# + theme1 # Nachher
 
 #10. transport_cost_assigned und transport_price_booked dürfen nur größer/gleich 0 sein. 
 shipments = shipments[shipments$transport_cost_assigned >= 0 & shipments$transport_price_booked >= 0,]
@@ -136,6 +153,10 @@ shipments = shipments[!is.na(shipments$shipment_reference), ]
 #12. Die Spalte `country_lane` wird in eine Spalte `origin_country` und eine Spalte ´destination_country´ aufgeteilt 
 shipments <- shipments %>%
   separate(country_lane, c("origin_country","destination_country"), "-->>")
+
+#TODO OTD noch berechnen
+#Hinzufügen einer Spalte `OTD` unter der Bedingung das die Lieferung pünktlich war
+shipments$OTD = ifelse(shipments$last_stop_agreed_arrival_to >= shipments$last_stop_actual_arrival, TRUE, FALSE)
 
 # Dataframes abspeichern
 saveRDS(shipments, "data/shipments.rds")
@@ -260,6 +281,25 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
 
 
 ### (2.4) 
+```{r eval=TRUE}
+# Revenue und Costdarstellen
+shipments_week_aggregated = shipments[c("shipment_created_at", "total_revenue", "total_cost")] %>% aggregate(. ~ shipment_created_at, data = ., sum)
+shipments_week_aggregated$profit = shipments_week_aggregated$total_revenue - shipments_week_aggregated$total_cost
+
+ggplot(data = shipments_week_aggregated, aes(x = shipment_created_at, group=1)) + 
+  geom_line(aes(y = total_cost), colour="red") + 
+  geom_line(aes(y = total_revenue), colour="blue") +
+  geom_line(aes(y = profit), colour="black") + 
+  xlab("Date") +  
+  ylab("Euro") +
+  ggtitle(label = "Instafreight: Revenue, Cost, and Profit group by shipment_created_at") +
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) +
+  scale_y_continuous(breaks=NULL)
+
+#TODO X Achse zu Monaten umwandeln
+#TODO Ausreisser bereinigen.
+```
+
 ```{r eval=TRUE}
 # Revenue und Costdarstellen
 shipments_week_aggregated = shipments[c("shipment_created_at", "total_revenue", "total_cost")] %>% aggregate(. ~ shipment_created_at, data = ., sum)
@@ -413,9 +453,9 @@ shipments_google_month
 
 diesel <- read.csv("data/dieselPreiseMonat.csv", sep=";")
 shipments_google_month = merge(shipments_google_month,diesel,by=c("YearMonth","YearMonth")) 
-shipments_google_month_cor = shipments_google_month[c("Dieselkraftstoff","Superbenzin",  "Spedition...Deutschland.","Transport...Deutschland.","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% cor() %>% data.frame()
+shipments_externals_month_cor = shipments_google_month[c("Dieselkraftstoff","Superbenzin",  "Spedition...Deutschland.","Transport...Deutschland.","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% cor() %>% data.frame()
 
-shipments_google_month_cor
+shipments_externals_month_cor
 
 #TODO Instafreight als Korrelation untersuchen
 ```
@@ -528,7 +568,7 @@ dates0 = alldates[!(alldates %in% shipments_dates$shipment_created_at_date)]#Vek
 dates_and_margin = data.frame(shipment_created_at_date = dates0, total_margin = 0)#DF mit fehlenden Daten und erzeuge total_margin = 0
 
 shipments_complete_dates = rbind(shipments_dates, dates_and_margin)#Verbinde DFs
-shipments_complete_dates = data[order(data$shipment_created_at_date),]#Sortiere
+shipments_complete_dates = shipments_complete_dates[order(shipments_complete_dates$shipment_created_at_date),]#Sortiere
 
 shipments_complete_dates = shipments_complete_dates %>% aggregate(total_margin ~ shipment_created_at_date, ., mean) %>% as_tibble(.)
 shipments_complete_dates %>%
@@ -578,12 +618,12 @@ decomposed_shipments$anomaly = NULL
 # Aggregieren auf JahrMonat
 decomposed_shipments_month = decomposed_shipments %>% aggregate(. ~ YearMonth, ., mean)
 
-# Verbinden mit shipments_google_month_cor
+# Verbinden mit shipments_externals_month_cor
 shipments_google_month = merge(shipments_google_month,decomposed_shipments_month,by=c("YearMonth","YearMonth")) 
 shipments_google_month
 
-shipments_google_month_cor = shipments_google_month[c("observed", "season","trend","remainder","Dieselkraftstoff","Superbenzin",  "Spedition...Deutschland.","Transport...Deutschland.","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% cor() %>% data.frame()
-shipments_google_month_cor
+shipments_externals_month_cor = shipments_google_month[c("observed", "season","trend","remainder","Dieselkraftstoff","Superbenzin",  "Spedition...Deutschland.","Transport...Deutschland.","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% cor() %>% data.frame()
+shipments_externals_month_cor
 
 
 
@@ -620,12 +660,12 @@ decomposed_shipments$anomaly = NULL
 # Aggregieren auf JahrMonat
 decomposed_shipments_month = decomposed_shipments %>% aggregate(. ~ YearMonth, ., mean)
 
-# Verbinden mit shipments_google_month_cor
+# Verbinden mit shipments_externals_month_cor
 shipments_google_month = merge(shipments_google_month,decomposed_shipments_month,by=c("YearMonth","YearMonth")) 
 shipments_google_month
 
-shipments_google_month_cor = shipments_google_month[c("observed", "season","trend","remainder","Dieselkraftstoff","Superbenzin",  "Spedition...Deutschland.","Transport...Deutschland.","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% cor() %>% data.frame()
-shipments_google_month_cor
+shipments_externals_month_cor = shipments_google_month[c("observed", "season","trend","remainder","Dieselkraftstoff","Superbenzin",  "Spedition...Deutschland.","Transport...Deutschland.","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% cor() %>% data.frame()
+shipments_externals_month_cor
 ```
 
 
@@ -702,16 +742,212 @@ ggplot(data = df_EG, aes(x = period,
 
 
 ```{r}
+#Differnz zwischen created_at und first_agreed_arrival_to
 shipments$diff = shipments$shipment_created_at - shipments$first_stop_agreed_arrival_to
-shipments$diff 
 
 shipments$difference_created_agreed_date = difftime(shipments$first_stop_agreed_arrival_to, shipments$shipment_created_at, units = "days")
 plot(x=shipments$shipment_created_at, y=shipments$difference_created_agreed_date, "l")
 
 plot_data = shipments %>% aggregate(difference_created_agreed_date ~ YearMonth, ., mean)
-plot(x=shipments$YearMonth, y=shipments$difference_created_agreed_date, "l")
 
-aggregate(. ~ YearMonth , ., mean)
 
 ```
+
+*Regression erstellen, Datenerstellen, Korrelation zeigen*
+```{r}
+require(ggplot2)
+require(GGally)
+
+
+#Korrelationen 
+  google_data = read.csv("data/google_data.csv")
+  google_data$YearMonth = google_data$Woche %>% as.Date() %>% strftime(., format = "%Y-%m") 
+  google_data = google_data[c("YearMonth","Spedition...Deutschland.", "Transport...Deutschland.")] %>% aggregate(. ~ YearMonth , ., mean)
+  
+  
+  shipments_month = shipments[c("YearMonth","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% aggregate(. ~ YearMonth, ., mean)
+  
+  shipments_externals_month = merge(google_data,shipments_month,by=c("YearMonth","YearMonth")) 
+  
+  diesel <- read.csv("data/dieselPreiseMonat.csv", sep=";")
+  shipments_externals_month = merge(shipments_externals_month,diesel,by=c("YearMonth","YearMonth")) 
+  shipments_externals_month_cor = shipments_externals_month[c("Dieselkraftstoff","Superbenzin",  "Spedition...Deutschland.","Transport...Deutschland.","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")] %>% cor() %>% data.frame()
+  shipments_externals_month_cor
+  
+  #Korelationen für total_margin
+  cor(shipments_externals_month[c("Dieselkraftstoff","Superbenzin",  "Spedition...Deutschland.","Transport...Deutschland.","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin")],shipments_externals_month[c("total_margin")]) %>% data.frame()
+  
+
+# Korrelationsplot für Diesel, Google Spedition, und transport_price_booked
+  ggpairs(shipments_externals_month_cor, 
+  # ohne Visualisierung des Fortschritts der Erstellung des plots
+  progress = FALSE,
+  # mit Visualisierung einer Glaettungslinie und Aenderung der Farbe der               
+  # Punkte, damit Linie erkennbar
+  lower = list(continuous = wrap("smooth_loess", colour = "steelblue1")))
+  
+```
+
+*Regression erstellen, für Monate*
+```{r}
+
+#Baseline erstellen, durschnittliche Marge vom Monat.
+  baseline = shipments %>% aggregate(total_margin ~ month , ., mean)
+  baseline = merge(baseline,shipments[c("month","first_stop_agreed_arrival_to")],by=c("month","month"))
+
+  shipments_externals_month$YearMonth = shipments$first_stop_agreed_arrival_to %>% as.Date() %>% strftime(., format = "%Y-%m")
+  
+  shipments_externals_month = merge(baseline,shipments[c("month","first_stop_agreed_arrival_to")],by=c("month","month"))
+  
+  shipments_externals_month$YearMonth = substr(shipments_externals_month$YearMonth,1,nchar(shipments_externals_month$YearMonth)-3)
+
+  shipments_externals_month = merge(shipments_externals_month,baseline[c("month","total_margin")],by=c("month","month"))
+  
+  shipments_externals_month %>% str()
+  
+#Baseline Bewertung aufstellen
+  # DataFrame erzeugen, dass bei auf die Beschreibung ("Model") leer bzw. 0 ist
+  evaluation = data.frame(Model = "Baseline",
+                          MAE = numeric(1),
+                          sMAPE = numeric(1))
+  
+  # MAE berechnen
+  evaluation[evaluation$Model == "Baseline",]$MAE = (shipments_externals_month$total_margin.x - shipments_externals_month$total_margin.y) %>% abs() %>% mean()
+  
+  # sMAPE berechnen
+  evaluation[evaluation$Model == "Baseline",]$sMAPE = smape(shipments_externals_month$total_margin.x, shipments_externals_month$total_margin.y)
+  
+  # DataFrame anzeigen
+  evaluation
+  
+  
+#Trainings und Testdaten erzeugen. (80/20)
+  
+  # Erzeuge iterative Zahlenreihe statt Periode
+  shipments_externals_month$period = 1:nrow(shipments_externals_month)
+  
+  # Einen zufaelligen Zustand herstellen 
+  set.seed(4141)
+  
+  # Zufallsaufwahl erstellen:
+  zufall = sample(1:nrow(shipments_externals_month), nrow(shipments_externals_month) * 0.8)
+  
+  # Die Eintraege in der Zufallsauswahl gehen in das TrainingsSet
+  shipments_monthsTraining = shipments_externals_month[zufall, ]
+  
+  # Die Eintraege nicht in der Zufallsauswahl gehen in das TestSet (20%)
+  shipments_monthsTest = shipments_externals_month[-zufall, ]
+  
+  #Tabellenkopf ausgeben
+  head(shipments_monthsTraining)
+  head(shipments_monthsTest)
+  
+#Modell erstellen
+  m1_1 = shipments_monthsTraining %>% lm(total_margin.x ~ AvgHealth, .)
+```
+```{r}
+#Funktion für Evaluation von Modellen  
+evaluation_function <- function(evaluation, model) {
+          # Modelname
+          modelname = deparse(substitute(model))
+          
+          # DF erweitern.
+          evaluation = rbind(evaluation, data.frame(Model = 
+                               modelname, MAE = numeric(1), sMAPE = numeric(1), r  = as.numeric(1), r2  = as.numeric(1))) 
+          
+          # MAE berechnen.
+          evaluation[evaluation$Model == modelname,]$MAE = (model$residuals) %>% abs(.) %>% mean(.)
+          
+          # sMAPE berechnen.
+          evaluation[evaluation$Model == modelname,]$sMAPE = smape(model$model[,1], model$fitted.values)
+          
+          # R berechnen.
+          evaluation[evaluation$Model == modelname,]$r = smape(model$model[,1], model$fitted.values)
+          
+          # R**2 berechnen.
+          evaluation[evaluation$Model == modelname,]$r2 = smape(model$model[,1], model$fitted.values)
+          
+          evaluation %>% unique() %>% return()
+}
+  
+
+```
+
+```{r}
+#Baseline erstellen, durschnittliche Marge vom Monat.
+  baseline = shipments %>% aggregate(total_margin ~ month , ., mean)
+  names(baseline)[2] <- "total_margin_baseline"
+  shipments_externals_month = merge(shipments_externals_month,baseline[c("month","total_margin_baseline")],by=c("month","month"))
+  
+#Baseline Bewertung aufstellen
+  # DataFrame erzeugen, dass bei auf die Beschreibung ("Model") leer bzw. 0 ist
+  evaluation = data.frame(Model = "Baseline",
+                          MAE = numeric(1),
+                          sMAPE = numeric(1),
+                          r = numeric(1),
+                          r2 = numeric(1))
+  
+  # MAE berechnen
+  evaluation[evaluation$Model == "Baseline",]$MAE = (shipments_externals_month$total_margin.x - shipments_externals_month$total_margin.y) %>% abs() %>% mean()
+  
+  # sMAPE berechnen
+  evaluation[evaluation$Model == "Baseline",]$sMAPE = smape(shipments_externals_month$total_margin.x, shipments_externals_month$total_margin.y)
+  
+  # R berechnen
+  evaluation[evaluation$Model == "Baseline",]$sMAPE = smape(shipments_externals_month$total_margin.x, shipments_externals_month$total_margin.y)
+  
+  # R**2 berechnen
+  evaluation[evaluation$Model == "Baseline",]$sMAPE = smape(shipments_externals_month$total_margin.x, shipments_externals_month$total_margin.y)
+```
+  
+```{r}  
+#Trainings und Testdaten erzeugen. (80/20)
+  
+  # Erzeuge iterative Zahlenreihe statt Periode
+  shipments_externals_month$period = 1:nrow(shipments_externals_month)
+  
+  # Einen zufaelligen Zustand herstellen 
+  set.seed(4141)
+  
+  # Zufallsaufwahl erstellen:
+  zufall = sample(1:nrow(shipments_externals_month), nrow(shipments_externals_month) * 0.8)
+  
+  # Die Eintraege in der Zufallsauswahl gehen in das TrainingsSet
+  shipments_monthsTraining = shipments_externals_month[zufall, ]
+  
+  # Die Eintraege nicht in der Zufallsauswahl gehen in das TestSet (20%)
+  shipments_monthsTest = shipments_externals_month[-zufall, ]
+  
+  #Tabellenkopf ausgeben
+  head(shipments_monthsTraining)
+  head(shipments_monthsTest)
+
+```
+
+```{r}
+#Modell erstellen, 1. Iteration
+  m1_1 = shipments_monthsTraining %>% lm(total_margin.x ~ Dieselkraftstoff, .)
+  m1_2 = shipments_monthsTraining %>% lm(total_margin.x ~ Spedition...Deutschland., .)
+  m1_3 = shipments_monthsTraining %>% lm(total_margin.x ~ Transport...Deutschland., .)
+  
+  evaluation = evaluation_function(evaluation, m1_1)
+  evaluation = evaluation_function(evaluation, m1_2)
+  evaluation = evaluation_function(evaluation, m1_3)
+  
+  evaluation
+
+```
+
+```{r}
+#Modell erstellen, 2. Iteration
+  m1_2_1 = shipments_monthsTraining %>% lm(total_margin.x ~ Dieselkraftstoff, .)
+  m1_2_3 = shipments_monthsTraining %>% lm(total_margin.x ~ Spedition...Deutschland., .)
+  
+  evaluation = evaluation_function(evaluation, m1_2_1)
+  evaluation = evaluation_function(evaluation, m1_2_3)
+  
+  evaluation
+
+```
+
 
