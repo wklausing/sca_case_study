@@ -929,7 +929,8 @@ ggplot(data = NULL, aes(x = m1_2$model$total_margin, y = m1_2_1$residuals)) +
 
 # Korrelationen suchen
   #Shipments
-  shipments2 = shipments[shipments$year >= 2018 & shipments$year <= 2020 & shipments$lane_domain == "national",]
+  shipments = readRDS(file = "data/shipments.rds")
+  shipments2 = shipments[shipments$year >= 2019 & shipments$year <= 2020 & shipments$lane_domain == "national",]
   shipments_cor = shipments2[c("YearMonth","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin","OTD")] %>% aggregate(. ~ YearMonth, ., mean)
   
   #Google Trends
@@ -953,6 +954,11 @@ ggplot(data = NULL, aes(x = m1_2$model$total_margin, y = m1_2_1$residuals)) +
   DAX = DAX[c("YearMonth","daxDayMean")] %>% aggregate(. ~ YearMonth , ., mean)
   shipments_cor = merge(shipments_cor,DAX,by=c("YearMonth","YearMonth"),all.x = TRUE)
   
+  #International Trade_ Deutschland_2018-2020.xlsx
+  int_Trade_Deutschland = read_excel("data/International Trade_ Deutschland_2018-2020.xlsx", sheet = 1)
+  names(int_Trade_Deutschland)[1] <- "YearMonth"
+  shipments_cor = merge(shipments_cor,int_Trade_Deutschland,by=c("YearMonth","YearMonth"),all.x = TRUE)
+
 
   shipments_cor$YearMonth = NULL
 
