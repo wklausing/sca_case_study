@@ -1064,10 +1064,83 @@ head(fullfilment_strategy_dummies)
 
 
 ### (4) Zeitreihenanalyse
+```{r}
+#Zeitreihe nur für Deutschland
+shipments_uncancelled_national = subset(shipments_uncancelled, lane_domain == "national")
+
+```
+
 
 ## (4.1) Zeitreihenanalyse Total Marge
+```{r}
+marge_YearMonth_sum =  aggregate(total_margin ~ first_stop_requested_arrival_to_YearMonth, shipments_uncancelled_national, sum)
+  
+ts_marge_sum = ts(marge_YearMonth_sum$total_margin, frequency = 12)
+
+#Die 'cat' Funktion dient lediglich für eine bessere Übersicht indem sie Absätze im Output erzeugt
+# Modell automatisch erstellen lassen
+cat("\n","\n","Modell:","\n")
+m_marge_sum = ets(ts_marge_sum, model = "ZAA")
+# (1) Modellzusammenfassung ausgeben lassen
+m_marge_sum
+
+# (2) Ausgabe ursprüngliche Zeitreihe
+cat("\n","\n","Ursprüngliche Zeitreihe:","\n")
+ts_marge_sum
+# (3) Residuen ausgeben
+cat("\n","\n","Residuen:","\n")
+round(m_marge_sum$residuals,2)
+```
+Erstellen einer Nachfragevorhersage mit der 'forcast' Funktion und dem Modell 'm_marge_3PL' für ein weiteres Jahr also 12 Perioden
+```{r}
+#Vorhersage erstellen
+fcast_marge_sum = forecast(m_marge_sum, 12)
+#Anzeigen der Vorhersage
+fcast_marge_sum
+```
+
+Visualiesierung der Vorhersage ("forecast") und der ursprünglichen Nachfragen ("original") in einem Liniendiagramm über die Perioden. Es wurde ein Liniendiagramm gewählt, da es den fließenden Verlauf zwischen den Perioden anzeigen lässt und dadurch wie eng die beiden Linien der Vorhersage und der Origanlwerte über die Zeit auseinander liegen, lässt sich die Güte des Modells beobachten
+```{r}
+# Hintergrund erzeugen 
+ggplot(data = NULL) + 
+  
+  # Erste Linie hinzufuegen (keine Daten; X-Achse = Reihe von 1 bis laenge fitting Werten und Forecast Werten)
+  geom_line(data = NULL, aes(x=seq(1,length(c(fcast_marge_sum$fitted, fcast_marge_sum$mean)),1), 
+                             # Y-Achse = Kombination von fitting Werten und Forecast Werten
+                             y= c(as.numeric(fcast_marge_sum$fitted),as.numeric(fcast_marge_sum$mean)), 
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'forecast')) +
+  
+  # Zweite Linie hinzufuegen (Keine Daten; X-Achse = Reihe von 1 bis laenge Beobachtungen)
+  geom_line(data = NULL, aes(x=seq(1,length(fcast_marge_sum$x),1), 
+                             # Y-Achse = Beobachtungen
+                             y= as.numeric(fcast_marge_sum$x),
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'original')) + 
+  geom_smooth(data = NULL, aes(x=seq(1,length(c(fcast_marge_sum$fitted, fcast_marge_sum$mean)),1), 
+                             # Y-Achse = Kombination von fitting Werten und Forecast Werten
+                             y= c(as.numeric(fcast_marge_sum$fitted),as.numeric(fcast_marge_sum$mean)), 
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'forecast'))+
+  
+  # Umbenennung der x- und y-Achsen
+  labs(y="Marge in EUR", x="Periode")+
+  theme_classic()+
+  theme(
+      axis.text = element_text( color = "grey30", size = 12),
+    legend.text = element_text( color = "grey30", size = 12),
+    axis.title = element_text( color = "grey30", size = 12)
+  )+
+  
+  # Farben fuer Beschriftungen festlegen
+  scale_colour_manual(breaks = c("forecast", "original"), values = c("firebrick2","dodgerblue2"))
+```
+
+## (4.1) Zeitreihenanalyse Total durchschnittliche Marge 
 ```{r eval=TRUE}
-ts_marge = ts(marge_YearMonth$total_margin, frequency = 12)
+marge_YearMonth_mean =  aggregate(total_margin ~ first_stop_requested_arrival_to_YearMonth, shipments_uncancelled_national, mean)
+
+ts_marge = ts(marge_YearMonth_mean$total_margin, frequency = 12)
 
 #Die 'cat' Funktion dient lediglich für eine bessere Übersicht indem sie Absätze im Output erzeugt
 # Modell automatisch erstellen lassen
@@ -1115,7 +1188,7 @@ ggplot(data = NULL) +
                              colour = 'forecast'))+
   
   # Umbenennung der x- und y-Achsen
-  labs(y="Marge in EUR", x="Periode")+
+  labs(y=" Marge in EUR", x="Periode")+
   theme_classic()+
   theme(
       axis.text = element_text( color = "grey30", size = 12),
@@ -1199,7 +1272,7 @@ ggplot(data = NULL) +
 
 ### (4.3) Zeitreihenanalyse Aufträge
 ```{r}
-shipment_count_YearMonth = shipments_uncancelled %>% count(first_stop_requested_arrival_to_YearMonth)
+shipment_count_YearMonth = shipments_uncancelled_national %>% count(first_stop_requested_arrival_to_YearMonth)
 
 colnames(shipment_count_YearMonth)[2] = "Anzahl_Aufträge"
 
@@ -1265,7 +1338,7 @@ ggplot(data = NULL) +
 
 ### (4.4) Zeitreihenanalyse fulfimemt Strategie
 ```{r}
-fulfillment_count_YearMonth = shipments_uncancelled %>% count(first_stop_requested_arrival_to_YearMonth, fulfilment_strategy)
+fulfillment_count_YearMonth = shipments_uncancelled_national %>% count(first_stop_requested_arrival_to_YearMonth, fulfilment_strategy)
 
 colnames(fulfillment_count_YearMonth)[3] = "Anzahl_Aufträge"
 
@@ -1385,7 +1458,7 @@ ggplot(data = NULL) +
 
 ### (4.5) Zeitreihenanalyse custome_rate
 ```{r}
-custom_rate_count_YearMonth = shipments_uncancelled %>% count(first_stop_requested_arrival_to_YearMonth, custom_rate_shipment)
+custom_rate_count_YearMonth = shipments_uncancelled_national %>% count(first_stop_requested_arrival_to_YearMonth, custom_rate_shipment)
 ```
 
 ```{r}
