@@ -44,8 +44,9 @@ theme_standard =    theme(
       # Set the line type to dotted
       linetype = "dashed"
     ),
-    axis.text = element_text( color = "grey40"),
-    legend.text = element_text( color = "grey40")
+    axis.text = element_text( color = "grey30", size = 12),
+    legend.text = element_text( color = "grey30", size = 12),
+    axis.title = element_text( color = "grey30", size = 12)
   )
 ```
 
@@ -382,8 +383,9 @@ ggplot(data = marge_custom_rate_shipment)+
       # Set the line type to dotted
       linetype = "dashed"
     ),
-    axis.text = element_text( color = "grey40"),
-    legend.text = element_text( color = "grey40")
+    axis.text = element_text( color = "grey30", size = 12),
+    legend.text = element_text( color = "grey30", size = 12),
+    axis.title = element_text( color = "grey30", size = 12)
   )+
   scale_fill_manual(values = c("firebrick4","dodgerblue4"),labels = c("Einzelaufträge", "Kontraktaufträge"))
 
@@ -421,8 +423,9 @@ ggplot(data = marge_lane_domain)+
       # Set the line type to dotted
       linetype = "dashed"
     ),
-    axis.text = element_text( color = "grey40"),
-    legend.text = element_text( color = "grey40")
+      axis.text = element_text( color = "grey30", size = 12),
+    legend.text = element_text( color = "grey30", size = 12),
+    axis.title = element_text( color = "grey30", size = 12)
   )+
   scale_fill_manual(values = c("firebrick4","dodgerblue4","dimgrey","royalblue1"))
 ```
@@ -461,8 +464,9 @@ count(stops_count),c("stops_count")) %>%
       # Set the line type to dotted
       linetype = "dashed"
     ),
-    axis.text = element_text( color = "grey40"),
-    legend.text = element_text( color = "grey40")
+    axis.text = element_text( color = "grey30", size = 12),
+    legend.text = element_text( color = "grey30", size = 12),
+    axis.title = element_text( color = "grey30", size = 12)
   )
 
 ```
@@ -527,8 +531,9 @@ ggplot( data = subset(shipments_uncancelled %>%
       # Set the line type to dotted
       linetype = "dashed"
     ),
-    axis.text = element_text( color = "grey40"),
-    legend.text = element_text( color = "grey40")
+      axis.text = element_text( color = "grey30", size = 12),
+    legend.text = element_text( color = "grey30", size = 12),
+    axis.title = element_text( color = "grey30", size = 12)
   )
 ```
 
@@ -741,7 +746,10 @@ ggplot(groupbind, aes(fulfilment_strategy, Mean_Differenz, fill = business_model
   ggtitle(label = "Durchschnittliche Marge nach filfilment_strategy (2018-2020)")+
   theme_standard+
   theme(
-    axis.title.x = element_blank()
+    axis.title.x = element_blank(),
+      axis.text = element_text( color = "grey30", size = 12),
+    legend.text = element_text( color = "grey30", size = 12),
+    axis.title = element_text( color = "grey30", size = 12)
   )+
   scale_fill_manual(values = c("dimgrey","royalblue1"))
 
@@ -941,7 +949,10 @@ b. custom rate shipment
        title = "Anzahl Aufträge nach Business Modell")+
   theme_standard+
      theme(
-       axis.text.x = element_blank()
+       axis.text.x = element_blank(),
+         axis.text = element_text( color = "grey30", size = 12),
+    legend.text = element_text( color = "grey30", size = 12),
+    axis.title = element_text( color = "grey30", size = 12)
      )+
     scale_fill_manual(values = c("firebrick4","dodgerblue4"),labels = c("Einzelaufträge", "Kontraktaufträge"))
 ```
@@ -1106,6 +1117,11 @@ ggplot(data = NULL) +
   # Umbenennung der x- und y-Achsen
   labs(y="Marge in EUR", x="Periode")+
   theme_classic()+
+  theme(
+      axis.text = element_text( color = "grey30", size = 12),
+    legend.text = element_text( color = "grey30", size = 12),
+    axis.title = element_text( color = "grey30", size = 12)
+  )+
   
   # Farben fuer Beschriftungen festlegen
   scale_colour_manual(breaks = c("forecast", "original"), values = c("firebrick2","dodgerblue2"))
@@ -1171,6 +1187,11 @@ ggplot(data = NULL) +
   # Umbenennung der x- und y-Achsen
   labs(y="prozentuale Marge 3PL", x="Periode")+
   theme_classic()+
+  theme(
+      axis.text = element_text( color = "grey30", size = 12),
+    legend.text = element_text( color = "grey30", size = 12),
+    axis.title = element_text( color = "grey30", size = 12)
+  )+
   
   # Farben fuer Beschriftungen festlegen
   scale_colour_manual(breaks = c("forecast", "original"), values = c("firebrick2","dodgerblue2"))
@@ -1232,6 +1253,11 @@ ggplot(data = NULL) +
   # Umbenennung der x- und y-Achsen
   labs(y="Anzahl Aufträge", x="Periode")+
   theme_classic()+
+  theme(
+      axis.text = element_text( color = "grey30", size = 12),
+    legend.text = element_text( color = "grey30", size = 12),
+    axis.title = element_text( color = "grey30", size = 12)
+  )+
   
   # Farben fuer Beschriftungen festlegen
   scale_colour_manual(breaks = c("forecast", "original"), values = c("firebrick2","dodgerblue2"))
@@ -1347,6 +1373,11 @@ ggplot(data = NULL) +
   # Umbenennung der x- und y-Achsen
   labs(y="Anzahl Aufträge", x="Periode")+
   theme_classic()+
+  theme(
+      axis.text = element_text( color = "grey30", size = 12),
+    legend.text = element_text( color = "grey30", size = 12),
+    axis.title = element_text( color = "grey30", size = 12)
+  )+
   
   # Farben fuer Beschriftungen festlegen
   scale_colour_manual(breaks = c("forecast", "original"), values = c("firebrick2","dodgerblue2"))
@@ -1454,7 +1485,11 @@ ggplot(data = NULL) +
   # Umbenennung der x- und y-Achsen
   labs(y="Anzahl Aufträge", x="Periode")+
   theme_classic()+
-  
+  theme(
+      axis.text = element_text( color = "grey30", size = 12),
+    legend.text = element_text( color = "grey30", size = 12),
+    axis.title = element_text( color = "grey30", size = 12)
+  )+
   # Farben fuer Beschriftungen festlegen
   scale_colour_manual(breaks = c("forecast", "original"), values = c("firebrick2","dodgerblue2"))
   
