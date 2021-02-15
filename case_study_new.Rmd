@@ -1103,10 +1103,10 @@ ggplot(data = NULL) +
   
   # Umbenennung der x- und y-Achsen
   labs(y="Marge in EUR", x="Periode")+
-  theme_classic()
+  theme_classic()+
   
   # Farben fuer Beschriftungen festlegen
-  scale_colour_manual(breaks = c("forecast", "original"), values = c("red", "blue"))
+  scale_colour_manual(breaks = c("forecast", "original"), values = c("firebrick2","dodgerblue2"))
 ```
 Erkenntnisse: 
 -keine Saisonalitäten identifiziert
@@ -1168,10 +1168,10 @@ ggplot(data = NULL) +
   
   # Umbenennung der x- und y-Achsen
   labs(y="prozentuale Marge 3PL", x="Periode")+
-  theme_classic()
+  theme_classic()+
   
   # Farben fuer Beschriftungen festlegen
-  scale_colour_manual(breaks = c("forecast", "original"), values = c("red", "blue"))
+  scale_colour_manual(breaks = c("forecast", "original"), values = c("firebrick2","dodgerblue2"))
 ```
 
 ### (4.3) Zeitreihenanalyse Aufträge
@@ -1229,10 +1229,10 @@ ggplot(data = NULL) +
   
   # Umbenennung der x- und y-Achsen
   labs(y="Anzahl Aufträge", x="Periode")+
-  theme_classic()
+  theme_classic()+
   
   # Farben fuer Beschriftungen festlegen
-  scale_colour_manual(breaks = c("forecast", "original"), values = c("red", "blue"))
+  scale_colour_manual(breaks = c("forecast", "original"), values = c("firebrick2","dodgerblue2"))
 ```
 
 ### (4.4) Zeitreihenanalyse fulfimemt Strategie
@@ -1344,10 +1344,10 @@ ggplot(data = NULL) +
   
   # Umbenennung der x- und y-Achsen
   labs(y="Anzahl Aufträge", x="Periode")+
-  theme_classic()
+  theme_classic()+
   
   # Farben fuer Beschriftungen festlegen
-  scale_colour_manual(breaks = c("forecast", "original"), values = c("red", "blue"))
+  scale_colour_manual(breaks = c("forecast", "original"), values = c("firebrick2","dodgerblue2"))
 ```
 
 ### (4.5) Zeitreihenanalyse custome_rate
@@ -1451,10 +1451,10 @@ ggplot(data = NULL) +
   
   # Umbenennung der x- und y-Achsen
   labs(y="Anzahl Aufträge", x="Periode")+
-  theme_classic()
+  theme_classic()+
   
   # Farben fuer Beschriftungen festlegen
-  scale_colour_manual(breaks = c("forecast", "original"), values = c("red", "blue"))
+  scale_colour_manual(breaks = c("forecast", "original"), values = c("firebrick2","dodgerblue2"))
   
   #TODO Periode in Jahr/Monat umwandeln
 ```
