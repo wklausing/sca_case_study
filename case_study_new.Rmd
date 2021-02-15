@@ -332,22 +332,21 @@ df_Compare
 # anzahl spot vs. Kontrakt Aufträge nach fulfilment strategy
 ggplot(data = shipments_uncancelled %>%
 count(custom_rate_shipment, fulfilment_strategy))+
-  geom_col(aes(fulfilment_strategy,n, fill = custom_rate_shipment), position = "dodge")+
+  geom_col(aes(fulfilment_strategy,n, fill = custom_rate_shipment), position = "dodge", width = 0.5)+
   labs(y = "Anzahl Aufträge",
        x = element_blank(),
        title = "Anzahl Aufträge nach Fulfillment Strategie")+
   theme_standard+
-  scale_fill_discrete( labels = c("Einzelaufträge", "Kontraktaufträge"))
+  scale_fill_manual(values = c("firebrick4","dodgerblue4","dimgrey","royalblue1"),labels = c("Einzelaufträge", "Kontraktaufträge"))
 
 ggplot(data = shipments_uncancelled %>%
 count(custom_rate_shipment, lane_domain))+
-  geom_col(aes(lane_domain,n, fill = custom_rate_shipment), position = "dodge")+
+  geom_col(aes(lane_domain,n, fill = custom_rate_shipment), position = "dodge", width = 0.5)+
   labs(y = "Anzahl Aufträge",
        x = element_blank(),
        title = "Anzahl Aufträge nach Lane Domain")+
   theme_standard+
-  scale_fill_discrete( labels = c("Einzelaufträge", "Kontraktaufträge"))
-
+  scale_fill_manual(values = c("firebrick4","dodgerblue4","dimgrey","royalblue1"),labels = c("Einzelaufträge", "Kontraktaufträge"))
 
 ```
 
@@ -362,7 +361,7 @@ count(custom_rate_shipment), c("custom_rate_shipment")) %>%
   mutate(Marge_pro_Auftrag = total_margin/n)
 
 ggplot(data = marge_custom_rate_shipment)+
-  geom_col(aes(custom_rate_shipment,Marge_pro_Auftrag, fill=custom_rate_shipment))+
+  geom_col(aes(custom_rate_shipment,Marge_pro_Auftrag, fill=custom_rate_shipment), width = 0.5)+
   labs(
     x = element_blank(),
     y = "Marge pro Auftrag",
@@ -386,7 +385,7 @@ ggplot(data = marge_custom_rate_shipment)+
     axis.text = element_text( color = "grey40"),
     legend.text = element_text( color = "grey40")
   )+
-  scale_fill_discrete( labels = c("Einzelaufträge", "Kontraktaufträge"))
+  scale_fill_manual(values = c("firebrick4","dodgerblue4"),labels = c("Einzelaufträge", "Kontraktaufträge"))
 
 ```
 
@@ -401,7 +400,7 @@ count(lane_domain), c("lane_domain")) %>%
   mutate(Marge_pro_Auftrag = total_margin/n)
 
 ggplot(data = marge_lane_domain)+
-  geom_col(aes(lane_domain,Marge_pro_Auftrag, fill=lane_domain))+
+  geom_col(aes(lane_domain,Marge_pro_Auftrag, fill=lane_domain),width = 0.5)+
   labs(
     x = element_blank(),
     y = "Marge pro Auftrag",
@@ -424,7 +423,8 @@ ggplot(data = marge_lane_domain)+
     ),
     axis.text = element_text( color = "grey40"),
     legend.text = element_text( color = "grey40")
-  )
+  )+
+  scale_fill_manual(values = c("firebrick4","dodgerblue4","dimgrey","royalblue1"))
 ```
 
 ### (2.7) Anzahl der Stops in verschiedenen Lane Domains
@@ -735,12 +735,13 @@ groupbind =groupbind %>%
 
 # Säulendiagramm zum Vergleich
 ggplot(groupbind, aes(fulfilment_strategy, Mean_Differenz, fill = business_model))+
-  geom_col(position = "dodge")+
+  geom_col(position = "dodge", width = 0.5)+
   ggtitle(label = "Durchschnittliche Marge nach filfilment_strategy (2018-2020)")+
   theme_standard+
   theme(
     axis.title.x = element_blank()
-  )
+  )+
+  scale_fill_manual(values = c("dimgrey","royalblue1"))
 
 #TODO: Datenbereinigen mit unique() und ungleich null ??
 ```
@@ -904,11 +905,12 @@ tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$business_model 
 ggplot(shipments_uncancelled, 
        aes(factor(business_model), 
        fill = factor(business_model))) +
-      geom_bar()+
+      geom_bar(width = 0.5)+
   labs(y= "Anzahl Aufträge",
        x = element_blank(),
        title = "Anzahl Aufträge nach Business Modell")+
-  theme_standard
+  theme_standard+
+  scale_fill_manual(values = c("dimgrey","royalblue1"))
 ```
 Erkenntnis: Die 3PL Shipments machen einen wesentlichen Anteil an den gesamten Shipments aus und außerdem bringen sie dem Unternehmen im Durchschnitt eine positive Gewinnmarge im Vergleich zu 4PL-Shipments.
 (also positver Zusammenhang zwischen 3PL Shipments als ein Typ von business model und der Marge)!
@@ -931,7 +933,7 @@ b. custom rate shipment
    ggplot(shipments_uncancelled, 
        aes(factor(custom_rate_shipment), 
        fill = factor(custom_rate_shipment))) +
-       geom_bar()+
+       geom_bar(width = 0.5)+
   labs(y= "Anzahl Aufträge",
        x = element_blank(),
        title = "Anzahl Aufträge nach Business Modell")+
@@ -939,7 +941,7 @@ b. custom rate shipment
      theme(
        axis.text.x = element_blank()
      )+
-  scale_fill_discrete( labels = c("Einzelaufträge", "Kontraktaufträge"))
+    scale_fill_manual(values = c("firebrick4","dodgerblue4"),labels = c("Einzelaufträge", "Kontraktaufträge"))
 ```
 Erkenntnis: Der Profit hängt auch davon ab, ob es hier  ein spot shipment oder custom rate shipment ist. Bei den custom rate shipment muss es mit einem festen Transportpreis durchgeführt werden und somit schwanken sich die Margen stärker. Bei dem Gegenstück der Custom Rate shipments, der Spot shipments, können wir den Preis jederzeit anpassen. Deswegen kann mit wenigeren spot shipments eine deutlich höhere Summe der Marge errreicht werden.
 
