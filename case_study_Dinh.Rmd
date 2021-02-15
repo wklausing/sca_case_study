@@ -300,10 +300,10 @@ shipments_YearMonth_aggregated_international = subset(shipments_YearMonth_aggreg
 shipments_YearMonth_aggregated_international= aggregate(.~first_stop_requested_arrival_to_YearMonth,shipments_YearMonth_aggregated_international , sum)
 
 plot_ly(data = shipments_YearMonth_aggregated_international,x= ~first_stop_requested_arrival_to_YearMonth,   
-        y= ~total_cost,type = "scatter", mode = "lines", name = "Gesamtkosten") %>%  
-        add_trace(y= ~total_revenue,type = "scatter", mode = "lines", name = "Gesamtumsatz")%>%
-        add_trace(y= ~total_margin,type = "scatter", mode = "lines", name = "Gesamtgewinn")%>%
-        layout(title = "Instafreight International: Umsatz, Kosten und Marge (2018-2020)", xaxis = list(title = 'Month'), yaxis = list(title = 'Euro'))
+        y= ~total_cost,type = "scatter", mode = "lines", name = "Gesamtkosten", line = list(color = "#3b5998")) %>%  
+        add_trace(y= ~total_revenue,type = "scatter", mode = "lines", name = "Gesamtumsatz", line = list(color = "#990000"))%>%
+        add_trace(y= ~total_margin,type = "scatter", mode = "lines", name = "Gesamtgewinn",line = list(color = ": #56953e"))%>%
+        layout(title = "Instafreight Europaweit: Umsatz, Kosten und Marge (2018-2020)",titlefont = list(size = 17), xaxis = list(title = 'Monat', dtick= 2, yaxis = list(title = 'Euro')))
 
 ```
 
@@ -315,11 +315,11 @@ shipments_YearMonth_aggregated_national = shipments_YearMonth_aggregated_nationa
 
 shipments_YearMonth_aggregated_national= aggregate(.~first_stop_requested_arrival_to_YearMonth,shipments_YearMonth_aggregated_national , sum)
 
-plot_ly(data = shipments_YearMonth_aggregated_national,x= ~first_stop_requested_arrival_to_YearMonth,   
-        y= ~total_cost,type = "scatter", mode = "lines", name = "Gesamtkosten") %>%  
-        add_trace(y= ~total_revenue,type = "scatter", mode = "lines", name = "Gesamtumsatz")%>%
-        add_trace(y= ~total_margin,type = "scatter", mode = "lines", name = "Gesamtgewinn")%>%
-        layout(title = "Instafreight Deutschland: Umsatz, Kosten und Marge (2018-2020)", xaxis = list(title = 'Month'), yaxis = list(title = 'Euro'))
+plot_ly(data = shipments_YearMonth_aggregated_national,x= ~first_stop_requested_arrival_to_YearMonth,    
+        y= ~total_cost,type = "scatter", mode = "lines", name = "Gesamtkosten", line = list(color = "#3b5998")) %>%  
+        add_trace(y= ~total_revenue,type = "scatter", mode = "lines", name = "Gesamtumsatz", line = list(color = "#990000"))%>%
+        add_trace(y= ~total_margin,type = "scatter", mode = "lines", name = "Gesamtgewinn", line = list(color = ": #56953e"))%>%
+        layout(title = "Instafreight Deutschland: Umsatz, Kosten und Marge (2018-2020)",titlefont = list(size = 17), xaxis = list(title = 'Monat', dtick= 2), yaxis = list(title = 'Euro'))
 
 ```
 
@@ -333,9 +333,9 @@ ggplot(data = shipments_YearMonth_aggregated, aes(x = first_stop_requested_arriv
   geom_line(colour="black") + 
   # Hinzufügen von Trend-Linie
   geom_smooth(method="gam", formula = y ~s(x))+
-  xlab("Date") +  
+  xlab("Monat") +  
   ylab("Euro") +
-  ggtitle(label = "Instafreight International: Marge (2018-2020)") +
+  ggtitle(label = "Instafreight Europaweit: Marge (2018-2020)") +
   theme_classic()+
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8),plot.title = element_text(size = 16, face = "bold")) + 
     #y-Achse Zahlen als Integer-Wert deklarieren
@@ -357,7 +357,7 @@ ggplot(data = shipments_YearMonth_aggregated_Deutschland, aes(x = first_stop_req
   geom_line(colour="black") + 
   # Hinzufügen von Trend-Linie
   geom_smooth(method="gam", formula = y ~s(x))+
-  xlab("Month") +  
+  xlab("Monat") +  
   ylab("Euro") +
   ggtitle(label = "Instafreight Deutschland: Marge (2018-2020)") +
   theme_classic()+
