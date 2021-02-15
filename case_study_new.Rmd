@@ -1272,8 +1272,11 @@ ggplot(data = NULL) +
                              # Beschriftung fuer Farbe festlegen
                              colour = 'original')) + 
   
+  # Titel 
+  ggtitle(label = "3PL Margenentwicklung (2018-2020)")+
+  
   # Umbenennung der x- und y-Achsen
-  labs(y="prozentuale Marge 3PL", x="Periode")+
+  labs(y="Marge 3PL in %", x="Periode")+
   theme_classic()+
   theme(
       axis.text = element_text( color = "grey30", size = 12),
@@ -1437,7 +1440,7 @@ ggplot(data = NULL) +
   theme_classic()
   
   # Farben fuer Beschriftungen festlegen
-  scale_colour_manual(breaks = c("forecast", "original"), values = c("red", "blue"))
+  scale_colour_manual(breaks = c("forecast", "original"), values = c("firebrick2","dodgerblue2"))
   
   
   ## Vorhersage Pallet
