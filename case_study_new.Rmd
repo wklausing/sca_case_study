@@ -336,7 +336,12 @@ count(custom_rate_shipment, fulfilment_strategy))+
 
 ggplot(data = shipments_uncancelled %>%
 count(custom_rate_shipment, lane_domain))+
-  geom_col(aes(lane_domain,n, fill = custom_rate_shipment), position = "dodge")+theme_standard
+  geom_col(aes(lane_domain,n, fill = custom_rate_shipment), position = "dodge")+
+  labs(y = "Anzahl Aufträge",
+       x = element_blank(),
+       title = "Anzahl Aufträge nach Lane Domain")+
+  theme_standard+
+  scale_fill_discrete( labels = c("Einzelaufträge", "Kontraktaufträge"))
 ```
 
 ### (2.5) Abhängigkeoit der Marge von Kontrakt und Spot Aufträgen
