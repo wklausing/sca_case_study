@@ -919,6 +919,28 @@ head(fullfilment_strategy_dummies)
 
 ```
 
+Für jede Veriable wird ein Regressionsmodel erstellt -> vergleich und auswählen
+```{r}
+model_business_model = lm(total_margin ~business_model, data = shipments_uncancelled )
+summary(model_business_model)
+
+model_custom_rate_shipment = lm(total_margin ~custom_rate_shipment, data = shipments_uncancelled )
+summary(model_custom_rate_shipment)
+
+model_fulfillment_strategy = lm(total_margin ~fulfilment_strategy, data = shipments_uncancelled )
+summary(model_fulfillment_strategy)
+
+model_lane_domain = lm(total_margin ~lane_domain, data = shipments_uncancelled )
+summary(model_lane_domain)
+
+model_stops_count = lm(total_margin ~stops_count, data = shipments_uncancelled )
+summary(model_stops_count)
+
+model_OTD = lm(total_margin ~OTD, data = shipments_uncancelled )
+summary(model_OTD)
+
+
+```
 
 
 ### (4) Deskriptive Statistik (Zeitreihenanalyse)
