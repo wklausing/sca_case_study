@@ -150,14 +150,8 @@ shipments$last_stop_requested_arrival_to_date = shipments$last_stop_requested_ar
 # Erzeuge total_margin Spalte. (total_margin = total_revenue - total_cost)
 shipments$total_margin = shipments$total_revenue - shipments$total_cost
 
-# Erzeuge Spalte für Jahr. Monat, Tag
-shipments = shipments %>%
-  dplyr::mutate(year = lubridate::year(shipment_created_at), 
-                month = lubridate::month(shipment_created_at), 
-                day = lubridate::day(shipment_created_at))
-
 # Jahr-Monat Spalte
-shipments$YearMonth = shipments$shipment_created_at %>% as.Date() %>% strftime(., format = "%Y-%m") 
+shipments$YearMonth = shipments$first_stop_requested_arrival_to_date %>% as.Date() %>% strftime(., format = "%Y-%m") 
 
 
 # Margin Daten einlesen 
@@ -236,6 +230,12 @@ saveRDS(shipments, "data/shipments.rds")
 saveRDS(margin, "data/margins.rds")
 ```
 
+```{r}
+shipments_uncancelled %>%
+  mutate(weekday = weekdays(first_stop_requested_arrival_to_date))
+```
+
+
 ### (1.3) Vorbereiteten Daten aus RDS Dateien einlesen
 ```{r eval=TRUE}
 shipments = readRDS(file = "data/shipments.rds")
@@ -260,6 +260,11 @@ shipments <- shipments %>%
    mutate(CalenderWeek = format(first_stop_requested_arrival_to_date, "%Y-%V")) 
 
 #Info: Benoetigen wir spaeter fuer die Zeitreihenanalyse und Vorhersage und jegliche Zeitdiagramme
+
+
+# weekday spalte hinzufügen
+shipments_uncancelled %>%
+  mutate(weekday = weekdays(first_stop_requested_arrival_to_date))
 ```
 
 
@@ -1205,6 +1210,11 @@ ggplot(data = NULL) +
 Erkenntnisse: 
 -keine Saisonalitäten identifiziert
 -leichter Trend nach oben
+
+```{r}
+aggregate(OTD ~ first_stop_requested_arrival_to_YearMonth,shipments_uncancelled,mean)
+```
+
 
 ### (4.2) Prozentuale Marge Zeitreihenanalyse
 ```{r}
