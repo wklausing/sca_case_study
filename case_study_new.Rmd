@@ -329,10 +329,15 @@ df_Compare
 ```
 ### (2.4) Auswertung der Fullfilment Strategie über die Kontrakt und Spot Aufträge
 ```{r}
-# azahl spot vs. Kontrakt Aufträge nach fulfilment strategy
+# anzahl spot vs. Kontrakt Aufträge nach fulfilment strategy
 ggplot(data = shipments_uncancelled %>%
 count(custom_rate_shipment, fulfilment_strategy))+
-  geom_col(aes(fulfilment_strategy,n, fill = custom_rate_shipment), position = "dodge")+theme_standard
+  geom_col(aes(fulfilment_strategy,n, fill = custom_rate_shipment), position = "dodge")+
+  labs(y = "Anzahl Aufträge",
+       x = element_blank(),
+       title = "Anzahl Aufträge nach Fulfillment Strategie")+
+  theme_standard+
+  scale_fill_discrete( labels = c("Einzelaufträge", "Kontraktaufträge"))
 
 ggplot(data = shipments_uncancelled %>%
 count(custom_rate_shipment, lane_domain))+
@@ -342,7 +347,11 @@ count(custom_rate_shipment, lane_domain))+
        title = "Anzahl Aufträge nach Lane Domain")+
   theme_standard+
   scale_fill_discrete( labels = c("Einzelaufträge", "Kontraktaufträge"))
+
+
 ```
+
+
 
 ### (2.5) Abhängigkeoit der Marge von Kontrakt und Spot Aufträgen
 ```{r}
@@ -376,7 +385,9 @@ ggplot(data = marge_custom_rate_shipment)+
     ),
     axis.text = element_text( color = "grey40"),
     legend.text = element_text( color = "grey40")
-  )
+  )+
+  scale_fill_discrete( labels = c("Einzelaufträge", "Kontraktaufträge"))
+
 ```
 
 ### (2.6) Abhängigkeit der Marge von der Lane Domain
@@ -725,8 +736,11 @@ groupbind =groupbind %>%
 # Säulendiagramm zum Vergleich
 ggplot(groupbind, aes(fulfilment_strategy, Mean_Differenz, fill = business_model))+
   geom_col(position = "dodge")+
-  ggtitle(label = "Durchschnittliche Marge nach filfilment_strategy (2018-2020")+
-  theme_standard
+  ggtitle(label = "Durchschnittliche Marge nach filfilment_strategy (2018-2020)")+
+  theme_standard+
+  theme(
+    axis.title.x = element_blank()
+  )
 
 #TODO: Datenbereinigen mit unique() und ungleich null ??
 ```
