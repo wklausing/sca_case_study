@@ -231,8 +231,13 @@ saveRDS(margin, "data/margins.rds")
 ```
 
 ```{r}
-shipments_uncancelled %>%
-  mutate(weekday = weekdays(first_stop_requested_arrival_to_date))
+shipments_uncancelled = shipments_uncancelled %>%
+  mutate(weekday_first_stop = weekdays(first_stop_agreed_arrival_to)) %>%
+  mutate(weekday_last_stop = weekdays(last_stop_agreed_arrival_to))
+
+aggregate(total_margin~weekday_first_stop, shipments_uncancelled,mean)
+aggregate(total_margin~weekday_last_stop, shipments_uncancelled,mean)
+
 ```
 
 
