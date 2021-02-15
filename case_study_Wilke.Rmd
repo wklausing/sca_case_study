@@ -10,6 +10,18 @@ Library Packages
 #rm(list = ls())
 library("tidyverse")
 library("forecast")
+library("readr")
+library("dplyr") 
+library("zoo")
+library("forecast")
+library("ggplot2")
+#library("mosaic")
+library("Metrics")
+library("dummies")
+library("janitor")
+library("plotly") 
+library("janitor")
+library("tidyr")
 ```
 
 ***Aufgabe A: Erkenntnisgewinn***
@@ -948,7 +960,7 @@ ggplot(data = NULL, aes(x = m1_2$model$total_margin, y = m1_2_1$residuals)) +
   shipments_correlations
   
   #Barometer
-  
+  #Tage mit Korrealtion 
   
 
 ```
