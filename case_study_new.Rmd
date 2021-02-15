@@ -559,6 +559,8 @@ plot_ly(data = shipments_YearMonth_aggregated_international,x= ~first_stop_reque
         add_trace(y= ~total_margin,type = "scatter", mode = "lines", name = "Gesamtgewinn",line = list(color = ": #56953e"))%>%
         layout(title = "Instafreight Europaweit: Umsatz, Kosten und Marge (2018-2020)",titlefont = list(size = 17), xaxis = list(title = 'Monat', dtick= 2, yaxis = list(title = 'Euro')))
 
+# Tabelle ausgeben
+shipments_YearMonth_aggregated_international
 ```
 
 ```{r}
