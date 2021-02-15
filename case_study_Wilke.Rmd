@@ -757,6 +757,8 @@ plot_data = shipments %>% aggregate(difference_created_agreed_date ~ YearMonth, 
 ```{r}
 require(ggplot2)
 require(GGally)
+#Datenbereinigung
+shipments = shipments[shipments$year >= 2018 & shipments$year <= 2020 & shipments$lane_domain == "national",]
 
 
 #Korrelationen 
@@ -861,10 +863,10 @@ evaluation_function <- function(evaluation, model) {
           # sMAPE berechnen.
           evaluation[evaluation$Model == modelname,]$sMAPE = smape(model$model[,1], model$fitted.values)
           
-          # R berechnen.
+          # R berechnen.TODO Richtig Berechnung einfügen
           evaluation[evaluation$Model == modelname,]$r = smape(model$model[,1], model$fitted.values)
           
-          # R**2 berechnen.
+          # R**2 berechnen.TODO Richtig Berechnung einfügen
           evaluation[evaluation$Model == modelname,]$r2 = smape(model$model[,1], model$fitted.values)
           
           evaluation %>% unique() %>% return()
@@ -876,8 +878,9 @@ evaluation_function <- function(evaluation, model) {
 ```{r}
 #Baseline erstellen, durschnittliche Marge vom Monat.
   baseline = shipments %>% aggregate(total_margin ~ month , ., mean)
-  names(baseline)[2] <- "total_margin_baseline"
-  shipments_externals_month = merge(shipments_externals_month,baseline[c("month","total_margin_baseline")],by=c("month","month"))
+  names(baseline)[2] = "total_margin_baseline"
+  baseline_3y = rbind(baseline,baseline)
+  baseline_3y = rbind(baseline_3y,baseline)
   
 #Baseline Bewertung aufstellen
   # DataFrame erzeugen, dass bei auf die Beschreibung ("Model") leer bzw. 0 ist
@@ -888,16 +891,18 @@ evaluation_function <- function(evaluation, model) {
                           r2 = numeric(1))
   
   # MAE berechnen
-  evaluation[evaluation$Model == "Baseline",]$MAE = (shipments_externals_month$total_margin.x - shipments_externals_month$total_margin.y) %>% abs() %>% mean()
+  evaluation[evaluation$Model == "Baseline",]$MAE = (shipments_externals_month$total_margin - baseline_3y$total_margin) %>% abs() %>% mean()
   
   # sMAPE berechnen
-  evaluation[evaluation$Model == "Baseline",]$sMAPE = smape(shipments_externals_month$total_margin.x, shipments_externals_month$total_margin.y)
+  evaluation[evaluation$Model == "Baseline",]$sMAPE = smape(shipments_externals_month$total_margin, baseline_3y$total_margin_baseline)
   
-  # R berechnen
-  evaluation[evaluation$Model == "Baseline",]$sMAPE = smape(shipments_externals_month$total_margin.x, shipments_externals_month$total_margin.y)
+  # R berechnen # R berechnen.TODO Richtig Berechnung einfügen
+  evaluation[evaluation$Model == "Baseline",]$r = smape(shipments_externals_month$total_margin, baseline_3y$total_margin_baseline)
   
-  # R**2 berechnen
-  evaluation[evaluation$Model == "Baseline",]$sMAPE = smape(shipments_externals_month$total_margin.x, shipments_externals_month$total_margin.y)
+  # R**2 berechnen # R**2 berechnen.TODO Richtig Berechnung einfügen
+  evaluation[evaluation$Model == "Baseline",]$r2 = smape(shipments_externals_month$total_margin, baseline_3y$total_margin_baseline)
+  
+  evaluation
 ```
   
 ```{r}  
@@ -926,9 +931,9 @@ evaluation_function <- function(evaluation, model) {
 
 ```{r}
 #Modell erstellen, 1. Iteration
-  m1_1 = shipments_monthsTraining %>% lm(total_margin.x ~ Dieselkraftstoff, .)
-  m1_2 = shipments_monthsTraining %>% lm(total_margin.x ~ Spedition...Deutschland., .)
-  m1_3 = shipments_monthsTraining %>% lm(total_margin.x ~ Transport...Deutschland., .)
+  m1_1 = shipments_monthsTraining %>% lm(total_margin ~ Dieselkraftstoff, .)
+  m1_2 = shipments_monthsTraining %>% lm(total_margin ~ Spedition...Deutschland., .)
+  m1_3 = shipments_monthsTraining %>% lm(total_margin ~ Transport...Deutschland., .)
   
   evaluation = evaluation_function(evaluation, m1_1)
   evaluation = evaluation_function(evaluation, m1_2)
@@ -940,8 +945,8 @@ evaluation_function <- function(evaluation, model) {
 
 ```{r}
 #Modell erstellen, 2. Iteration
-  m1_2_1 = shipments_monthsTraining %>% lm(total_margin.x ~ Dieselkraftstoff, .)
-  m1_2_3 = shipments_monthsTraining %>% lm(total_margin.x ~ Spedition...Deutschland., .)
+  m1_2_1 = shipments_monthsTraining %>% lm(total_margin ~ Spedition...Deutschland. + Dieselkraftstoff, .)
+  m1_2_3 = shipments_monthsTraining %>% lm(total_margin ~ Spedition...Deutschland. + Transport...Deutschland., .)
   
   evaluation = evaluation_function(evaluation, m1_2_1)
   evaluation = evaluation_function(evaluation, m1_2_3)
