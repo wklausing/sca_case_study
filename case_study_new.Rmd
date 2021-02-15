@@ -536,66 +536,83 @@ shipments_week_aggregated$margin =
 shipments_week_aggregated 
 ```
 
-```{r eval=TRUE}
+```{r}
+# Umsatz, Kosten, Marge (Europaweit)
+shipments_YearMonth_aggregated_international = shipments[c("first_stop_requested_arrival_to_YearMonth", "total_revenue", "total_cost", "total_margin")]
+shipments_YearMonth_aggregated_international = subset(shipments_YearMonth_aggregated_international,first_stop_requested_arrival_to_YearMonth != "2021-02" )
+shipments_YearMonth_aggregated_international= aggregate(.~first_stop_requested_arrival_to_YearMonth,shipments_YearMonth_aggregated_international , sum)
 
-# Liniendiagram von Kosten, Umsatz und Marge
-ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) + 
-  geom_line(aes(y = total_cost), colour="red") + 
-  geom_line(aes(y = total_revenue), colour="darkgreen") +
-  geom_line(aes(y = margin), colour="black") + 
-  
-  xlab("Date") +  
-  ylab("Euro") +
-  ggtitle(label = "Instafreight: Umsatz, Kosten und Marge (2017-2021)") +
-  theme_classic()+
-  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
-    #y-Achse Zahlen als Integer-Wert deklarieren
-    scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
-    scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)]) 
-  
-```  
+plot_ly(data = shipments_YearMonth_aggregated_international,x= ~first_stop_requested_arrival_to_YearMonth,   
+        y= ~total_cost,type = "scatter", mode = "lines", name = "Gesamtkosten", line = list(color = "#3b5998")) %>%  
+        add_trace(y= ~total_revenue,type = "scatter", mode = "lines", name = "Gesamtumsatz", line = list(color = "#990000"))%>%
+        add_trace(y= ~total_margin,type = "scatter", mode = "lines", name = "Gesamtgewinn",line = list(color = ": #56953e"))%>%
+        layout(title = "Instafreight Europaweit: Umsatz, Kosten und Marge (2018-2020)",titlefont = list(size = 17), xaxis = list(title = 'Monat', dtick= 2, yaxis = list(title = 'Euro')))
+
+```
 
 ```{r}
-# Alternative mit plot_ly
-plot_ly(data = shipments_week_aggregated,x= ~YearMonth,   
-        y= ~total_cost,type = "scatter", mode = "lines", name = "Total Cost") %>%  
-        add_trace(y= ~total_revenue,type = "scatter", mode = "lines", name = "Total Revenue")%>%
-        add_trace(y= ~margin,type = "scatter", mode = "lines", name = "Margin")%>%
-        #Hinzufügen von Regressionslinie (margin in Abhängigkeit von total_Revenue)
-        add_lines(x=~YearMonth, y=predict(lm(margin~total_revenue, data = shipments_week_aggregated)), line=list(dash="solid", width = 1.5, color=NULL), name="fitted values_Margin")%>%
-        layout(title = "Instafreight: Umsatz, Kosten und Marge (2017-2021)", yaxis = list(title = 'Euro'))
+# Umsatz, Kosten, Marge (Deutschland)
+shipments_YearMonth_aggregated_national = shipments[c("first_stop_requested_arrival_to_YearMonth", "total_revenue", "total_cost", "total_margin", "lane_domain")]
+shipments_YearMonth_aggregated_national = subset(shipments_YearMonth_aggregated_national, first_stop_requested_arrival_to_YearMonth != "2021-02" & lane_domain =="national" )
+shipments_YearMonth_aggregated_national = shipments_YearMonth_aggregated_national[c("first_stop_requested_arrival_to_YearMonth", "total_revenue", "total_cost", "total_margin")]
+
+shipments_YearMonth_aggregated_national= aggregate(.~first_stop_requested_arrival_to_YearMonth,shipments_YearMonth_aggregated_national , sum)
+
+plot_ly(data = shipments_YearMonth_aggregated_national,x= ~first_stop_requested_arrival_to_YearMonth,    
+        y= ~total_cost,type = "scatter", mode = "lines", name = "Gesamtkosten", line = list(color = "#3b5998")) %>%  
+        add_trace(y= ~total_revenue,type = "scatter", mode = "lines", name = "Gesamtumsatz", line = list(color = "#990000"))%>%
+        add_trace(y= ~total_margin,type = "scatter", mode = "lines", name = "Gesamtgewinn", line = list(color = ": #56953e"))%>%
+        layout(title = "Instafreight Deutschland: Umsatz, Kosten und Marge (2018-2020)",titlefont = list(size = 17), xaxis = list(title = 'Monat', dtick= 2), yaxis = list(title = 'Euro'))
 
 ```
 
 ```{r eval=TRUE}
+# Marge (Europaweit)
 
 shipments_YearMonth_aggregated = aggregate(total_margin~first_stop_requested_arrival_to_YearMonth, shipments, sum)
-# Zweites Liniendiagram nur mit Marge
+shipments_YearMonth_aggregated = subset(shipments_YearMonth_aggregated_international,first_stop_requested_arrival_to_YearMonth != "2021-02" )
+#  Liniendiagram nur mit Marge
 ggplot(data = shipments_YearMonth_aggregated, aes(x = first_stop_requested_arrival_to_YearMonth, y = total_margin, group=1)) +
   geom_line(colour="black") + 
   # Hinzufügen von Trend-Linie
   geom_smooth(method="gam", formula = y ~s(x))+
-  xlab("Date") +  
+  xlab("Monat") +  
   ylab("Euro") +
-  ggtitle(label = "Instafreight: Marge (2017-2021)") +
+  ggtitle(label = "Instafreight Europaweit: Marge (2018-2020)") +
   theme_classic()+
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8),plot.title = element_text(size = 16, face = "bold")) + 
     #y-Achse Zahlen als Integer-Wert deklarieren
     scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1))))) +
-    # Periode in 6 Jahrsabstaenden wiedergeben
-    scale_x_discrete(breaks = shipments_YearMonth_aggregated$first_stop_requested_arrival_to_YearMonth[seq(1, length(shipments_YearMonth_aggregated$first_stop_requested_arrival_to_YearMonth), by = 2)])+theme_standard
+    # Periode in 2 Monatenabstaenden wiedergeben
+    scale_x_discrete(breaks = shipments_YearMonth_aggregated$first_stop_requested_arrival_to_YearMonth[seq(1, length(shipments_YearMonth_aggregated$first_stop_requested_arrival_to_YearMonth), by = 2)])
+
 
 ```
 
-```{r}
-# Alternative mit plot_ly
-plot_ly(data = shipments_week_aggregated,x= ~YearMonth,   
-        y= ~margin,type = "scatter", mode = "lines", name = "Margin") %>%  
-        #Hinzufügen von Regressionslinie (margin in Abhängigkeit von total_Revenue)
-        add_lines(x=~YearMonth, y=fitted(lm(margin~total_revenue, data = shipments_week_aggregated)), line=list(dash="solid", width = 1.5, color=NULL), name="fitted_values")%>%
-        layout(title = "Instafreight: Margin and Trend (2017-2021)", yaxis = list(title = 'Euro'))
-```
+```{r eval=TRUE}
+# Marge (Deutschland)
 
+shipments_YearMonth_aggregated_Deutschland = shipments[c("first_stop_requested_arrival_to_YearMonth","total_margin", "lane_domain")]
+shipments_YearMonth_aggregated_Deutschland = subset(shipments_YearMonth_aggregated_Deutschland,first_stop_requested_arrival_to_YearMonth != "2021-02" & lane_domain =="national")
+
+shipments_YearMonth_aggregated_Deutschland= aggregate(total_margin~first_stop_requested_arrival_to_YearMonth,shipments_YearMonth_aggregated_Deutschland , sum)
+
+#  Liniendiagram nur mit Marge
+ggplot(data = shipments_YearMonth_aggregated_Deutschland, aes(x = first_stop_requested_arrival_to_YearMonth, y = total_margin, group=1)) +
+  geom_line(colour="black") + 
+  # Hinzufügen von Trend-Linie
+  geom_smooth(method="gam", formula = y ~s(x))+
+  xlab("Monat") +  
+  ylab("Euro") +
+  ggtitle(label = "Instafreight Deutschland: Marge (2018-2020)") +
+  theme_classic()+
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8),plot.title = element_text(size = 16, face = "bold")) + 
+    #y-Achse Zahlen als Integer-Wert deklarieren
+    scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1))))) +
+    # Periode in 2 Monatenabstaenden wiedergeben
+    scale_x_discrete(breaks = shipments_YearMonth_aggregated_Deutschland$first_stop_requested_arrival_to_YearMonth[seq(1, length(shipments_YearMonth_aggregated_Deutschland$first_stop_requested_arrival_to_YearMonth), by = 2)])
+
+```
 
 ### (2.5) Ein Liniendiagramm zu Shipment transport_price_booked + transport_cost_assigned
 ```{r eval=TRUE}
