@@ -263,8 +263,10 @@ shipments <- shipments %>%
 
 
 # weekday spalte hinzufügen
-shipments_uncancelled %>%
+shipments_uncancelled = shipments_uncancelled %>%
   mutate(weekday = weekdays(first_stop_requested_arrival_to_date))
+
+aggregate(total_margin~weekday, shipments_uncancelled,mean)
 ```
 
 
