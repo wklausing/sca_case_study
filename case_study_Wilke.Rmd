@@ -791,62 +791,7 @@ shipments = shipments[shipments$year >= 2018 & shipments$year <= 2020 & shipment
 ```
 
 *Regression erstellen, für Monate*
-```{r}
 
-#Baseline erstellen, durschnittliche Marge vom Monat.
-  baseline = shipments %>% aggregate(total_margin ~ month , ., mean)
-  baseline = merge(baseline,shipments[c("month","first_stop_agreed_arrival_to")],by=c("month","month"))
-
-  shipments_externals_month$YearMonth = shipments$first_stop_agreed_arrival_to %>% as.Date() %>% strftime(., format = "%Y-%m")
-  
-  shipments_externals_month = merge(baseline,shipments[c("month","first_stop_agreed_arrival_to")],by=c("month","month"))
-  
-  shipments_externals_month$YearMonth = substr(shipments_externals_month$YearMonth,1,nchar(shipments_externals_month$YearMonth)-3)
-
-  shipments_externals_month = merge(shipments_externals_month,baseline[c("month","total_margin")],by=c("month","month"))
-  
-  shipments_externals_month %>% str()
-  
-#Baseline Bewertung aufstellen
-  # DataFrame erzeugen, dass bei auf die Beschreibung ("Model") leer bzw. 0 ist
-  evaluation = data.frame(Model = "Baseline",
-                          MAE = numeric(1),
-                          sMAPE = numeric(1))
-  
-  # MAE berechnen
-  evaluation[evaluation$Model == "Baseline",]$MAE = (shipments_externals_month$total_margin.x - shipments_externals_month$total_margin.y) %>% abs() %>% mean()
-  
-  # sMAPE berechnen
-  evaluation[evaluation$Model == "Baseline",]$sMAPE = smape(shipments_externals_month$total_margin.x, shipments_externals_month$total_margin.y)
-  
-  # DataFrame anzeigen
-  evaluation
-  
-  
-#Trainings und Testdaten erzeugen. (80/20)
-  
-  # Erzeuge iterative Zahlenreihe statt Periode
-  shipments_externals_month$period = 1:nrow(shipments_externals_month)
-  
-  # Einen zufaelligen Zustand herstellen 
-  set.seed(4141)
-  
-  # Zufallsaufwahl erstellen:
-  zufall = sample(1:nrow(shipments_externals_month), nrow(shipments_externals_month) * 0.8)
-  
-  # Die Eintraege in der Zufallsauswahl gehen in das TrainingsSet
-  shipments_monthsTraining = shipments_externals_month[zufall, ]
-  
-  # Die Eintraege nicht in der Zufallsauswahl gehen in das TestSet (20%)
-  shipments_monthsTest = shipments_externals_month[-zufall, ]
-  
-  #Tabellenkopf ausgeben
-  head(shipments_monthsTraining)
-  head(shipments_monthsTest)
-  
-#Modell erstellen
-  m1_1 = shipments_monthsTraining %>% lm(total_margin.x ~ AvgHealth, .)
-```
 ```{r}
 #Funktion für Evaluation von Modellen  
 evaluation_function <- function(evaluation, model) {
@@ -955,4 +900,11 @@ evaluation_function <- function(evaluation, model) {
 
 ```
 
-
+```{r}
+# Residuenplot Beispiel
+ggplot(data = NULL, aes(x = m1_2$model$total_margin, y = m1_2_1$residuals)) + 
+  geom_point() + 
+  geom_smooth(se = FALSE, method = loess) + 
+  ggtitle("Plot m1_1_4") +
+  xlab("total_margin") + ylab("Residuals")
+```
