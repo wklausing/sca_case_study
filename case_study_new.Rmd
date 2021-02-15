@@ -1188,7 +1188,7 @@ ggplot(data = NULL) +
                              colour = 'forecast'))+
   
   # Umbenennung der x- und y-Achsen
-  labs(y=" Marge in EUR", x="Periode")+
+  labs(y="Ø Marge in EUR", x="Periode")+
   theme_classic()+
   theme(
       axis.text = element_text( color = "grey30", size = 12),
