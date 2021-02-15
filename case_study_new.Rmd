@@ -1123,14 +1123,17 @@ ggplot(data = NULL) +
                              # Beschriftung fuer Farbe festlegen
                              colour = 'forecast'))+
   
+  #Diagramm Titel hinzufügen
+  ggtitle(label = "Margenentwicklung (2018-2020)")+
+  
   # Umbenennung der x- und y-Achsen
-  labs(y="Marge in EUR", x="Periode")+
+  labs(y="Ø Marge in EUR", x="Periode")+
   theme_classic()+
   theme(
       axis.text = element_text( color = "grey30", size = 12),
     legend.text = element_text( color = "grey30", size = 12),
     axis.title = element_text( color = "grey30", size = 12)
-  )+
+  ) +
   
   # Farben fuer Beschriftungen festlegen
   scale_colour_manual(breaks = c("forecast", "original"), values = c("firebrick2","dodgerblue2"))
