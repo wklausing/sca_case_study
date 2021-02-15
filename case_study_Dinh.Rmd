@@ -324,7 +324,7 @@ plot_ly(data = shipments_YearMonth_aggregated_national,x= ~first_stop_requested_
 ```
 
 ```{r eval=TRUE}
-# Marge (international)
+# Marge (Europaweit)
 
 shipments_YearMonth_aggregated = aggregate(total_margin~first_stop_requested_arrival_to_YearMonth, shipments, sum)
 shipments_YearMonth_aggregated = subset(shipments_YearMonth_aggregated_international,first_stop_requested_arrival_to_YearMonth != "2021-02" )
@@ -365,7 +365,7 @@ ggplot(data = shipments_YearMonth_aggregated_Deutschland, aes(x = first_stop_req
     #y-Achse Zahlen als Integer-Wert deklarieren
     scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1))))) +
     # Periode in 2 Monatenabstaenden wiedergeben
-    scale_x_discrete(breaks = shipments_YearMonth_aggregated_Deutschland$first_stop_requested_arrival_to_YearMonth[seq(1, length(shipments_YearMonth_aggregated_Deutschland$first_stop_requested_arrival_to_YearMonth), by = 2)])
+    scale_x_discrete(breaks = shipments_YearMonth_aggregated_Deutschland$first_stop_requested_arrival_to_YearMonth[seq(1, length(shipments_YearMonth_aggregated_Deutschland$first_stop_requested_arrival_to_YearMonth), by = 2)]) 
 
 ```
 
