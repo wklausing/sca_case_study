@@ -1347,7 +1347,8 @@ ggplot(data = NULL) +
                              y= as.numeric(fcast_Aufträge$x),
                              # Beschriftung fuer Farbe festlegen
                              colour = 'original')) + 
-  
+    #Diagramm Titel hinzufügen
+  ggtitle(label = "Anzahl der Aufträge (2018-2020)")+
   # Umbenennung der x- und y-Achsen
   labs(y="Anzahl Aufträge", x="Periode")+
   theme_classic()+
