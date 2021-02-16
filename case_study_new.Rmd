@@ -226,8 +226,8 @@ shipments <- shipments %>%
 shipments$OTD = ifelse(shipments$last_stop_agreed_arrival_to >= shipments$last_stop_actual_arrival, TRUE, FALSE)
 
 #TODO Bereinigen der Ländercodes
-subset(shipments_uncancelled %>%
-  count(origin_country,destination_country), n < 3)
+#subset(shipments_uncancelled %>%
+#  count(origin_country,destination_country), n < 3)
 
 # Dataframes abspeichern
 saveRDS(shipments, "data/shipments.rds")
@@ -619,6 +619,7 @@ shipments_YearMonth_aggregated_international
 ```
 
 ```{r}
+shipments_YearMonth_aggregated_national
 # Umsatz, Kosten, Marge (Deutschland)
 shipments_YearMonth_aggregated_national = shipments[c("first_stop_requested_arrival_to_YearMonth", "total_revenue", "total_cost", "total_margin", "lane_domain")]
 shipments_YearMonth_aggregated_national = subset(shipments_YearMonth_aggregated_national, first_stop_requested_arrival_to_YearMonth != "2021-02" & lane_domain =="national" )
