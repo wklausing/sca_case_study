@@ -714,7 +714,7 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
   geom_line(aes(y = difference), colour="black") + 
   xlab("Date") +  
   ylab("Euro") +
-  ggtitle(label = "Instafreight: Buchungspreis, Transportkosten und Differenz (2017-2021)") +
+  ggtitle(label = "Instafreight: Buchungspreis, Transportkosten und Differenz (2017-2020)") +
   theme_standard+
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8), 
         # Titelgröße ändern
@@ -729,7 +729,7 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
   geom_line(aes(y = difference), colour="black") + 
   xlab("Date") +  
   ylab("Euro") +
-  ggtitle(label = "Instafreight: Differenz zu Buchungs- und Transportkoste (2017-2021)") +
+  ggtitle(label = "Instafreight: Differenz zu Buchungs- und Transportkoste (2018-2021)") +
   theme_standard+
   theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
   #y-Achse Zahlen als Integer-Wert deklarieren
