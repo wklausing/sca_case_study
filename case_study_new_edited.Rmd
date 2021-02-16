@@ -194,7 +194,7 @@ head(margin)
 str(margin)
 ```
 
-### (1.5) Marge in Abhängigkeit mit Weekday - Subsets erstellen
+### (1.5) Marge in Abhängigkeit mit Weekday (mit Subsets erstellen)
 ```{r}
 # shipment zwei neu spalten hinzufügen
 shipments <- shipments %>%
@@ -1680,7 +1680,9 @@ ggplot(data = NULL) +
 
 
 
-### Korrelation
+### (5) Korrelation
+
+### (5.1) 
 ```{r}
 
 ```
