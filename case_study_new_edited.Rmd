@@ -716,7 +716,9 @@ ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) +
   ylab("Euro") +
   ggtitle(label = "Instafreight: Buchungspreis, Transportkosten und Differenz (2017-2021)") +
   theme_standard+
-  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8), 
+        # Titelgröße ändern
+        plot.title = element_text(size=12)) + 
   #y-Achse Zahlen als Integer-Wert deklarieren
   scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
   scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)])
