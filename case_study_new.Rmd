@@ -511,7 +511,7 @@ ggplot( data = subset(shipments_uncancelled %>%
   labs(
    x = element_blank(),
     y= "Anzahl Aufträge",
-   title = "Anzahl Aufträge bestimmter Lane Domains")+
+   title = "Anzahl Aufträge Top 10 Auftragsrouten")+
   geom_label(aes(lane_domain,n,label=n),label.r = unit(0.15, "lines"),
              label.size = 0.1,
              label.padding = unit(0.2, "lines")
