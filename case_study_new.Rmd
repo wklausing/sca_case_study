@@ -562,7 +562,7 @@ ggplot(data = marge_OTD_ohne_NA)+
   )+
   theme(
     axis.ticks = element_blank(),
-    plot.title = element_text(size = 16, face = "bold"),
+    plot.title = element_text(size = 12, face = "bold"),
     legend.position = "bottom",
     legend.title = element_blank(),
     axis.text.x = element_blank(),
