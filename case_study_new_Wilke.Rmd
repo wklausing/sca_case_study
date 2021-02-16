@@ -1848,42 +1848,14 @@ modell_baseline = merge(modell_baseline, shipments_week_actual, by=c("period","p
 ggplot() + 
   geom_line(data = modell_baseline, aes(x = period, y = modell), color = "blue") +
   geom_line(data = modell_baseline, aes(x = period, y = total_margin), color = "red") +
-  geom_line(data = modell_baseline, aes(x = period, y = baseline), color = "yellow") +
-  xlab('Dates') +
-  ylab('percent.change')
+  geom_line(data = modell_baseline, aes(x = period, y = baseline), color = "black") +
+  xlab('Periode (156 Wochen)') +
+  ylab('Marge pro Woche') + 
+  theme_standard
 
 ```
 
-```{r}
-plot_data = cps_wh_externals[(cps_wh_externals$Year >= 2016 | cps_wh_externals$Year <= 2020) & cps_wh_externals$Region == "Shangh",]
-plot_data = plot_data[, c("Periode", "IFR", "Baseline")] %>% 
-            aggregate(. ~ Periode, data = ., mean)
 
-baseline_plot_data = plot_data[, c("Periode", "Baseline")]
-baseline_plot_data$type = "Baseline"
-colnames(baseline_plot_data)[2] = "data"
-
-ifr_plot_data = plot_data[, c("Periode", "IFR")]
-ifr_plot_data$type = "IFR"
-colnames(ifr_plot_data)[2] = "data"
-
-plot_final_data = rbind(baseline_plot_data, ifr_plot_data)
-plot_final_data$Periode = as.yearmon(plot_final_data$Periode, "%Y%m")
-
-ggplot(data = plot_final_data, aes(x = Periode, y=data, colour = type)) + 
-  geom_line() +
-  theme(axis.text.x = element_text(angle=90, vjust = 0.5, hjust=2, size=6), 
-    legend.position = c(.16, .95),
-    legend.justification = c("right", "top"),
-    legend.box.just = "right",
-    legend.margin = margin(6, 6, 6, 6)
-   ) + 
-  xlab("Period") + 
-  ylab("IFR Shanghai") +
-  ggtitle(label = "CPS Warehousing IFR and Baseline from 2016 to 2020") +
-# Clean up
-#rm(plot_data, baseline_plot_data, ifr_plot_data, plot_final_data)
-```
 
 
 ### Aufgabe B
