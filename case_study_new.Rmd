@@ -1637,6 +1637,57 @@ ggplot(data = NULL) +
   #TODO Periode in Jahr/Monat umwandeln
 ```
 
+### (4.5) Visualisierung Vorhersage
+```{r}
+## Vorhersage Einzelaufträge
+Kontrakte_CalenderWeek = subset(shipments %>%
+  count(CalenderWeek,custom_rate_shipment), custom_rate_shipment == "true") %>%
+  select(-custom_rate_shipment)
+ colnames(Kontrakte_CalenderWeek)[2] = "Anzahl_Kontraktaufträge"
+ 
+ 
+ 
+ 
+ 
+ 
+```
+
+```{r}
+
+
+
+# shipments_week
+  shipments_week = shipments[c("CalenderWeek","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin","OTD")] %>% aggregate(. ~ CalenderWeek, ., mean)
+
+# Vorhersage Einzelaufträge
+  Kontrakte_CalenderWeek = subset(shipments %>% count(CalenderWeek,custom_rate_shipment), custom_rate_shipment == "true") %>% select(-custom_rate_shipment)
+  colnames(Kontrakte_CalenderWeek)[2] = "Anzahl_Kontraktaufträge"
+  shipments_week = merge(shipments_week, Kontrakte_CalenderWeek, by=c("CalenderWeek","CalenderWeek")) 
+
+# Google Trends
+  google_data = read.csv("data/google_data.csv")
+  google_data$CalenderWeek = google_data$Woche %>% as.Date() %>% strftime(., format = "%Y-%V")# Wochen Spalte
+  google_data = google_data[c("CalenderWeek","Spedition...Deutschland.", "Transport...Deutschland.")] %>% aggregate(. ~ CalenderWeek , ., mean)
+  shipments_week = merge(shipments_week,google_data,by=c("CalenderWeek","CalenderWeek"))
+  
+# DAX
+  DAX = read_excel("data/Dax 2017 bis 2020.xlsx", sheet = 1)
+  DAX$daxDayMean = (DAX$Eröffnung + DAX$Schluss) / 2
+  DAX$CalenderWeek = DAX$Datum %>% as.Date() %>% strftime(., format = "%Y-%V")# Jahr-Monat Spalte
+  DAX = DAX[c("CalenderWeek","daxDayMean")] %>% aggregate(. ~ CalenderWeek , ., mean)
+  shipments_week = merge(shipments_week,DAX,by=c("CalenderWeek","CalenderWeek"),all.x = TRUE)
+
+#  
+  
+  
+  
+  shipments <- shipments %>%
+  # aus der Spalte ´first_stop_requested_arrival_to_date´ wird der Monat und das Jahr in eine neue Spalte eingetragen
+  mutate(first_stop_requested_arrival_to_YearMonth = format(first_stop_agreed_arrival_to, "%Y-%m")) %>%
+ # die Kalenderwoche wird ebenfalls in eine neue Spalte eingetragen
+   mutate(CalenderWeek = format(first_stop_agreed_arrival_to, "%Y-%V"))
+```
+
 
 
 
