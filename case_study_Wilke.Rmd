@@ -22,6 +22,7 @@ library("janitor")
 library("plotly") 
 library("janitor")
 library("tidyr")
+library("readxl")
 ```
 
 ***Aufgabe A: Erkenntnisgewinn***
@@ -930,7 +931,7 @@ ggplot(data = NULL, aes(x = m1_2$model$total_margin, y = m1_2_1$residuals)) +
   
   #Diesel
   diesel <- read.csv("data/dieselPreiseMonat.csv", sep=";")
-  shipments_cor = merge(shipments_cor,diesel,by=c("YearMonth","YearMonth"))
+  shipments_cor = merge(shipments_cor,diesel[c("Dieselkraftstoff","YearMonth")],by=c("YearMonth","YearMonth"))
   
   #LKW-Maut_Fahrleistungsindex
   Lkw_Maut_Fahrleistungsindex = read.csv("data/Lkw-Maut-Fahrleistungsindex.csv", sep=";")
@@ -947,10 +948,9 @@ ggplot(data = NULL, aes(x = m1_2$model$total_margin, y = m1_2_1$residuals)) +
   int_Trade_Deutschland = read_excel("data/International Trade_ Deutschland_2018-2020.xlsx", sheet = 1)
   names(int_Trade_Deutschland)[1] <- "YearMonth"
   shipments_cor = merge(shipments_cor,int_Trade_Deutschland,by=c("YearMonth","YearMonth"),all.x = TRUE)
-
-  #Periode erzeugen und Korrelation
+  
+  
   shipments_cor$YearMonth = NULL
-
   shipments_correlations_total_margin = cor(shipments_cor,shipments_cor[c("total_margin")]) %>% as.data.frame()
   shipments_correlations_total_margin
   
