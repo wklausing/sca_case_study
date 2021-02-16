@@ -23,6 +23,8 @@ library("plotly")
 library("janitor")
 library("tidyr")
 library("readxl")
+
+#TODO Falsche Lane domain
 ```
 
 ***Aufgabe A: Erkenntnisgewinn***
@@ -164,6 +166,11 @@ shipments = shipments[shipments$transport_cost_assigned >= 0 & shipments$transpo
 shipments = shipments[!is.na(shipments$shipment_reference), ]
 
 #12. Die Spalte `country_lane` wird in eine Spalte `origin_country` und eine Spalte ´destination_country´ aufgeteilt 
+shipments <- shipments %>%
+  separate(country_lane, c("origin_country","destination_country"), "-->>")
+
+#TODO
+#13. Falsche Ländercodes entfernt.
 shipments <- shipments %>%
   separate(country_lane, c("origin_country","destination_country"), "-->>")
 
@@ -911,57 +918,204 @@ ggplot(data = NULL, aes(x = m1_2$model$total_margin, y = m1_2_1$residuals)) +
   xlab("total_margin") + ylab("Residuals")
 ```
 
-
+*Regression: Korrelationen suchen*
 ```{r}
 #install.packages("readxl")
 #library(readxl)
 
 # Korrelationen suchen
   #Shipments
-  shipments2 = readRDS(file = "data/shipments.rds")
-  shipments2 = shipments2[shipments2$year >= 2018 & shipments2$year <= 2020 & shipments2$lane_domain == "national",]
-  shipments2 = shipments2[shipments2$total_margin > 0 & shipments2$total_revenue > 0 & shipments2$total_cost > 0,]
-  shipments_cor = shipments2[c("YearMonth","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin","OTD")] %>% aggregate(. ~ YearMonth, ., mean)
+  shipments_externals_month = readRDS(file = "data/shipments.rds")
+  shipments_externals_month = shipments_externals_month[shipments_externals_month$year >= 2018 & shipments_externals_month$year <= 2020 & shipments_externals_month$lane_domain == "national" & shipments_externals_month$total_revenue > 0 & shipments_externals_month$total_cost > 0,]
+  shipments_externals_month = shipments_externals_month[c("YearMonth","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin","OTD")] %>% aggregate(. ~ YearMonth, ., mean)
   
   #Google Trends
   google_data = read.csv("data/google_data.csv")
   google_data$YearMonth = google_data$Woche %>% as.Date() %>% strftime(., format = "%Y-%m")# Jahr-Monat Spalte
   google_data = google_data[c("YearMonth","Spedition...Deutschland.", "Transport...Deutschland.")] %>% aggregate(. ~ YearMonth , ., mean)
-  shipments_cor = merge(shipments_cor,google_data,by=c("YearMonth","YearMonth"))
+  shipments_externals_month = merge(shipments_externals_month,google_data,by=c("YearMonth","YearMonth"))
   
   #Diesel
   diesel <- read.csv("data/dieselPreiseMonat.csv", sep=";")
-  shipments_cor = merge(shipments_cor,diesel[c("Dieselkraftstoff","YearMonth")],by=c("YearMonth","YearMonth"))
+  shipments_externals_month = merge(shipments_externals_month,diesel[c("Dieselkraftstoff","YearMonth")],by=c("YearMonth","YearMonth"))
   
   #LKW-Maut_Fahrleistungsindex
   Lkw_Maut_Fahrleistungsindex = read.csv("data/Lkw-Maut-Fahrleistungsindex.csv", sep=";")
-  shipments_cor = merge(shipments_cor,Lkw_Maut_Fahrleistungsindex,by=c("YearMonth","YearMonth"))
+  shipments_externals_month = merge(shipments_externals_month,Lkw_Maut_Fahrleistungsindex,by=c("YearMonth","YearMonth"))
   
   #DAX
   DAX = read_excel("data/Dax 2017 bis 2020.xlsx", sheet = 1)
   DAX$daxDayMean = (DAX$Eröffnung + DAX$Schluss) / 2
   DAX$YearMonth = DAX$Datum %>% as.Date() %>% strftime(., format = "%Y-%m")# Jahr-Monat Spalte
   DAX = DAX[c("YearMonth","daxDayMean")] %>% aggregate(. ~ YearMonth , ., mean)
-  shipments_cor = merge(shipments_cor,DAX,by=c("YearMonth","YearMonth"),all.x = TRUE)
+  shipments_externals_month = merge(shipments_externals_month,DAX,by=c("YearMonth","YearMonth"),all.x = TRUE)
   
   #International Trade_ Deutschland_2018-2020.xlsx
   int_Trade_Deutschland = read_excel("data/International Trade_ Deutschland_2018-2020.xlsx", sheet = 1)
   names(int_Trade_Deutschland)[1] <- "YearMonth"
-  shipments_cor = merge(shipments_cor,int_Trade_Deutschland,by=c("YearMonth","YearMonth"),all.x = TRUE)
+  shipments_externals_month = merge(shipments_externals_month,int_Trade_Deutschland,by=c("YearMonth","YearMonth"),all.x = TRUE)
   
   
-  shipments_cor$YearMonth = NULL
-  shipments_correlations_total_margin = cor(shipments_cor,shipments_cor[c("total_margin")]) %>% as.data.frame()
+  shipments_correlations_total_margin = shipments_externals_month
+  shipments_correlations_total_margin$YearMonth = NULL
+  shipments_correlations_total_margin = cor(shipments_correlations_total_margin,shipments_correlations_total_margin[c("total_margin")]) %>% as.data.frame()
   shipments_correlations_total_margin
   
   shipments_correlations = shipments_cor %>% cor()
   shipments_correlations
   
+  #Wir nehmen Spedition...Deutschland., Lkw.Maut.Fahrleistungsindex, Trade Value (Million Euro), total_cost, transport_cost_assigned, daxDayMean, und OTD
+  shipments_externals_month = shipments_externals_month[c("total_margin","Spedition...Deutschland.", "Lkw.Maut.Fahrleistungsindex", "Trade_Value_Million_Euro", "total_cost", "transport_cost_assigned", "daxDayMean", "OTD")]
+  shipments_externals_month
+  shipments_externals_month %>% cor()
   
+```
+
+*Regression: Funktion um Modelle zu vergleichen*
+```{r}
+#Funktion für Evaluation von Modellen  
+evaluation_function <- function(evaluation, model) {
+          # Modelname
+          modelname = deparse(substitute(model))
+          
+          # DF erweitern.
+          evaluation = rbind(evaluation, data.frame(Model = 
+                               modelname, MAE = numeric(1), sMAPE = numeric(1), r  = as.numeric(1), r2  = as.numeric(1))) %>% round(4)
+          
+          # MAE berechnen.
+          evaluation[evaluation$Model == modelname,]$MAE = (model$residuals) %>% abs(.) %>% mean(.) %>% round(4)
+          
+          # sMAPE berechnen.
+          evaluation[evaluation$Model == modelname,]$sMAPE = smape(model$model[,1], model$fitted.values) %>% round(4)
+          
+          # R berechnen.TODO Richtig Berechnung einfügen
+          evaluation[evaluation$Model == modelname,]$r = summary(model)$r.squared %>% round(4)
+          
+          # R**2 berechnen.TODO Richtig Berechnung einfügen
+          evaluation[evaluation$Model == modelname,]$r2 = summary(model)$adj.r.squared %>% round(4)
+          
+          evaluation %>% unique() %>% return()
+}
+```
+
+*Regression: Baseline und erster Eintrag in Evaluation Dataframe*
+```{r}
+#Baseline erstellen, durschnittliche Marge vom Monat.
+  shipments = readRDS(file = "data/shipments.rds")
+  shipments = shipments[shipments$year >= 2018 & shipments$year <= 2020 & shipments$lane_domain == "national" & shipments$total_revenue > 0 & shipments$total_cost > 0,]
+  baseline = shipments %>% aggregate(total_margin ~ month , ., mean)
+  names(baseline)[2] = "total_margin_baseline"
+  baseline_3y = rbind(baseline,baseline)
+  baseline_3y = rbind(baseline_3y,baseline)
   
-  #Barometer
-  #Tage mit Korrealtion 
+#Modell für Baseline
+  baseline_3y
+  m_baseline = shipments_monthsTraining %>% lm(total_margin ~ Spedition...Deutschland., .)
   
+#Baseline Bewertung aufstellen
+  # DataFrame erzeugen, dass bei auf die Beschreibung ("Model") leer bzw. 0 ist
+  evaluation = data.frame(Model = "Baseline",
+                          MAE = numeric(1),
+                          sMAPE = numeric(1),
+                          r = numeric(1),
+                          r2 = numeric(1))
+  
+  # MAE berechnen
+  evaluation[evaluation$Model == "Baseline",]$MAE = (shipments_externals_month$total_margin - baseline_3y$total_margin) %>% abs() %>% mean() %>% round(4)
+  
+  # sMAPE berechnen 
+  evaluation[evaluation$Model == "Baseline",]$sMAPE = smape(shipments_externals_month$total_margin, baseline_3y$total_margin_baseline) %>% round(4)
+  
+  # R berechnen # R berechnen.TODO Richtig Berechnung einfügen
+  evaluation[evaluation$Model == "Baseline",]$r = smape(shipments_externals_month$total_margin, baseline_3y$total_margin_baseline) %>% round(4)
+  
+  # R**2 berechnen # R**2 berechnen.TODO Richtig Berechnung einfügen
+  evaluation[evaluation$Model == "Baseline",]$r2 = smape(shipments_externals_month$total_margin, baseline_3y$total_margin_baseline) %>% round(4)
+  
+  evaluation
+```
+
+*Regression: Test und Trainingsdaten erzeugen*
+```{r}  
+#Trainings und Testdaten erzeugen. (80/20)
+  
+  # Erzeuge iterative Zahlenreihe statt Periode
+  shipments_externals_month$period = 1:nrow(shipments_externals_month)
+  
+  # Einen zufaelligen Zustand herstellen 
+  set.seed(4141)
+  
+  # Zufallsaufwahl erstellen:
+  zufall = sample(1:nrow(shipments_externals_month), nrow(shipments_externals_month) * 0.8)
+  
+  # Die Eintraege in der Zufallsauswahl gehen in das TrainingsSet
+  shipments_monthsTraining = shipments_externals_month[zufall, ]
+  
+  # Die Eintraege nicht in der Zufallsauswahl gehen in das TestSet (20%)
+  shipments_monthsTest = shipments_externals_month[-zufall, ]
+  
+  #Tabellenkopf ausgeben
+  head(shipments_monthsTraining)
+  head(shipments_monthsTest)
 
 ```
 
+*1. Iteration*
+```{r}
+#Spedition...Deutschland.	-0.272131997	
+  #Lkw.Maut.Fahrleistungsindex	-0.597840957	
+  #Trade Value (Million Euro)	-0.503885420
+  #total_cost	-0.390081398	
+  #transport_cost_assigned	-0.359119956	
+  #OTD	0.339293886
+#Modell erstellen, 1. Iteration
+  m_Google_spedition = shipments_monthsTraining %>% lm(total_margin ~ Spedition...Deutschland., .)
+  m_LKWMaut = shipments_monthsTraining %>% lm(total_margin ~ Lkw.Maut.Fahrleistungsindex, .)
+  m_TradeValue = shipments_monthsTraining %>% lm(total_margin ~ Trade_Value_Million_Euro, .)
+  m_total_cost = shipments_monthsTraining %>% lm(total_margin ~ total_cost, .)
+  m_cost_assigned = shipments_monthsTraining %>% lm(total_margin ~ transport_cost_assigned, .)
+  m_dax = shipments_monthsTraining %>% lm(total_margin ~ daxDayMean, .)
+  m_otd = shipments_monthsTraining %>% lm(total_margin ~ OTD, .)
+  
+  evaluation = evaluation_function(evaluation, m_Google_spedition)
+  evaluation = evaluation_function(evaluation, m_LKWMaut)
+  evaluation = evaluation_function(evaluation, m_TradeValue)
+  evaluation = evaluation_function(evaluation, m_total_cost)
+  evaluation = evaluation_function(evaluation, m_cost_assigned)
+  evaluation = evaluation_function(evaluation, m_dax)
+  evaluation = evaluation_function(evaluation, m_otd)
+  
+  evaluation
+  
+  summary(m_Google_spedition)
+  summary(m_LKWMaut)
+  summary(m_TradeValue)
+  summary(m_total_cost)
+  summary(m_cost_assigned)
+  summary(m_dax)
+  summary(m_otd)
+  
+  
+# m2 hat niedrigsten MAE mit 12.47933, 
+
+```
+
+*2. Iteration*
+```{r}
+#Modell erstellen, 1. Iteration
+  m1_1 = shipments_monthsTraining %>% lm(total_margin ~ Dieselkraftstoff, .)
+
+  evaluation = evaluation_function(evaluation, m1_1)
+
+
+```
+
+*2. Iteration*
+```{r}
+#Modell erstellen, 1. Iteration
+  m1_1 = shipments_monthsTraining %>% lm(total_margin ~ Dieselkraftstoff, .)
+
+  evaluation = evaluation_function(evaluation, m1_1)
+
+
+```
