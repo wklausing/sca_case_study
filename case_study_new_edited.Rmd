@@ -624,14 +624,10 @@ plot_ly(data = shipments_YearMonth_aggregated_international,x= ~first_stop_reque
 ```
 
 ```{r}
-<<<<<<< HEAD
+
 # Visualisierung von Umsatz, Kosten und Marge(Deutschland)
 
 # subset erstellen
-=======
-shipments_YearMonth_aggregated_national
-# Umsatz, Kosten, Marge (Deutschland)
->>>>>>> 81e343a58edf53b4fcabc8b3e8be079e1d5e5757
 shipments_YearMonth_aggregated_national = shipments[c("first_stop_requested_arrival_to_YearMonth", "total_revenue", "total_cost", "total_margin", "lane_domain")]
 shipments_YearMonth_aggregated_national = subset(shipments_YearMonth_aggregated_national, first_stop_requested_arrival_to_YearMonth != "2021-02" & lane_domain =="national" )
 shipments_YearMonth_aggregated_national = shipments_YearMonth_aggregated_national[c("first_stop_requested_arrival_to_YearMonth", "total_revenue", "total_cost", "total_margin")]
