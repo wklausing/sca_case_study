@@ -225,23 +225,15 @@ shipments <- shipments %>%
 #Hinzufügen einer Spalte `OTD` unter der Bedingung das die Lieferung pünktlich war
 shipments$OTD = ifelse(shipments$last_stop_agreed_arrival_to >= shipments$last_stop_actual_arrival, TRUE, FALSE)
 
+#TODO Bereinigen der Ländercodes
+subset(shipments_uncancelled %>%
+  count(origin_country,destination_country), n < 3)
+
 # Dataframes abspeichern
 saveRDS(shipments, "data/shipments.rds")
 saveRDS(margin, "data/margins.rds")
 write.csv(shipments, "data/shipments.csv")
 ```
-
-```{r}
-shipments_uncancelled = shipments_uncancelled %>%
-  mutate(weekday_first_stop = weekdays(first_stop_agreed_arrival_to)) %>%
-  mutate(weekday_last_stop = weekdays(last_stop_agreed_arrival_to))
-
-aggregate(total_margin~weekday_first_stop, shipments_uncancelled,mean)
-aggregate(total_margin~weekday_last_stop, shipments_uncancelled,mean)
-
-```
-
-
 ### (1.3) Vorbereiteten Daten aus RDS Dateien einlesen
 ```{r eval=TRUE}
 shipments = readRDS(file = "data/shipments.rds")
@@ -256,29 +248,22 @@ str(shipments)
 head(margin)
 str(margin)
 ```
-### (1.5) Spalten ergänzen
+
+### (1.1) Subsets erstellen
 ```{r}
 # shipment zwei neu spalten hinzufügen
 shipments <- shipments %>%
   # aus der Spalte ´first_stop_requested_arrival_to_date´ wird der Monat und das Jahr in eine neue Spalte eingetragen
-  mutate(first_stop_requested_arrival_to_YearMonth = format(first_stop_requested_arrival_to_date, "%Y-%m")) %>%
+  mutate(first_stop_requested_arrival_to_YearMonth = format(first_stop_agreed_arrival_to, "%Y-%m")) %>%
  # die Kalenderwoche wird ebenfalls in eine neue Spalte eingetragen
-   mutate(CalenderWeek = format(first_stop_requested_arrival_to_date, "%Y-%V")) 
+   mutate(CalenderWeek = format(first_stop_agreed_arrival_to, "%Y-%V")) 
+
+# shipments DF wird auf volle Jahre begrenzt
+shipments = subset(shipments, first_stop_requested_arrival_to_YearMonth >= "2018-01" & 
+                       first_stop_requested_arrival_to_YearMonth <= "2020-12")
 
 #Info: Benoetigen wir spaeter fuer die Zeitreihenanalyse und Vorhersage und jegliche Zeitdiagramme
 
-
-# weekday spalte hinzufügen
-shipments_uncancelled = shipments_uncancelled %>%
-  mutate(weekday = weekdays(first_stop_requested_arrival_to_date))
-
-aggregate(total_margin~weekday, shipments_uncancelled,mean)
-```
-
-
-
-### (1.6) Subsets erstellen
-```{r}
 # subset, dass unwichtige Info Spalten rauslöscht
 shipments_clean = shipments %>%
   select(-shipment_reference,-smh_accepted_last_state_change,-first_stop_requested_arrival_to,-last_stop_requested_arrival_to_date,-last_stop_requested_arrival_to)
@@ -292,17 +277,24 @@ shipments_clean_info = shipments_clean %>%
 shipments_clean_dates = shipments_clean %>%
   select(-shipment_state,-shipment_stage,-business_model,-custom_rate_shipment,-fulfilment_strategy,-lane_domain,-origin_country,-destination_country)
 
-# shipments DF wird auf volle Jahre begrenzt
-shipments = subset(shipments, first_stop_requested_arrival_to_YearMonth >= "2018-01" & 
-                       first_stop_requested_arrival_to_YearMonth <= "2020-12")
 
 # Erschaffen eines subsets von shipments ohne stornierte Aufträge von 2018-2020
 shipments_uncancelled = subset(shipments, cancellation_reason == "" & 
                        first_stop_requested_arrival_to_YearMonth >= "2018-01" & 
-                       first_stop_requested_arrival_to_YearMonth <= "2020-12" )
+                       first_stop_requested_arrival_to_YearMonth <= "2020-12")
 
 ```
 
+
+```{r}
+shipments_uncancelled = shipments_uncancelled %>%
+  mutate(weekday_first_stop = weekdays(first_stop_agreed_arrival_to)) %>%
+  mutate(weekday_last_stop = weekdays(last_stop_agreed_arrival_to))
+
+aggregate(total_margin~weekday_first_stop, shipments_uncancelled,mean)
+aggregate(total_margin~weekday_last_stop, shipments_uncancelled,mean)
+
+```
 
 ***(2) Visuelle Exploration***
 
@@ -549,6 +541,117 @@ ggplot( data = subset(shipments_uncancelled %>%
     axis.title = element_text( color = "grey30", size = 12)
   )
 ```
+
+### (2.9) Abhängigkeit der Marge von OTD
+```{r}
+marge_OTD = aggregate(total_margin ~ OTD , shipments_uncancelled, sum) %>%
+  full_join(
+shipments_uncancelled %>%
+count(OTD), c("OTD")) %>%
+  mutate(Marge_pro_Auftrag = total_margin/n)
+
+marge_OTD_ohne_NA = subset(marge_OTD, OTD !="NA")
+
+# Visualisierung der Marge in Abhängigkeit von OTD
+ggplot(data = marge_OTD_ohne_NA)+
+  geom_col(aes(OTD,Marge_pro_Auftrag, fill=OTD), width = 0.5)+
+  labs(
+    x = element_blank(),
+    y = "Marge pro Auftrag",
+    title = "Marge in Abhängigkeit von OTD"
+  )+
+  theme(
+    axis.ticks = element_blank(),
+    plot.title = element_text(size = 16, face = "bold"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    axis.text.x = element_blank(),
+     panel.grid = element_blank(),
+    panel.grid.major.y = element_line(
+      # Set the color to white
+      color = "grey60",
+      # Set the size to 0.5
+      size = 0.1,
+      # Set the line type to dotted
+      linetype = "dashed"
+    ),
+    axis.text = element_text( color = "grey30", size = 12),
+    legend.text = element_text( color = "grey30", size = 12),
+    axis.title = element_text( color = "grey30", size = 12)
+  
+  )+
+  scale_fill_manual(values = c("firebrick4","dodgerblue4"),labels = c("FALSE", "TRUE"))
+
+# Visualisierung der Anzahl von Auftraegen in Abhängigkeit von OTD
+ggplot( data = marge_OTD_ohne_NA ) +
+  geom_col(aes(OTD, n), fill = "darkslategray")+
+  theme_classic()+
+  labs(
+   x = element_blank(),
+    y= "Anzahl Aufträge",
+   title = "Anzahl Aufträge nach OTD")+
+  geom_label(aes(OTD,n,label=n),label.r = unit(0.15, "lines"),
+             label.size = 0.1,
+             label.padding = unit(0.2, "lines")
+)+ theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+     panel.grid = element_blank(),
+    panel.grid.major.y = element_line(
+      # Set the color to white
+      color = "grey60",
+      # Set the size to 0.5
+      size = 0.1,
+      # Set the line type to dotted
+      linetype = "dashed"
+    ),
+    panel.grid.major.x = element_line(
+      # Set the color to white
+      color = "grey60",
+      # Set the size to 0.5
+      size = 0.1,
+      # Set the line type to dotted
+      linetype = "dashed"
+    ),
+      axis.text = element_text( color = "grey30", size = 12),
+    legend.text = element_text( color = "grey30", size = 12),
+    axis.title = element_text( color = "grey30", size = 12)
+  )
+
+# Alternative Darstellung von Anzahl der Auftraege
+
+ggplot(data = marge_OTD_ohne_NA)+
+  geom_col(aes(OTD,n, fill=OTD), width = 0.5)+
+  labs(
+    x = element_blank(),
+    y = "Anzahl Aufträge",
+    title = "Anzahl Aufträge nach OTD"
+  )+
+  theme(
+    axis.ticks = element_blank(),
+    plot.title = element_text(size = 16, face = "bold"),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    axis.text.x = element_blank(),
+     panel.grid = element_blank(),
+    panel.grid.major.y = element_line(
+      # Set the color to white
+      color = "grey60",
+      # Set the size to 0.5
+      size = 0.1,
+      # Set the line type to dotted
+      linetype = "dashed"
+    ),
+    axis.text = element_text( color = "grey30", size = 12),
+    legend.text = element_text( color = "grey30", size = 12),
+    axis.title = element_text( color = "grey30", size = 12)
+  
+  )+
+  scale_fill_manual(values = c("firebrick4","dodgerblue4"),labels = c("FALSE", "TRUE"))
+
+```
+
 
 ### (2.4) Zwei Liniendiagramme zu Shipment Kosten, Umsatz und Marge
 ```{r eval=TRUE}
@@ -882,8 +985,13 @@ Erkenntnis: Mehr Marge mit Customrate (Contract) als mit spot (Marktpreis)
 
 ### (2.12) Vorhandene Vorhersage aus Margin visualisieren
 ```{r}
-#TODO Vorhersage Daten existieren schon, deshalb nur visualieren. Erst in Teil B neue Vorhersage machen.
+#margin in Euro fuer 3PL custom_rate shipments
+margin$forecasted_margin_3pl_Euro = round( (margin$forecasted_revenue_3pl*(margin$forecasted_margin_3pl/100)),2)
 
+#Visualisierung des vorgegebenen Forecast 
+plot_ly(data = margin,x= ~first_stop_requested_arrival_to_week,   
+        y= ~forecasted_margin_3pl_Euro,type = "scatter", mode = "lines", name = "Prognostizierte Marge", line = list(color = "#3b5998")) %>%  
+        layout(title = "Instafreight: Prognostizierte Marge (2018-2020)",titlefont = list(size = 15), xaxis = list(title = 'Kalenderwoche', dtick= 10), yaxis = list(title = 'Euro', tickformat = "3f")) 
 
 ```
 
