@@ -225,6 +225,10 @@ shipments <- shipments %>%
 #Hinzufügen einer Spalte `OTD` unter der Bedingung das die Lieferung pünktlich war
 shipments$OTD = ifelse(shipments$last_stop_agreed_arrival_to >= shipments$last_stop_actual_arrival, TRUE, FALSE)
 
+#TODO Bereinigen der Ländercodes
+subset(shipments_uncancelled %>%
+  count(origin_country,destination_country), n < 3)
+
 # Dataframes abspeichern
 saveRDS(shipments, "data/shipments.rds")
 saveRDS(margin, "data/margins.rds")
