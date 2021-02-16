@@ -20,6 +20,7 @@ library("janitor")
 library("plotly") 
 library("janitor")
 library("tidyr")
+library("readxl")
 #update.packages()
 
 #Standard theme für Grafiken erstellen
@@ -1652,24 +1653,21 @@ Kontrakte_CalenderWeek = subset(shipments %>%
  
 ```
 
+*DF mit allen Featuren die wir auf Korrelation untersuchen.*
 ```{r}
+#156 Wochen haben wir
 
 shipments_week = NULL
+regression_data = shipments[shipments$year >= 2018 & shipments$year <= 2020 & shipments$lane_domain == "national" & shipments$total_revenue > 0 & shipments$total_cost > 0,]
 
 # shipments_week
-  shipments_week = shipments[c("CalenderWeek","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin","OTD")] %>% aggregate(. ~ CalenderWeek, ., mean)
+  shipments_week = regression_data[c("CalenderWeek","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin","OTD")] %>% aggregate(. ~ CalenderWeek, ., mean)
 
 # Vorhersage Einzelaufträge
   Kontrakte_CalenderWeek = subset(shipments %>% count(CalenderWeek,custom_rate_shipment), custom_rate_shipment == "true") %>% select(-custom_rate_shipment)
   colnames(Kontrakte_CalenderWeek)[2] = "Anzahl_Kontraktaufträge"
   shipments_week = merge(shipments_week, Kontrakte_CalenderWeek, by=c("CalenderWeek","CalenderWeek")) 
-
-# Google Trends
-  google_data = read.csv("data/google_data.csv")
-  google_data$CalenderWeek = google_data$Woche %>% as.Date() %>% strftime(., format = "%Y-%V")# Jahr-KalenderWoche Spalte
-  google_data = google_data[c("CalenderWeek","Spedition...Deutschland.", "Transport...Deutschland.")] %>% aggregate(. ~ CalenderWeek , ., mean)
-  shipments_week = merge(shipments_week,google_data,by=c("CalenderWeek","CalenderWeek"))
-  
+    
 # DAX
   DAX = read_excel("data/Dax 2017 bis 2020.xlsx", sheet = 1)
   DAX$daxDayMean = (DAX$Eröffnung + DAX$Schluss) / 2
@@ -1680,25 +1678,263 @@ shipments_week = NULL
 # LKW-Maut_Fahrleistungsindex
   Lkw_Maut_Fahrleistungsindex = read.csv("data/Lkw-Maut-Fahrleistungsindex.csv", sep=";")
   Lkw_Maut_Fahrleistungsindex = merge(shipments, Lkw_Maut_Fahrleistungsindex,by=c("YearMonth","YearMonth"))
+  Lkw_Maut_Fahrleistungsindex = Lkw_Maut_Fahrleistungsindex[c("CalenderWeek","Lkw.Maut.Fahrleistungsindex")] %>% aggregate(. ~ CalenderWeek , ., mean)
   shipments_week = merge(shipments_week,Lkw_Maut_Fahrleistungsindex[c("CalenderWeek", "Lkw.Maut.Fahrleistungsindex")],by=c("CalenderWeek","CalenderWeek"))
   
 # Dieselpreise
   diesel = read.csv("data/dieselPreiseMonat.csv", sep=";")
   diesel = merge(shipments, diesel,by=c("YearMonth","YearMonth"))
-  shipments_week = merge(shipments_week, diesel[c("CalenderWeek","Dieselkraftstoff")],by=c("CalenderWeek","CalenderWeek"))
+  diesel = diesel[c("CalenderWeek","Dieselkraftstoff")] %>% aggregate(. ~ CalenderWeek , ., mean)
+  shipments_week = merge(shipments_week,diesel[c("CalenderWeek", "Dieselkraftstoff")],by=c("CalenderWeek","CalenderWeek"))
   
-  shipments_externals_month = merge(shipments_externals_month,diesel[c("Dieselkraftstoff","YearMonth")],by=c("YearMonth","YearMonth"))
-    
-  shipments <- shipments %>%
-  # aus der Spalte ´first_stop_requested_arrival_to_date´ wird der Monat und das Jahr in eine neue Spalte eingetragen
-  mutate(first_stop_requested_arrival_to_YearMonth = format(first_stop_agreed_arrival_to, "%Y-%m")) %>%
- # die Kalenderwoche wird ebenfalls in eine neue Spalte eingetragen
-   mutate(CalenderWeek = format(first_stop_agreed_arrival_to, "%Y-%V"))
+# Transportauslastung
+  transportAuslastung = read_excel("data/Transport_Auslastung.xlsx", sheet = 1)
+  transportAuslastung = merge(shipments, transportAuslastung,by=c("YearMonth","YearMonth"))
+  transportAuslastung = transportAuslastung[c("CalenderWeek","Auslastung_Transportmartkt")] %>% aggregate(. ~ CalenderWeek , ., mean)
+  shipments_week = merge(shipments_week,transportAuslastung[c("CalenderWeek", "Auslastung_Transportmartkt")],by=c("CalenderWeek","CalenderWeek"))
+
+# Fullfilment Strategy
+  fullfilment_strategy = reshape(shipments %>% count(CalenderWeek, fulfilment_strategy), timevar="fulfilment_strategy", idvar = c("CalenderWeek"), direction = "wide")
+  shipments_week = merge(shipments_week,fullfilment_strategy,by=c("CalenderWeek","CalenderWeek"))
+  
+# Feiertage
+  feiertage = read_excel("data/Feiertage.xlsx", sheet = 1)
+  shipments_week = merge(shipments_week,feiertage,by=c("CalenderWeek","CalenderWeek"))
+  
+# Woche 53 rausnehmen  
+  shipments_week = shipments_week[shipments_week$CalenderWeek != "2020-53",]
+  
+# Google Trends #TODO Hier fehlt eine Woche, die letzte von 2020 
+  google_data = read.csv("data/Google_trends_spedition.csv", sep=";")
+  google_data$CalenderWeek = google_data$Date %>% as.Date() %>% strftime(., format = "%Y-%V")# Jahr-KalenderWoche Spalte
+  google_data = google_data[c("CalenderWeek","Spedition")] %>% aggregate(. ~ CalenderWeek , ., mean)
+  shipments_week = merge(shipments_week,google_data,by=c("CalenderWeek","CalenderWeek"))   
+  
+  shipments_week
+  
 ```
 
 
+```{r}
+shipments_week_cor = shipments_week
+shipments_week_cor$CalenderWeek = NULL
+shipments_week_cor %>% cor()
 
 
+total_margin_cor = cor(shipments_week_cor,shipments_week_cor[c("total_margin")]) %>% as.data.frame()
+total_margin_cor
+```
+
+*Regression: Funktion um Modelle zu vergleichen*
+```{r}
+#Funktion für Evaluation von Modellen  
+evaluation_function <- function(evaluation, model) {
+          
+          # Modelname
+          modelname = deparse(substitute(model))
+          
+          # DF erweitern.
+          evaluation = rbind(evaluation, data.frame(Model = 
+                               modelname, MAE = numeric(1), sMAPE = numeric(1), r2  = as.numeric(1), adj.r2  = as.numeric(1)))
+          
+          # MAE berechnen.
+          evaluation[evaluation$Model == modelname,]$MAE = (model$residuals) %>% abs(.) %>% mean(.) %>% round(4)
+          
+          # sMAPE berechnen.
+          evaluation[evaluation$Model == modelname,]$sMAPE = smape(model$model[,1], model$fitted.values) %>% round(4)
+          
+          # R berechnen.
+          evaluation[evaluation$Model == modelname,]$r2 = summary(model)$r.squared %>% round(4)
+          
+          # R**2 berechnen.
+          evaluation[evaluation$Model == modelname,]$adj.r2 = summary(model)$adj.r.squared %>% round(4)
+          
+          evaluation %>% unique() %>% return()
+}
+```
+
+*Regression: Baseline und erster Eintrag in Evaluation Dataframe*
+```{r}
+#Baseline erstellen, durschnittliche Marge vom Monat.
+shipments_week$baseline = sum(shipments_week$total_margin)/156 
+  
+#Baseline Bewertung aufstellen
+  # DataFrame erzeugen, dass bei auf die Beschreibung ("Model") leer bzw. 0 ist
+  evaluation = data.frame(Model = "Baseline",
+                          MAE = numeric(1),
+                          sMAPE = numeric(1),
+                          r2 = numeric(1),
+                          adj.r2 = numeric(1))
+  
+  
+  # MAE berechnen
+  evaluation[evaluation$Model == "Baseline",]$MAE = (shipments_week$total_margin - shipments_week$baseline) %>% abs() %>% mean() %>% round(4)
+  
+  # sMAPE berechnen 
+  evaluation[evaluation$Model == "Baseline",]$sMAPE = smape(shipments_week$total_margin, shipments_week$baseline) %>% round(4)
+  
+  # R berechnen # R berechnen.TODO Richtig Berechnung einfügen
+  evaluation[evaluation$Model == "Baseline",]$r2 = NA
+  
+  # R**2 berechnen # R**2 berechnen.TODO Richtig Berechnung einfügen
+  evaluation[evaluation$Model == "Baseline",]$adj.r2 = NA
+  
+  evaluation
+
+```
+
+*Regression: Test und Trainingsdaten erzeugen*
+```{r}  
+#Trainings und Testdaten erzeugen. (80/20)
+  
+  # Erzeuge iterative Zahlenreihe statt Periode
+  shipments_week$period = 1:nrow(shipments_week)
+  
+  # Einen zufaelligen Zustand herstellen 
+  set.seed(4141)
+  
+  # Zufallsaufwahl erstellen:
+  zufall = sample(1:nrow(shipments_week), nrow(shipments_week) * 0.8)
+  
+  # Die Eintraege in der Zufallsauswahl gehen in das TrainingsSet
+  shipments_weekTraining = shipments_week[zufall, ]
+  
+  # Die Eintraege nicht in der Zufallsauswahl gehen in das TestSet (20%)
+  shipments_weekTest = shipments_week[-zufall, ]
+  
+  #Tabellenkopf ausgeben
+  head(shipments_weekTraining)
+  head(shipments_weekTest)
+
+```
+Korrelationen zu total_margin
+stops_count	-0.026070458			
+transport_price_booked	0.022573735				
+total_revenue	-0.001257291			
+total_cost	-0.389707493			
+total_margin	1.000000000			
+OTD	0.265868990			
+Anzahl_Kontraktaufträge	0.096702646			
+daxDayMean	-0.179740633			
+Lkw.Maut.Fahrleistungsindex	-0.503535089	
+Dieselkraftstoff	-0.118681589			
+n.bulk	-0.101535222			
+n.fullTruck	0.083233918			
+n.pallet	0.141784298			
+Anzahl_Feiertage	-0.093767919			
+Spedition	-0.148321317			
+period	0.143539701
+
+Lkw.Maut.Fahrleistungsindex	-0.503535089
+transport_cost_assigned	-0.352095327
+
+*1. Iteration*
+```{r}
+#Modell erstellen, 1. Iteration
+ 
+  m_LKWMaut = shipments_weekTraining %>% lm(total_margin ~ Lkw.Maut.Fahrleistungsindex, .)
+  m_OTD = shipments_weekTraining %>% lm(total_margin ~ OTD, .)
+  m_costAssigned = shipments_weekTraining %>% lm(total_margin ~ transport_cost_assigned, .)
+  m_totalCost = shipments_weekTraining %>% lm(total_margin ~ total_cost, .)
+  m_totalCost = shipments_weekTraining %>% lm(total_margin ~ total_cost, .) 
+  m_TAuslastung = shipments_weekTraining %>% lm(total_margin ~ Auslastung_Transportmartkt, .)
+  
+  evaluation = evaluation_function(evaluation, m_LKWMaut)
+  evaluation = evaluation_function(evaluation, m_OTD)
+  evaluation = evaluation_function(evaluation, m_costAssigned)
+  evaluation = evaluation_function(evaluation, m_totalCost)
+  evaluation = evaluation_function(evaluation, m_TAuslastung)
+  
+  evaluation
+  
+  #summary(m_LKWMaut)
+  #summary(m_OTD)
+  #summary(m_costAssigned)
+  #summary(m_totalCost)
+  
+  
+# m_LKWMaut ist unser bestes Modell
+
+```
+
+*2. Iteration*
+```{r}
+
+#Modell erstellen, 2. Iteration
+ 
+  m_LKWMaut_OTD = shipments_weekTraining %>% lm(total_margin ~ Lkw.Maut.Fahrleistungsindex + OTD, .)
+  m_LKWMaut_costAssigned = shipments_weekTraining %>% lm(total_margin ~ transport_cost_assigned + OTD, .)
+  m_LKWMaut_totalCost = shipments_weekTraining %>% lm(total_margin ~ transport_cost_assigned + total_cost, .)
+ 
+  
+  evaluation = evaluation_function(evaluation, m_LKWMaut_OTD)
+  evaluation = evaluation_function(evaluation, m_LKWMaut_costAssigned)
+  evaluation = evaluation_function(evaluation, m_LKWMaut_totalCost)
+  
+  
+  
+  evaluation
+  
+  #summary(m_LKWMaut_OTD)
+  #summary(m_LKWMaut_costAssigned)
+  #summary(m_LKWMaut_totalCost)
+  
+# m_LKWMaut ist unser bestes Modell
+
+```
+
+*3. Iteration*
+```{r}
+
+#Modell erstellen, 3. Iteration
+ 
+  m_LKWMaut_OTD_costAssigned = shipments_weekTraining %>% lm(total_margin ~ Lkw.Maut.Fahrleistungsindex + OTD + transport_cost_assigned, .)
+ 
+  evaluation = evaluation_function(evaluation, m_LKWMaut_OTD_costAssigned)
+  
+  evaluation
+  
+  summary(m_LKWMaut_OTD_costAssigned)
+  
+
+```
+
+*Overfitting ueberpruefen*
+Zum Schluss vergleichen wir wie unser Modell sich schlägt wenn wir es mit 
+den Testdaten überprüfen. Damit wird einem Overfitting vorgebeugt, also das 
+unsere Modell zugenau auf die Trainingsdaten angepasst wurde. 
+`predict()` Funktion.
+```{r}
+
+# Bestes Modell aus evaluation filtern und am Ende an dem TestSet anhaengen
+evaluation = data.frame(subset(evaluation[,1:3], Model == "m_LKWMaut_OTD_costAssigned"))
+
+# Modell mit Testdaten testen
+pred1 = predict(m_LKWMaut_OTD_costAssigned, shipments_weekTest)  
+
+# Data Frame erweitern
+evaluationNeu = rbind(data.frame(Model = c("Test_Model"),
+                                          MAE = numeric(1),
+                                          sMAPE = numeric(1)))
+# MAE von TestModel berechnen
+evaluationNeu[evaluationNeu$Model == "Test_Model", ]$MAE = mean(abs(shipments_weekTest$total_margin - pred1))
+
+# sMAPE von TestModel berechnen
+evaluationNeu[evaluationNeu$Model == "Test_Model", ]$sMAPE = smape(shipments_weekTest$total_margin, pred1)
+
+# Zeilen verbinden
+test_rbind = rbind(evaluation, evaluationNeu)
+
+# Runden und anzeigen
+test_rbind[2] = round(test_rbind$MAE, 4)
+test_rbind[3] = round(test_rbind$sMAPE, 4)
+
+# Tabellenkopf anzeigen
+test_rbind
+
+# Kommentar: Das beste Modell m1_1_4_2 und das jetzige Test-Modell weisen 
+# aehnliche Zahlen auf. Ein Overfitting ist hierbei nicht zu finden.
+```
 
 
 ### Aufgabe B
