@@ -1525,7 +1525,9 @@ ggplot(data = NULL) +
   scale_colour_manual(breaks = c("forecast", "original"), values = c("firebrick2","dodgerblue2"))
 ```
 
+### (5) Korrelation
 
+### (5.1) Vorbereitung
 
 *Vorbereitung*
 ```{r}
