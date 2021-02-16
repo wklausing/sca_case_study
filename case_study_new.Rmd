@@ -1245,7 +1245,7 @@ ggplot(data = NULL) +
                              # Beschriftung fuer Farbe festlegen
                              colour = 'forecast'))+
     #Diagramm Titel hinzufügen
-  ggtitle(label = "Durchschnittliche Marge (2018-2020)")+
+  ggtitle(label = "Ø Marge (2018-2020)")+
   # Umbenennung der x- und y-Achsen
   labs(y="Ø Marge in EUR", x="Periode")+
   theme_classic()+
@@ -1689,7 +1689,70 @@ Kontrakte_CalenderWeek = subset(shipments %>%
 ```
 
 
+## (4.6) Zeitreihenanalyse durchschnittliche transport Kosten assigned
+```{r eval=TRUE}
+cost_YearMonth_mean =  aggregate(transport_cost_assigned ~ YearMonth, shipments_uncancelled_national, mean)
 
+ts_cost_mean = ts(cost_YearMonth_mean$transport_cost_assigned, frequency = 12)
+
+#Die 'cat' Funktion dient lediglich für eine bessere Übersicht indem sie Absätze im Output erzeugt
+# Modell automatisch erstellen lassen
+cat("\n","\n","Modell:","\n")
+m_cost_mean = ets(ts_cost_mean, model = "ZAA")
+# (1) Modellzusammenfassung ausgeben lassen
+m_cost_mean
+
+# (2) Ausgabe ursprüngliche Zeitreihe
+cat("\n","\n","Ursprüngliche Zeitreihe:","\n")
+ts_cost_mean
+# (3) Residuen ausgeben
+cat("\n","\n","Residuen:","\n")
+round(m_cost_mean$residuals,2)
+```
+Erstellen einer Nachfragevorhersage mit der 'forcast' Funktion und dem Modell 'm_marge_3PL' für ein weiteres Jahr also 12 Perioden
+```{r}
+#Vorhersage erstellen
+fcast_cost_mean = forecast(m_cost_mean, 12)
+#Anzeigen der Vorhersage
+fcast_cost_mean
+```
+Visualiesierung der Vorhersage ("forecast") und der ursprünglichen Nachfragen ("original") in einem Liniendiagramm über die Perioden. Es wurde ein Liniendiagramm gewählt, da es den fließenden Verlauf zwischen den Perioden anzeigen lässt und dadurch wie eng die beiden Linien der Vorhersage und der Origanlwerte über die Zeit auseinander liegen, lässt sich die Güte des Modells beobachten
+```{r}
+# Hintergrund erzeugen 
+ggplot(data = NULL) + 
+  
+  # Erste Linie hinzufuegen (keine Daten; X-Achse = Reihe von 1 bis laenge fitting Werten und Forecast Werten)
+  geom_line(data = NULL, aes(x=seq(1,length(c(fcast_cost_mean$fitted, fcast_cost_mean$mean)),1), 
+                             # Y-Achse = Kombination von fitting Werten und Forecast Werten
+                             y= c(as.numeric(fcast_cost_mean$fitted),as.numeric(fcast_cost_mean$mean)), 
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'forecast')) +
+  
+  # Zweite Linie hinzufuegen (Keine Daten; X-Achse = Reihe von 1 bis laenge Beobachtungen)
+  geom_line(data = NULL, aes(x=seq(1,length(fcast_cost_mean$x),1), 
+                             # Y-Achse = Beobachtungen
+                             y= as.numeric(fcast_cost_mean$x),
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'original')) + 
+  geom_smooth(data = NULL, aes(x=seq(1,length(c(fcast_cost_mean$fitted, fcast_cost_mean$mean)),1), 
+                             # Y-Achse = Kombination von fitting Werten und Forecast Werten
+                             y= c(as.numeric(fcast_cost_mean$fitted),as.numeric(fcast_cost_mean$mean)), 
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'forecast'))+
+    #Diagramm Titel hinzufügen
+  ggtitle(label = "Ø Transportkosten assigned (2018-2020)")+
+  # Umbenennung der x- und y-Achsen
+  labs(y="Ø Kosten in EUR", x="Periode")+
+  theme_classic()+
+  theme(
+      axis.text = element_text( color = "grey30", size = 12),
+    legend.text = element_text( color = "grey30", size = 12),
+    axis.title = element_text( color = "grey30", size = 12)
+  )+
+  
+  # Farben fuer Beschriftungen festlegen
+  scale_colour_manual(breaks = c("forecast", "original"), values = c("firebrick2","dodgerblue2"))
+```
 
 
 
