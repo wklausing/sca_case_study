@@ -1,0 +1,1128 @@
+---
+title: "case_study"
+author: "klauwi"
+date: "2/3/2021"
+output: html_document
+---
+
+Library Packages
+```{r eval=TRUE}
+#rm(list = ls())
+library("readr")
+library("dplyr") 
+library("zoo")
+library("forecast")
+library("ggplot2")
+#library("mosaic")
+library("Metrics")
+library("dummies")
+library("janitor")
+library("plotly") 
+library("janitor")
+library("tidyr")
+#update.packages()
+```
+
+***Aufgabe A: Erkenntnisgewinn***
+Ziel der Aufgabe ist der Bericht von etwaigen Erkenntnissen über die Daten, 
+die Sie im Laufe der Projektbearbeitung erlangt haben. 
+Zudem soll gezielt über die in der Fallstudienbeschreibung geforderten Punkte berichtet werden. 
+Die Daten sollen angemessen aufbereitet und visualisiert werden. 
+Wenn möglich sollen Handlungsempfehlungen aus den Erkenntnissen abgeleitet werden. [...]
+Versuchen Sie einen möglichst guten Überblick über die Shipment-Daten zu generieren. 
+Gehen Sie dabei schon gezielt auf die *Marge* ein (sowohl die *zeitliche Entwicklung* als auch identifizierte Zusammenhänge). Achten Sie bei Ihren Interpretationen auf die Gültigkeit von Aussagen über Kausalitäten.
+Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche. 
+Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten, die Ihnen besonders wichtig und präsentationswürdig erscheinen. Bereiten Sie gegebenenfalls ein Portfolio im *Back-Up* Ihrer Präsentation vor, um auf Anschlussfragen reagieren zu können. Sie sollten bei Ihrer Vorstellung dieser Teilaufgabe versuchen Zusammenhänge zu interpretieren und Implikationen abzuleiten, selbst wenn Ihre erarbeiteten Inhalte durch experimentelle Untersuchungen entstanden sind.
+
+
+### Aufgabe A
+• *(1) Datenformatierung & (2) Visuelle Exploration*
+Vorgehen bei der Präsentation am 15.02
+- Erste Ueberblick anhand Grafiken                                                          # Anny
+- Datenbereinigung > ueberpruefen/Grafik erstellen                                          # Anny 
+- Grafik Cost, Revenue & Margin > Trend (Zeitreihenanalyse) > Cancellation Reasons          # Dinh
+- Grafik zu transport_price_booked + transport_cost_assigned > Begruendung                  # Anny
+- Grafik Cancellation_reason und evlt. mit                                                  # Dinh
+  transport_state/transport_stage/business_model/business_strategy miteinander untersuchen
+- PowerPoint Präsentation Inhalt schon mal vorbereiten                                      # Anny
+  
+• *(3) Descriptive Statistik*  
+- Times Series (Noch ausstehend)                                                            # Toke   
+- Saisonalitaeten Begruendung
+  
+• *(4) Korrelationen* 
+- Externe Korrelation > Benzin, ...(Hier fehlen weitere 3-4 Daten)                          # Wilke
+- Interne Korrelation > Kosten/Umsatz/Margin/Stops_Count                                    # Wilke
+
+
+    >>> Korrelation Daten 2017-2020 suchen <<<
+      # Nutzung von Computern und dem Internet durch Beschäftigte
+      https://ec.europa.eu/eurostat/databrowser/view/isoc_ci_cm_pn2/default/table?lang=de
+    
+    >>> Import & Export Korrelation
+      a) Einzelhandel - monatliche Daten:
+      https://ec.europa.eu/eurostat/databrowser/view/EI_BSRT_M_R2__custom_560747/default/table?lang=de
+      b) Euro area 19 international trade - monthly data:
+      https://ec.europa.eu/eurostat/databrowser/view/ei_etea19_m/default/table?lang=en
+    
+    >>> Weitere Externen Daten suchen #Alle
+      # Grippe oder generell Gesundheit von Menschen
+      # Diesel #erledigt
+      # Verkehrsunfälle
+      # Anzahl der Suchanfrage von "Instafreight" in Google-Trends. Erkenntnis: Schlechtes Marketing
+      https://trends.google.com/trends/explore?date=today%205-y&geo=DE&q=InstaFreight
+      # Transportpreis
+      # Konjunktur von Volkswirtschaft oder BIP(?)
+      # BIP und Hauptkomponenten - ausgewählte internationale Jahresdaten
+         https://ec.europa.eu/eurostat/databrowser/view/naida_10_gdp/default/table?lang=de
+      # DSLV-Kostenindex: sämtliche Abwicklungskosten (Personal, Treibstoff  Maut und Sachkosten)
+      # Mautkosten
+      # Personalkosten (Fahrer, Lieferung)
+      # Notiz: Wetterdaten nicht nutzen, da sind nicht aufschlussreich
+  
+
+
+
+***(1) Datenvorbereitung***
+### (1.1) CSV Dateien einlesen und Formatierung
+```{r eval=FALSE}
+# Shipments Daten einlesen und ins richtige Format bringen.
+shipments <- read.csv("data/shipment_FINAL_20210115.csv")
+# Timestamps
+shipments$shipment_created_at = as.POSIXct(shipments$shipment_created_at,tz=Sys.timezone())
+
+shipments[shipments$smh_accepted_first_state_change == "",]$smh_accepted_first_state_change = NA
+shipments$smh_accepted_first_state_change = as.POSIXct(shipments$smh_accepted_first_state_change,tz=Sys.timezone())  
+
+shipments[shipments$smh_accepted_last_state_change == "",]$smh_accepted_last_state_change = NA
+shipments$smh_accepted_last_state_change = as.POSIXct(shipments$smh_accepted_last_state_change,tz=Sys.timezone())  
+
+shipments$first_stop_requested_arrival_to = as.POSIXct(shipments$first_stop_requested_arrival_to,tz=Sys.timezone())  
+
+shipments$first_stop_agreed_arrival_to = as.POSIXct(shipments$first_stop_agreed_arrival_to,tz=Sys.timezone())
+
+shipments[shipments$last_stop_agreed_arrival_to == "",]$last_stop_agreed_arrival_to = NA
+shipments$last_stop_agreed_arrival_to = as.POSIXct(shipments$last_stop_agreed_arrival_to,tz=Sys.timezone())
+
+shipments[shipments$first_stop_actual_arrival == "",]$first_stop_actual_arrival = NA
+shipments$first_stop_actual_arrival = as.POSIXct(shipments[shipments$first_stop_actual_arrival != "",]$first_stop_actual_arrival,tz=Sys.timezone())
+
+shipments[shipments$last_stop_requested_arrival_to == "",]$last_stop_requested_arrival_to = NA
+shipments$last_stop_requested_arrival_to = as.POSIXct(shipments$last_stop_requested_arrival_to,tz=Sys.timezone())
+
+shipments[shipments$last_stop_actual_arrival == "",]$last_stop_actual_arrival = NA
+shipments$last_stop_actual_arrival = as.POSIXct(shipments[shipments$last_stop_actual_arrival != "",]$last_stop_actual_arrival,tz=Sys.timezone())
+
+shipments[shipments$sh_cancelled == "",]$sh_cancelled = NA
+shipments$sh_cancelled = as.POSIXct(shipments[shipments$sh_cancelled != "",]$sh_cancelled,tz=Sys.timezone())
+
+# Dates
+shipments$first_stop_requested_arrival_to_date = shipments$first_stop_requested_arrival_to_date %>% as.Date()
+shipments$last_stop_requested_arrival_to_date = shipments$last_stop_requested_arrival_to_date %>% as.Date()
+
+# Erzeuge total_margin Spalte. (total_margin = total_revenue - total_cost)
+shipments$total_margin = shipments$total_revenue - shipments$total_cost
+
+# Erzeuge Spalte für Jahr. Monat, Tag
+shipments = shipments %>%
+  dplyr::mutate(year = lubridate::year(shipment_created_at), 
+                month = lubridate::month(shipment_created_at), 
+                day = lubridate::day(shipment_created_at))
+
+# Jahr-Monat Spalte
+shipments$YearMonth = shipments$shipment_created_at %>% as.Date() %>% strftime(., format = "%Y-%m") 
+
+
+# Margin Daten einlesen 
+margin <- read.csv2("data/margin_by_week_FINAL_20210115.csv")
+```
+
+
+### (1.2) Datenbereinigung
+```{r eval=FALSE}
+# Shipments Datenbereinigung
+#1. Entferne Zeilen mit leerer lane_domain. Betrifft 2 Zeilen.  
+shipments = shipments[shipments$lane_domain != "",]
+
+#2. Entferne Zeilen mit cancellation_reason = fake_order. Betrifft 1622 Zeilen.
+shipments = shipments[shipments$cancellation_reason != "fake_order",]
+
+#3. Ändere 2024 zu 2020 in last_stop_requested_arrival_to und last_stop_requested_arrival_to_date Spalte. Betrifft 1 Zeile.
+shipments[shipments$last_stop_requested_arrival_to == "2024-11-20 07:00:00",]$last_stop_requested_arrival_to = "2020-11-20 07:00:00"
+shipments[shipments$last_stop_requested_arrival_to_date == "2024-11-20",]$last_stop_requested_arrival_to_date = "2020-11-20"
+
+#4. Ändere 0019 zu 2019. Betrifft 1 Zeile.
+shipments[!is.na(shipments$first_stop_actual_arrival) & shipments$first_stop_actual_arrival == "0019-08-20 01:53:28",]$first_stop_actual_arrival = as.POSIXct("2019-08-20 01:53:28",tz=Sys.timezone())
+
+#5. Prüfen auf Duplikate insgesamt und für shipment_reference speziell. Betrifft 0 Zeilen.
+#shipments = shipments %>%  distinct(.)
+#shipments <- shipments[!duplicated(shipments$shipment_reference),]
+
+#6. Entferne ersten 4 Zeilen, siehe Forum. Betrifft 4 Zeilen.
+shipments = shipments[-1:-4,]
+
+#7. Entferne weitere Zeile, da es nur 1 Tag vom ganzen Monat ist. Betrifft 1 Zeile.
+shipments = shipments[-1,]
+
+#8. Entferne Zeile mit -1 in transport_cost_assigned, da dies laut Dokumentation nicht sein kann. Selbes für transport_price_booked. Betrifft 1 Zeile.
+shipments = shipments[shipments$transport_price_booked >= 0 & shipments$transport_cost_assigned >= 0,]
+
+#9. Ausreißer bei total_revenue und total_cost entfernen.
+plot(x=shipments$total_revenue, y=shipments$total_cost)# Vorher
+shipments = shipments[shipments$total_revenue < 5000 & shipments$total_revenue > -1000 & shipments$total_cost > -1000,]
+plot(x=shipments$total_revenue, y=shipments$total_cost)# Nachher
+
+#10. transport_cost_assigned und transport_price_booked dürfen nur größer/gleich 0 sein. 
+shipments = shipments[shipments$transport_cost_assigned >= 0 & shipments$transport_price_booked >= 0,]
+
+#11. Entferne Zeilen die nur NA haben.
+shipments = shipments[!is.na(shipments$shipment_reference), ]
+
+#12. Die Spalte `country_lane` wird in eine Spalte `origin_country` und eine Spalte ´destination_country´ aufgeteilt 
+shipments <- shipments %>%
+  separate(country_lane, c("origin_country","destination_country"), "-->>")
+
+#TODO OTD noch berechnen
+#Hinzufügen einer Spalte `OTD` unter der Bedingung das die Lieferung pünktlich war
+shipments$OTD = ifelse(shipments$last_stop_agreed_arrival_to >= shipments$last_stop_actual_arrival, TRUE, FALSE)
+
+# Dataframes abspeichern
+saveRDS(shipments, "data/shipments.rds")
+saveRDS(margin, "data/margins.rds")
+```
+
+### (1.3) Vorbereiteten Daten aus RDS Dateien einlesen
+```{r eval=TRUE}
+shipments = readRDS(file = "data/shipments.rds")
+margin = readRDS(file = "data/margins.rds")
+```
+
+### (1.4) Struktur ausgeben
+```{r eval=TRUE}
+head(shipments)
+str(shipments)
+
+head(margin)
+str(margin)
+```
+
+
+***(2) Visuelle Exploration***
+
+### (2.1) JAHR-MONAT extrahieren
+```{r eval=TRUE}
+# shipment zwei neu spalten hinzufügen
+shipments <- shipments %>%
+  # aus der Spalte ´first_stop_requested_arrival_to_date´ wird der Monat und das Jahr in eine neue Spalte eingetragen
+  mutate(first_stop_requested_arrival_to_YearMonth = format(first_stop_requested_arrival_to_date, "%Y-%m")) %>%
+ # die Kalenderwoche wird ebenfalls in eine neue Spalte eingetragen
+   mutate(CalenderWeek = format(first_stop_requested_arrival_to_date, "%Y-%V")) 
+
+#Info: Benoetigen wir spaeter fuer die Zeitreihenanalyse und Vorhersage
+```
+
+# (2.2) Liniendiagram zu Margin der gesamten 36 Perioden (2018-2020)
+```{r}
+# Erschaffen eines subsets von shipments ohne stornierte Aufträge von 2018-2020
+shipments_uncancelled = subset(shipments, cancellation_reason == "" & 
+                       first_stop_requested_arrival_to_YearMonth >= "2018-01" & 
+                       first_stop_requested_arrival_to_YearMonth <= "2020-12" )
+
+# die Marge über die Monate nach business_model aggregieren
+marge_YearMonth = aggregate(total_margin ~ first_stop_requested_arrival_to_YearMonth, shipments_uncancelled, mean)
+
+#Liniendiagramm über die Perioden (2017- 2020)
+ggplot(marge_YearMonth, aes(x = seq(1,length(c(marge_YearMonth$first_stop_requested_arrival_to_YearMonth)),1), y = total_margin, group = 1)) + 
+  geom_line() +
+  
+  # Umbenennung der x-Achse
+  labs(x = "Periode")
+
+# TODO: Legende fehlt
+```
+
+### (2.3) Shipments Gegenueberstellung: total_cost und total_revenue
+```{r eval=FALSE}
+# Umsatz aggrerieren
+df_Revenue = data.frame(aggregate(
+  total_revenue ~ business_model + fulfilment_strategy, data= shipments, sum))
+
+# Kosten aggrerieren
+df_Cost = data.frame(aggregate(
+  total_cost ~ business_model + fulfilment_strategy, data= shipments, sum))
+
+# Beide DataFrames mergen
+df_Compare = cbind(df_Revenue, df_Cost$total_cost)
+
+# Umbenennen
+colnames(df_Compare)[4] = "total_cost"
+df_Compare
+```
+
+### (2.4) Zwei Liniendiagramme zu Shipment Kosten, Umsatz und Marge
+```{r eval=TRUE}
+# Verkettung der zwei Tabellen: Shipments + Mergin
+# Datum von Shipment Spalte "last_stop_requested_arrival_to_date" so umformatieren, dass Kalenderwoche angezeigt wird
+YearMonthFormat = as.Date(shipments$shipment_created_at)
+shipments$YearMonth = strftime(YearMonthFormat, format = "%Y-%m") #Jahr-Monat
+
+# Revenue und Costdarstellen
+shipments_week_aggregated = shipments[c("YearMonth", "total_revenue", "total_cost")] %>% 
+  aggregate(. ~ YearMonth, data = ., sum)
+shipments_week_aggregated$margin = 
+  shipments_week_aggregated$total_revenue - shipments_week_aggregated$total_cost
+shipments_week_aggregated 
+```
+
+```{r eval=TRUE}
+
+# Liniendiagram von Kosten, Umsatz und Marge
+ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) + 
+  geom_line(aes(y = total_cost), colour="red") + 
+  geom_line(aes(y = total_revenue), colour="darkgreen") +
+  geom_line(aes(y = margin), colour="black") + 
+  
+  xlab("Date") +  
+  ylab("Euro") +
+  ggtitle(label = "Instafreight: Umsatz, Kosten und Marge (2017-2021)") +
+  theme_classic()+
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
+    #y-Achse Zahlen als Integer-Wert deklarieren
+    scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
+    scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)]) 
+  
+```  
+
+```{r}
+# Umsatz, Kosten, Marge (international)
+shipments_YearMonth_aggregated_international = shipments[c("first_stop_requested_arrival_to_YearMonth", "total_revenue", "total_cost", "total_margin")]
+shipments_YearMonth_aggregated_international = subset(shipments_YearMonth_aggregated_international,first_stop_requested_arrival_to_YearMonth != "2021-02" )
+shipments_YearMonth_aggregated_international= aggregate(.~first_stop_requested_arrival_to_YearMonth,shipments_YearMonth_aggregated_international , sum)
+
+plot_ly(data = shipments_YearMonth_aggregated_international,x= ~first_stop_requested_arrival_to_YearMonth,   
+        y= ~total_cost,type = "scatter", mode = "lines", name = "Gesamtkosten", line = list(color = "#3b5998")) %>%  
+        add_trace(y= ~total_revenue,type = "scatter", mode = "lines", name = "Gesamtumsatz", line = list(color = "#990000"))%>%
+        add_trace(y= ~total_margin,type = "scatter", mode = "lines", name = "Gesamtgewinn",line = list(color = ": #56953e"))%>%
+        layout(title = "Instafreight Europaweit: Umsatz, Kosten und Marge (2018-2020)",titlefont = list(size = 17), xaxis = list(title = 'Monat', dtick= 2, yaxis = list(title = 'Euro')))
+
+```
+
+```{r}
+# Umsatz, Kosten, Marge (Deutschland)
+shipments_YearMonth_aggregated_national = shipments[c("first_stop_requested_arrival_to_YearMonth", "total_revenue", "total_cost", "total_margin", "lane_domain")]
+shipments_YearMonth_aggregated_national = subset(shipments_YearMonth_aggregated_national, first_stop_requested_arrival_to_YearMonth != "2021-02" & lane_domain =="national" )
+shipments_YearMonth_aggregated_national = shipments_YearMonth_aggregated_national[c("first_stop_requested_arrival_to_YearMonth", "total_revenue", "total_cost", "total_margin")]
+
+shipments_YearMonth_aggregated_national= aggregate(.~first_stop_requested_arrival_to_YearMonth,shipments_YearMonth_aggregated_national , sum)
+
+plot_ly(data = shipments_YearMonth_aggregated_national,x= ~first_stop_requested_arrival_to_YearMonth,    
+        y= ~total_cost,type = "scatter", mode = "lines", name = "Gesamtkosten", line = list(color = "#3b5998")) %>%  
+        add_trace(y= ~total_revenue,type = "scatter", mode = "lines", name = "Gesamtumsatz", line = list(color = "#990000"))%>%
+        add_trace(y= ~total_margin,type = "scatter", mode = "lines", name = "Gesamtgewinn", line = list(color = ": #56953e"))%>%
+        layout(title = "Instafreight Deutschland: Umsatz, Kosten und Marge (2018-2020)",titlefont = list(size = 17), xaxis = list(title = 'Monat', dtick= 2), yaxis = list(title = 'Euro'))
+
+```
+
+```{r eval=TRUE}
+# Marge (Europaweit)
+
+shipments_YearMonth_aggregated = aggregate(total_margin~first_stop_requested_arrival_to_YearMonth, shipments, sum)
+shipments_YearMonth_aggregated = subset(shipments_YearMonth_aggregated_international,first_stop_requested_arrival_to_YearMonth != "2021-02" )
+#  Liniendiagram nur mit Marge
+ggplot(data = shipments_YearMonth_aggregated, aes(x = first_stop_requested_arrival_to_YearMonth, y = total_margin, group=1)) +
+  geom_line(colour="black") + 
+  # Hinzufügen von Trend-Linie
+  geom_smooth(method="gam", formula = y ~s(x))+
+  xlab("Monat") +  
+  ylab("Euro") +
+  ggtitle(label = "Instafreight Europaweit: Marge (2018-2020)") +
+  theme_classic()+
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8),plot.title = element_text(size = 16, face = "bold")) + 
+    #y-Achse Zahlen als Integer-Wert deklarieren
+    scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1))))) +
+    # Periode in 2 Monatenabstaenden wiedergeben
+    scale_x_discrete(breaks = shipments_YearMonth_aggregated$first_stop_requested_arrival_to_YearMonth[seq(1, length(shipments_YearMonth_aggregated$first_stop_requested_arrival_to_YearMonth), by = 2)])
+
+```
+```{r eval=TRUE}
+# Marge (Deutschland)
+
+shipments_YearMonth_aggregated_Deutschland = shipments[c("first_stop_requested_arrival_to_YearMonth","total_margin", "lane_domain")]
+shipments_YearMonth_aggregated_Deutschland = subset(shipments_YearMonth_aggregated_Deutschland,first_stop_requested_arrival_to_YearMonth != "2021-02" & lane_domain =="national")
+
+shipments_YearMonth_aggregated_Deutschland= aggregate(total_margin~first_stop_requested_arrival_to_YearMonth,shipments_YearMonth_aggregated_Deutschland , sum)
+
+#  Liniendiagram nur mit Marge
+ggplot(data = shipments_YearMonth_aggregated_Deutschland, aes(x = first_stop_requested_arrival_to_YearMonth, y = total_margin, group=1)) +
+  geom_line(colour="black") + 
+  # Hinzufügen von Trend-Linie
+  geom_smooth(method="gam", formula = y ~s(x))+
+  xlab("Monat") +  
+  ylab("Euro") +
+  ggtitle(label = "Instafreight Deutschland: Marge (2018-2020)") +
+  theme_classic()+
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8),plot.title = element_text(size = 16, face = "bold")) + 
+    #y-Achse Zahlen als Integer-Wert deklarieren
+    scale_y_continuous(breaks = function(x) unique(floor(pretty(seq(0, (max(x) + 1) * 1.1))))) +
+    # Periode in 2 Monatenabstaenden wiedergeben
+    scale_x_discrete(breaks = shipments_YearMonth_aggregated_Deutschland$first_stop_requested_arrival_to_YearMonth[seq(1, length(shipments_YearMonth_aggregated_Deutschland$first_stop_requested_arrival_to_YearMonth), by = 2)]) 
+
+```
+
+```{r}
+# Alternative mit plot_ly
+plot_ly(data = shipments_week_aggregated,x= ~YearMonth,   
+        y= ~margin,type = "scatter", mode = "lines", name = "Margin") %>%  
+        layout(title = "Instafreight: Margin and Trend (2017-2021)", yaxis = list(title = 'Euro'))
+```
+
+
+### (2.5) Ein Liniendiagramm zu Shipment transport_price_booked + transport_cost_assigned
+```{r eval=TRUE}
+# Aggregieren
+shipments_week_aggregated = shipments[c("YearMonth", "transport_price_booked", "transport_cost_assigned")] %>% 
+  aggregate(. ~ YearMonth, data = ., sum)
+shipments_week_aggregated$difference = 
+  shipments_week_aggregated$transport_price_booked - shipments_week_aggregated$transport_cost_assigned
+shipments_week_aggregated 
+
+
+# Liniendiagramm Uebersicht
+ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) + 
+  geom_line(aes(y = transport_price_booked), colour="red") + 
+  geom_line(aes(y = transport_cost_assigned), colour="blue") +
+  geom_line(aes(y = difference), colour="black") + 
+  xlab("Date") +  
+  ylab("Euro") +
+  ggtitle(label = "Instafreight: Buchungspreis, Transportkosten und Differenz (2017-2021)") +
+  theme_classic()+
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
+  #y-Achse Zahlen als Integer-Wert deklarieren
+  scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
+  scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)])
+
+
+# Liniendiagramm Differenz
+ggplot(data = shipments_week_aggregated, aes(x = YearMonth, group=1)) + 
+  geom_line(aes(y = difference), colour="black") + 
+  xlab("Date") +  
+  ylab("Euro") +
+  ggtitle(label = "Instafreight: Differenz zu Buchungs- und Transportkoste (2017-2021)") +
+  theme_classic()+
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
+  #y-Achse Zahlen als Integer-Wert deklarieren
+  scale_y_continuous(labels = scales::number_format(accuracy = 100)) +
+  scale_x_discrete(breaks = shipments_week_aggregated$YearMonth[seq(1, length(shipments_week_aggregated$YearMonth), by = 2)])
+
+#TODO Legende fehlt
+# Ersten Diagramm existiert bereits so ähnlich oberhalb
+```
+
+### (2.6) 
+#### (2.6.1) Grafiken zu Cancellation Reasons
+```{r}
+# die Anzahl des jeweiligen Stornierungsgrunds im jeweiligen Monat aggreggieren
+shipments_cancellation_reason = shipments %>% count(first_stop_requested_arrival_to_YearMonth, cancellation_reason)
+
+# Hintergrung und Daten füllen
+ggplot(subset(shipments_cancellation_reason, cancellation_reason == "" & first_stop_requested_arrival_to_YearMonth <= "2020-12"))+
+  # Linien der Stornierungsgründe hinzufügen
+  geom_line(aes(first_stop_requested_arrival_to_YearMonth,n,group = cancellation_reason)) +
+  # die x Achse übersichtlicher gestalten, indem nicht alle Daten angegeben werden
+  scale_x_discrete(breaks = shipments_cancellation_reason$first_stop_requested_arrival_to_YearMonth[seq(1, length(shipments_cancellation_reason$first_stop_requested_arrival_to_YearMonth), by = 35)])+
+  #Diagramm Titel hinzufügen
+  ggtitle(label = "Auftagsentwicklung (2018-2020")+
+  #Bennenung der x und y Achse
+  xlab("Datum")+
+  ylab("Anzahl Aufträge")+
+  # Grafik design ändern
+  theme_classic()
+
+# Vorgehen Analog zu ersten Diagramm
+ggplot(subset(shipments_cancellation_reason, cancellation_reason != "" & first_stop_requested_arrival_to_YearMonth <= "2020-12"))+
+  geom_line(aes(first_stop_requested_arrival_to_YearMonth,n,group = cancellation_reason, color=cancellation_reason)) +
+  scale_x_discrete(breaks = shipments_cancellation_reason$first_stop_requested_arrival_to_YearMonth[seq(1, length(shipments_cancellation_reason$first_stop_requested_arrival_to_YearMonth), by = 50)])+
+  ggtitle(label = "Auftragsstornierung (2018-2020")+
+  xlab("Datum")+
+  ylab("Anzahl Stornierung nach Grund")+
+  labs(color = "Stornierungsgrund")+
+  theme_classic()
+
+# Vorgehen Analog zu ersten Diagramm
+ggplot(subset(shipments_cancellation_reason, cancellation_reason != "" & cancellation_reason != "customer_not_ready" & cancellation_reason != "other"& cancellation_reason != "self_cancelled" & first_stop_requested_arrival_to_YearMonth <= "2020-12"))+
+  geom_line(aes(first_stop_requested_arrival_to_YearMonth,n,group = cancellation_reason, color=cancellation_reason)) +
+  scale_x_discrete(breaks = shipments_cancellation_reason$first_stop_requested_arrival_to_YearMonth[seq(1, length(shipments_cancellation_reason$first_stop_requested_arrival_to_YearMonth), by = 50)])+
+  ggtitle(label = "Auftragsstornierung (2018-2020")+
+  xlab("Datum")+
+  ylab("Anzahl Stornierung nach Grund")+
+  labs(color = "Stornierungsgrund")+
+  theme_classic()
+```
+#### (2.6.2) Moeglicher Zusammenhang zwischen Stornierungsgrund und anderen Faktoren 
+```{r}
+# Erschaffen eines subsets von shipments nur mit stornierten Aufträgen von 2018-2020
+shipments_cancelled = subset(shipments, cancellation_reason != "" & 
+                       first_stop_requested_arrival_to_YearMonth >= "2018-01" & 
+                       first_stop_requested_arrival_to_YearMonth <= "2020-12" )
+```
+
+a. Faktor: business_model (3PL, 4PL)
+```{r}
+#Stornierungsgründe nach business_model
+shipments_cancelled_business_model = shipments_cancelled[, c("YearMonth", "business_model","cancellation_reason")]
+
+df_business_model = data.frame(xtabs(~ cancellation_reason + business_model, data = shipments_cancelled_business_model))
+df_business_model_reshaped= reshape(df_business_model,
+                            timevar="business_model",
+                            idvar = c("cancellation_reason"),
+                            direction = "wide")
+df_business_model_reshaped
+```
+```{r}
+# Prozentualer Anteil der stonierten Antraegen bei 3PL Geschaeftsmodell
+( count((subset(shipments_cancelled, business_model == "3PL")))/ count((subset(shipments, business_model == "3PL"))))*100  
+
+# Prozentualer Anteil der stonierten Antraegen bei 4PL Geschaeftsmodell
+( count((subset(shipments_cancelled, business_model == "4PL")))/ count((subset(shipments, business_model == "4PL"))))*100 
+```
+Erkenntnisse:
+- bei 3PL und 4PL: der Stornierungsgrund customer_not_ready tritt am meisten auf
+- Es werden 7,28% der Antraege bei 3PL und 4,28% bei 4PL storniert.
+
+b. Faktor: fulfillment_strategy (bulk, pallet, fullTruck)
+```{r}
+#Stornierungsgründe nach Fulfillment-Strategie
+shipments_cancelled_fulfillment_strategy = shipments_cancelled[, c("YearMonth", "fulfilment_strategy","cancellation_reason")]
+
+df_fulfillment_strategy = data.frame(xtabs(~ cancellation_reason + fulfilment_strategy , data = shipments_cancelled_fulfillment_strategy))
+df_fulfillment_strategy_reshaped= reshape(df_fulfillment_strategy,
+                            timevar="fulfilment_strategy",
+                            idvar = c("cancellation_reason"),
+                            direction = "wide")
+df_fulfillment_strategy_reshaped
+```
+
+```{r}
+# Prozentualer Anteil der stonierten Antraegen bei Fulfillment-Strategie bulk
+( count((subset(shipments_cancelled, fulfilment_strategy == "bulk")))/ count((subset(shipments, fulfilment_strategy == "bulk"))))*100  
+# Prozentualer Anteil der stonierten Antraegen bei bei Fulfillment-Strategie fullTruck
+( count((subset(shipments_cancelled, fulfilment_strategy == "fullTruck")))/ count((subset(shipments, fulfilment_strategy == "fullTruck"))))*100  
+# Prozentualer Anteil der stonierten Antraegen bei bei Fulfillment-Strategie pallet
+( count((subset(shipments_cancelled, fulfilment_strategy == "pallet")))/ count((subset(shipments, fulfilment_strategy == "pallet"))))*100 
+```
+Erkenntnisse:
+- der am meisten auftretende Stornierungsgrund bei der Fulfillment-Strategy:
+bulk: self_cancelled
+fullTruck: customer_not_ready
+pallet: self_cancelled
+- Prozentualer Anteil der stonierten Antraegen bei Fulfillment-Strategie:
+bulk: 4,78%
+fullTRuck: 8,72%
+pallet: 3,1%
+
+c. Faktor: stops_count
+```{r}
+#Stornierungsgründe nach Stoppanzahl
+shipments_cancelled_Stoppanzahl = shipments_cancelled[, c("YearMonth", "stops_count","cancellation_reason")]
+
+df_Stoppanzahl = data.frame(xtabs(~ cancellation_reason + stops_count , data = shipments_cancelled_Stoppanzahl))
+df_Stoppanzahl_reshaped= reshape(df_Stoppanzahl,
+                            timevar="stops_count",
+                            idvar = c("cancellation_reason"),
+                            direction = "wide")
+df_Stoppanzahl_reshaped
+```
+```{r}
+# Prozentualer Anteil der stonierten Antraegen bei Stoppanzahl von 2
+( count((subset(shipments_cancelled, stops_count == 2)))/ count((subset(shipments, stops_count == 2))))*100  
+
+# Prozentualer Anteil der stonierten Antraegen bei bei Stoppanzahl von 3
+( count((subset(shipments_cancelled, stops_count == 3)))/ count((subset(shipments, stops_count == 3))))*100  
+
+```
+c. Faktor: lane_domain
+```{r}
+#Stornierungsgründe nach Lanedomain
+shipments_cancelled_lane_domain = shipments_cancelled[, c("YearMonth", "lane_domain","cancellation_reason")]
+
+df_lane_domain = data.frame(xtabs(~ cancellation_reason + lane_domain , data = shipments_cancelled_lane_domain))
+df_lane_domain_reshaped= reshape(df_lane_domain,
+                            timevar="lane_domain",
+                            idvar = c("cancellation_reason"),
+                            direction = "wide")
+df_lane_domain_reshaped
+```
+```{r}
+# Prozentualer Anteil der stonierten Antraegen bei lane domain export
+( count((subset(shipments_cancelled, lane_domain == "export")))/ count((subset(shipments, lane_domain == "export"))))*100  
+
+# Prozentualer Anteil der stonierten Antraegen bei lane domain import
+( count((subset(shipments_cancelled, lane_domain == "import")))/ count((subset(shipments, lane_domain == "import"))))*100  
+
+# Prozentualer Anteil der stonierten Antraegen bei lane domain international
+( count((subset(shipments_cancelled, lane_domain == "international")))/ count((subset(shipments, lane_domain == "international"))))*100  
+
+# Prozentualer Anteil der stonierten Antraegen bei lane domain national
+( count((subset(shipments_cancelled, lane_domain == "national")))/ count((subset(shipments, lane_domain == "national"))))*100  
+
+
+```
+- Prozentualer Anteil der stonierten Antraegen bei lane domain:
+export: 5,48%
+import: 10,55%
+international: 7,38%
+national: 6,86%
+
+
+### (2.7) Shipments Gegenuberstellung: Lieferungskosten gebucht und zugewiesen
+```{r eval=TRUE}
+group1 = aggregate(transport_price_booked ~ 
+                     fulfilment_strategy + business_model, data=shipments, sum)
+group2 = aggregate(transport_cost_assigned  ~ 
+                     fulfilment_strategy + business_model, data=shipments, sum)
+
+count_shipments = shipments_uncancelled %>%
+  count(fulfilment_strategy,business_model)
+  # Spaltenname "n" umbennen
+  colnames(count_shipments)[3] = "Anzahl_Aufträge"
+
+differenz = group1[3] - group2[3]
+colnames(differenz) = "differenz"
+
+# Dataframes zusammenfügen
+groupbind = group1 %>%
+  inner_join(group2, c("fulfilment_strategy","business_model")) %>%
+  inner_join(count_shipments, c("fulfilment_strategy","business_model"))
+groupbind
+
+# Spalte mit den durchschnittlichen differenzen zw. transport_price_booked und transport_cost_assigned ermitteln (durchschnittlich höchte Marge nach fulfilment_strategy und business_model)
+groupbind =groupbind %>%
+  mutate(Mean_Differenz = (transport_price_booked - transport_cost_assigned) / Anzahl_Aufträge)
+
+
+# Säulendiagramm zum Vergleich
+ggplot(groupbind, aes(fulfilment_strategy, Mean_Differenz, fill = business_model))+
+  geom_col(position = "dodge")+
+  ggtitle(label = "Durchschnittliche Marge nach filfilment_strategy (2018-2020")+
+  theme_classic()
+
+#TODO: Datenbereinigen mit unique() und ungleich null ??
+```
+
+### (2.8) Visualisierung der zeitlichen Entwicklung von dem prognostizierten (prozentualen) wöchentlichen Profit
+```{r}
+# YearMonthFormat = as.Date(shipments$shipment_created_at)
+# shipments$YearMonth = strftime(YearMonthFormat, format = "%Y-%m") #Jahr-Monat
+# total_revenue aus Shipments mit margin joinen um den forecast mit dem wirklichen Revenue zu vergleichen
+margin = margin %>%
+  inner_join(aggregate(total_revenue ~ CalenderWeek, subset(shipments_uncancelled, business_model == "3PL"),sum), c("first_stop_requested_arrival_to_week" = "CalenderWeek")) 
+
+# Berechnen der Differenz der waren Revenues vs der prognistizierten
+margin = margin %>%
+  mutate(differenz_fcast_actual = forecasted_revenue_3pl- total_revenue)
+
+# Plotten der Differenz zwischen forcats revenue und actual revenue
+ggplot(data = margin) +
+ geom_line(aes(x = first_stop_requested_arrival_to_week, y = differenz_fcast_actual, group = 1), color = "darkgreen")+
+   
+  xlab("Week") +  
+  ylab("Euro") +
+  ggtitle(label = "Weekly Margin forecasted vs. actual (2018-2021)") +
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
+  scale_x_discrete(breaks = margin$first_stop_requested_arrival_to_week[seq(1, length(margin$first_stop_requested_arrival_to_week), by = 10)])
+
+```
+Erkenntnisse:
++ sehr schwankende Profite, aber vor Ende des 2019 ist die Gewinnmarge nie negativ.
++ 5 kritische Zeitpunkte (negative prozentuale Profite):
+2019-52 (23.12.2019), 2020-01(30.12.2019-05.01.2020), 2020-36 bis 2020-38 (31.08.2020-20.09.2020) 
+
+
+
+### (2.9) Margen von 3PL Shipments nach Wochen aggregiert
+```{r}
+# Subset von tatsaechlich realisierten Margen von 3PL Shipments, aggregiert nach Wochen
+shipments_3PL<- subset(shipments, business_model =="3PL")
+
+margin_week <- shipments_3PL %>% select(CalenderWeek, total_margin)
+margin_week <- aggregate(total_margin~CalenderWeek, data = margin_week, sum)
+names(margin_week)[2] = "realisierte_Marge"
+names(margin_week)[1] = "first_stop_requested_arrival_to_week"
+
+# Kombinieren von margin und margin_week
+margin <- merge(margin, margin_week, by= "first_stop_requested_arrival_to_week")
+
+
+#margin in Euro fuer alle 3PL-Shipments
+margin$forecasted_margin_3pl_Euro = round( (margin$forecasted_revenue_3pl*(margin$forecasted_margin_3pl/100)),2)
+
+
+#Visualisierung des Verhaeltnises zwischen tatseachliche Daten und dem Forecast 
+ggplot(data = margin, aes(x = first_stop_requested_arrival_to_week, group=1)) + 
+  geom_line(aes(y = forecasted_margin_3pl_Euro), colour="red") + 
+  geom_line(aes(y = realisierte_Marge), colour="darkgreen") +
+  
+  xlab("Week") +  
+  ylab("Margin in Euro") +
+  
+  ggtitle(label = "Instafreight: Forecast vs. Reality (2018-2021)") +
+  theme(axis.text.x = element_text(angle=45, vjust = 1.1, hjust=1.2, size=8)) + 
+  
+  scale_x_discrete(breaks = margin$first_stop_requested_arrival_to_week[seq(1, length(margin$first_stop_requested_arrival_to_week), by = 10)]) 
+
+# TODO: Bug fixen
+# TODO: Legende
+```
+```{r}
+#margin in Euro fuer 3PL custom_rate shipments
+margin$forecasted_margin_3pl_Euro = round( (margin$forecasted_revenue_3pl*(margin$forecasted_margin_3pl/100)),2)
+
+#Visualisierung des vorgegebenen Forecast 
+plot_ly(data = margin,x= ~first_stop_requested_arrival_to_week,   
+        y= ~forecasted_margin_3pl_Euro,type = "scatter", mode = "lines", name = "Prognostizierte Marge", line = list(color = "#3b5998")) %>%  
+        layout(title = "Instafreight: Prognostizierte Marge (2018-2020)",titlefont = list(size = 15), xaxis = list(title = 'Kalenderwoche', dtick= 10), yaxis = list(title = 'Euro'))
+```
+
+
+
+### (2.10) Visualisierung der zeitlichen Veränderung des Anteils von cancelled_shipment_count_3pl 
+```{r}
+#Anteil von cancelled_shipment_count_3pl berechnen
+margin$cancel_rate_3pl = round( ((margin$shipment_count_3pl-margin$non_cancelled_shipment_count_3pl)/margin$shipment_count_3pl)*100,2) 
+
+#Visualisierung
+plot_ly(data = margin,x= ~first_stop_requested_arrival_to_week,   
+        y= ~cancel_rate_3pl ,type = "bar", color = I("darkblue"))%>% 
+        layout(title = 'Cancellation rate in 3PL Shipments', xaxis = list(title = 'Monat', dtick= 10), yaxis = list(title = "Stornierungsrate im 3PL-Shipment (%)")) 
+  
+```
+
+Erkenntnisse: 
++ Es liegt ein hoher Anteil von stonierten Shipments vor besonders zwischen der Kalenderwoche 48-2019 und 02-2020.
+Moeglicher Grund: Zu dieser Zeit fand die erstmalige Covid-19-Ausbreitung in China statt, was zum Exporteinbruch und folglich weiterer Unterbrechung von Lieferketten in Deutchland bzw. im Europa fuehrte.
++ Weitere Peaks am Ende des Jahres 2020 sind auch zu erkennen 
+Moeglicher Grund:zweite Welle der Corona-Pandemie
+
+
+### (2.11) Visualisierung der Profite aus custom rate shipments und spot shipments
+**Unterschied zwischen custom rate shipments und spot shipments**
+Bei jeder Custom Rate wird ein Vertrag mit festen Transportpreisen mit dem Kunden geschlossen und die Transportpreise gehalten werden müssen. # Frage: Wer legt den Preis fuer Transport fest?
+Bei dem Gegenstück der Custom Rate shipments, der Spot shipments, kann der Preis jederzeit angepasst werden. Dies passiert normalerweise auf einer wöchentlichen Basis.
+```{r eval=TRUE}
+#margin in Euro fuer 3PL custom_rate shipments
+margin$forecasted_margin_3pl_custom_rate_Euro = round( (margin$forecasted_revenue_3pl_custom_rate*(margin$forecasted_margin_3pl_custom_rate/100)),2)
+
+#margin in Euro fuer 3PL spot shipments
+margin$forecasted_margin_3pl_spot_Euro = round( (margin$forecasted_revenue_3pl_spot*(margin$forecasted_margin_3pl_spot/100)),2)
+
+# Visualisierung
+plot_ly(data = margin,x= ~first_stop_requested_arrival_to_week,   
+        y= ~forecasted_margin_3pl_custom_rate_Euro,type = "bar", name = "custom_rate") %>%  
+        add_trace(y= ~forecasted_margin_3pl_spot_Euro, name ="spot")%>%
+        layout(title = "Custom rate shipments - Spot shipments ", yaxis = list(title = 'margin in Euro'), barmode = 'stack')
+
+#TODO Year-Month noch setzen
+```
+Erkenntnis: Mehr Marge mit Customrate (Contract) als mit spot (Marktpreis)
+
+
+
+### (2.12) Vorhandene Vorhersage aus Margin visualisieren
+```{r}
+#TODO Vorhersage Daten existieren schon, deshalb nur visualieren. Erst in Teil B neue Vorhersage machen.
+
+
+```
+
+
+
+### (3) Korrelationen 
+
+**Interne Faktoren**
+
+### (3.1) Subset von not cancelled shipments: 
+Berücksichtigt werden nur die nicht stornierten Shipments und folgende internen Faktoren:
+business model: 3PL, 4PL 
+custom rate shipment: FALSCH, WAHR 
+fullfilment strategy: bulk,pallet, fullTruck 
+lane domain: national, international, import, export
+stop count: 2,3,4,5,6,7 
+OTD: ontime (1), belated (0) 
+
+```{r}
+#Hinzufügen einer Spalte `OTD` unter der Bedingung das die Lieferung pünktlich war
+
+shipments_uncancelled$OTD = ifelse(shipments_uncancelled$last_stop_agreed_arrival_to >= shipments_uncancelled$last_stop_actual_arrival, TRUE, FALSE)  
+```
+
+### (3.2)  Categorical-numerical associations 
+(Zusammenhang zwischen der Gewinnmarge (numerical) und internen Faktoren: business model, custom rate shipment, fulfillment strategy und lane domain (categorical))
+
+a. business model
+```{r}
+# durchschnittliche Marge, aggregiert nach buusiness model (3PL, 4PL)
+shipments_uncancelled %>%
+    group_by(business_model) %>%
+    summarize(mean_margin = mean(total_margin, na.rm = TRUE))
+
+
+
+tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$business_model ,sum)
+
+
+
+# Visualisierung
+ggplot(shipments_uncancelled, 
+       aes(factor(business_model), 
+       fill = factor(business_model))) +
+      geom_bar()
+```
+Erkenntnis: Die 3PL Shipments machen einen wesentlichen Anteil an den gesamten Shipments aus und außerdem bringen sie dem Unternehmen im Durchschnitt eine positive Gewinnmarge im Vergleich zu 4PL-Shipments.
+(also positver Zusammenhang zwischen 3PL Shipments als ein Typ von business model und der Marge)!
+
+
+```{r}
+# durchschnittliche Marge, aggregiert nach Geschaefstmodell (neu)
+
+# subset seit der Einfuehrung des neuen Geschaeftsmodell 4PL (ab 08.11.2019)
+shipments_uncancelled_ab_2019_11 = subset(shipments_uncancelled, first_stop_requested_arrival_to_date >= "2019-11-08")
+
+# durchschnittliche Marge, aggregiert nach Geschaefstmodell
+shipments_uncancelled_ab_2019_11 %>%
+    group_by(business_model) %>%
+    summarize(mean_margin = mean(total_margin, na.rm = TRUE))
+
+# Visualisierung
+ggplot(shipments_uncancelled_ab_2019_11, 
+       aes(factor(business_model), 
+       fill = factor(business_model))) +
+      geom_bar()
+
+```
+
+
+b. custom rate shipment
+```{r}
+# durchschnittliche Marge, aggregiert nach custom rate shipment (falsch, wahr)
+  shipments_uncancelled %>%
+    group_by(custom_rate_shipment) %>%
+    summarize(mean_margin = mean(total_margin, na.rm = TRUE))
+
+
+
+ tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$custom_rate_shipment ,sum)
+ 
+ 
+ 
+ # Visualisierung
+   ggplot(shipments_uncancelled, 
+       aes(factor(custom_rate_shipment), 
+       fill = factor(custom_rate_shipment))) +
+       geom_bar()
+```
+Erkenntnis: Der Profit hängt auch davon ab, ob es hier  ein spot shipment oder custom rate shipment ist. Bei den custom rate shipment muss es mit einem festen Transportpreis durchgeführt werden und somit schwanken sich die Margen stärker. Bei dem Gegenstück der Custom Rate shipments, der Spot shipments, können wir den Preis jederzeit anpassen. Deswegen kann mit wenigeren spot shipments eine deutlich höhere Summe der Marge errreicht werden.
+
+
+c. fulfillment strategy: bulk, pallet, fullTruck
+```{r}
+# durchschnittliche Marge, aggregiert nach fulfillment strategy (bulk, fullTRuck, palett)
+  shipments_uncancelled %>%
+    group_by(fulfilment_strategy) %>%
+    summarize(mean_margin = mean(total_margin, na.rm = TRUE))
+
+
+tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$fulfilment_strategy ,sum)
+```
+
+
+```{r}
+# Visualisierung
+ggplot(shipments_uncancelled, 
+       aes(factor(fulfilment_strategy), 
+       fill = factor(fulfilment_strategy))) +
+       geom_bar()
+```
+
+```{r}
+xtabs(~ custom_rate_shipment + fulfilment_strategy, data = shipments_uncancelled)
+```
+Erkenntnis: Bei der Fulfillment-Strategie fullTruck sind ca. 2/3 der Shipments aus custom rate (mit pauschal festem Preis), somit kann nur geringe Gewinnmarge generiert werden im Vergleich zu der erzielten Marge von den Aufträgen auf dem Spotmarkt. (Der Preis wird für einzelne Stücke von Bulk-Waren oder Paletten berechnet und ändert sich auf Wochenbasis)
+
+d. Lane domain
+**Unterschied**
+import: aus anderen Ländern in Deutschland importieren
+export: von Deutschland nach anderen Ländern exportieren
+international: Transport nur zwischen Ländern ausschließlich Deutchland
+national: nur innerhalb von Deutschland
+```{r}
+# durchschnittliche Marge, aggregiert nach lane domain (export, import, national, international)
+  shipments_uncancelled %>%
+    group_by(lane_domain) %>%
+    summarize(mean_margin = mean(total_margin, na.rm = TRUE))
+
+
+tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$lane_domain ,sum)
+```
+
+
+### (3.3) OTD
+```{r}
+# durchschnittliche Marge, aggregiert nach OTD
+  shipments_uncancelled %>%
+    group_by(OTD) %>%
+    summarize(mean_margin = mean(total_margin, na.rm = TRUE))
+
+
+tapply(shipments_uncancelled$total_margin ,shipments_uncancelled$OTD ,sum)
+
+shipments_uncancelled_ohne_NA = subset(shipments_uncancelled, OTD == "TRUE" | OTD == "FALSE")
+
+ggplot(shipments_uncancelled_ohne_NA, 
+       aes(factor(OTD), 
+       fill = factor(OTD))) +
+       geom_bar()
+```
+
+
+
+### (3.4) Numerical-numerical associations
+(Zusammenhang zwischen der Gewinnmarge (numerical) und internem Faktor: stop count (numerical)
+```{r}
+cor(shipments_uncancelled$stops_count, shipments_uncancelled$total_margin)
+cor(shipments_uncancelled$stops_count, shipments_uncancelled$total_margin, method = "kendall")
+cor(shipments_uncancelled$stops_count, shipments_uncancelled$total_margin, method = "spearman")
+```
+Ergebnisse:
+Correlation coeff. :  -0.02870281
+Correlation coeff. (Kendall-Model): -0.03849449
+Correlation coeff. (Spearman-Model): -0.04730923
+=> zu geringe Korrelation zwischen stop_counts und total_margin
+
+Exkurs:
+Kendall’s correlation coefficient is often smaller than Spearman’s correlation coefficient. Although Spearman’s is used more widely, it is more sensitive to errors and discrepancies in the data than Kendall’s.
+
+**Zwischenfazit** Die folgenden internen Faktoren: business_model, custom_rate_shipment, fulfiillment_strategy und OTD werden zum Aufbau eines linearen Regressionsmodell verwendet.
+
+
+### (3.5) Vorbereitung für das Erstellen des Regressionsmodells im Teil B
+```{r}
+# Convert to factor (for binary variables)
+
+shipments_uncancelled$business_model <- as.factor(shipments_uncancelled$business_model)
+
+
+shipments_uncancelled$custom_rate_shipment <- as.factor(shipments_uncancelled$custom_rate_shipment)
+
+
+shipments_uncancelled$OTD <- as.factor(shipments_uncancelled$OTD)
+
+```
+
+```{r}
+# Convert to factor (for not binary variables)
+
+fullfilment_strategy_dummies <- model.matrix(~fulfilment_strategy -1, data = shipments_uncancelled)
+head(fullfilment_strategy_dummies)
+
+```
+
+Für jede Veriable wird ein Regressionsmodel erstellt -> vergleich und auswählen
+```{r}
+model_business_model = lm(total_margin ~business_model, data = shipments_uncancelled )
+summary(model_business_model)
+
+model_custom_rate_shipment = lm(total_margin ~custom_rate_shipment, data = shipments_uncancelled )
+summary(model_custom_rate_shipment)
+
+model_fulfillment_strategy = lm(total_margin ~fulfilment_strategy, data = shipments_uncancelled )
+summary(model_fulfillment_strategy)
+
+model_lane_domain = lm(total_margin ~lane_domain, data = shipments_uncancelled )
+summary(model_lane_domain)
+
+model_stops_count = lm(total_margin ~stops_count, data = shipments_uncancelled )
+summary(model_stops_count)
+
+model_OTD = lm(total_margin ~OTD, data = shipments_uncancelled )
+summary(model_OTD)
+
+
+```
+
+
+### (4) Deskriptive Statistik (Zeitreihenanalyse)
+
+## (4.1) Zeitreihenanalyse
+```{r eval=TRUE}
+ts_marge = ts(marge_YearMonth$total_margin, frequency = 12)
+
+#Die 'cat' Funktion dient lediglich für eine bessere Übersicht indem sie Absätze im Output erzeugt
+# Modell automatisch erstellen lassen
+cat("\n","\n","Modell:","\n")
+m_marge = ets(ts_marge, model = "ZAA")
+# (1) Modellzusammenfassung ausgeben lassen
+m_marge
+
+# (2) Ausgabe ursprüngliche Zeitreihe
+cat("\n","\n","Ursprüngliche Zeitreihe:","\n")
+ts_marge
+# (3) Residuen ausgeben
+cat("\n","\n","Residuen:","\n")
+round(m_marge$residuals,2)
+```
+Erstellen einer Nachfragevorhersage mit der 'forcast' Funktion und dem Modell 'm_marge_3PL' für ein weiteres Jahr also 12 Perioden
+```{r}
+#Vorhersage erstellen
+fcast_marge = forecast(m_marge, 12)
+#Anzeigen der Vorhersage
+fcast_marge
+```
+Visualiesierung der Vorhersage ("forecast") und der ursprünglichen Nachfragen ("original") in einem Liniendiagramm über die Perioden. Es wurde ein Liniendiagramm gewählt, da es den fließenden Verlauf zwischen den Perioden anzeigen lässt und dadurch wie eng die beiden Linien der Vorhersage und der Origanlwerte über die Zeit auseinander liegen, lässt sich die Güte des Modells beobachten
+```{r}
+# Hintergrund erzeugen 
+ggplot(data = NULL) + 
+  
+  # Erste Linie hinzufuegen (keine Daten; X-Achse = Reihe von 1 bis laenge fitting Werten und Forecast Werten)
+  geom_line(data = NULL, aes(x=seq(1,length(c(fcast_marge$fitted, fcast_marge$mean)),1), 
+                             # Y-Achse = Kombination von fitting Werten und Forecast Werten
+                             y= c(as.numeric(fcast_marge$fitted),as.numeric(fcast_marge$mean)), 
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'forecast')) +
+  
+  # Zweite Linie hinzufuegen (Keine Daten; X-Achse = Reihe von 1 bis laenge Beobachtungen)
+  geom_line(data = NULL, aes(x=seq(1,length(fcast_marge$x),1), 
+                             # Y-Achse = Beobachtungen
+                             y= as.numeric(fcast_marge$x),
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'original')) + 
+  geom_smooth(data = NULL, aes(x=seq(1,length(c(fcast_marge$fitted, fcast_marge$mean)),1), 
+                             # Y-Achse = Kombination von fitting Werten und Forecast Werten
+                             y= c(as.numeric(fcast_marge$fitted),as.numeric(fcast_marge$mean)), 
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'forecast'))+
+  
+  # Umbenennung der x- und y-Achsen
+  labs(y="Marge in EUR", x="Periode")
+  
+  # Farben fuer Beschriftungen festlegen
+  scale_colour_manual(breaks = c("forecast", "original"), values = c("red", "blue"))
+```
+Erkenntnisse: 
+-keine Saisonalitäten identifiziert
+-leichter Trend nach oben
+
+### (4.2) Prozentuale Marge Zeitreihenanalyse
+```{r}
+marge_percent = shipments_uncancelled[c("first_stop_requested_arrival_to_YearMonth", "total_revenue", "total_cost", "total_margin")] %>%
+  aggregate(.~first_stop_requested_arrival_to_YearMonth,.,mean) %>%
+#Spalte prozentuale Marge einfügen
+  mutate(total_margin_percent = total_margin / total_revenue)
+
+ts_marge_percent = ts(marge_percent$total_margin_percent, frequency = 12)
+
+#Die 'cat' Funktion dient lediglich für eine bessere Übersicht indem sie Absätze im Output erzeugt
+# Modell automatisch erstellen lassen
+cat("\n","\n","Modell:","\n")
+m_marge_percent = ets(ts_marge_percent, model = "ZZZ")
+# (1) Modellzusammenfassung ausgeben lassen
+m_marge_percent
+
+# (2) Ausgabe ursprüngliche Zeitreihe
+cat("\n","\n","Ursprüngliche Zeitreihe:","\n")
+ts_marge_percent
+# (3) Residuen ausgeben
+cat("\n","\n","Residuen:","\n")
+round(m_marge_percent$residuals,2)
+```
+Erstellen einer Nachfragevorhersage mit der 'forcast' Funktion und dem Modell 'm_marge_3PL' für ein weiteres Jahr also 12 Perioden
+
+### (4.3) Vorhersage Marge
+```{r}
+#Vorhersage erstellen
+fcast_marge_percent = forecast(m_marge_percent,12)
+#Anzeigen der Vorhersage
+fcast_marge_percent
+```
+
+Visualiesierung der Vorhersage ("forecast") und der ursprünglichen Nachfragen ("original") in einem Liniendiagramm über die Perioden. Es wurde ein Liniendiagramm gewählt, da es den fließenden Verlauf zwischen den Perioden anzeigen lässt und dadurch wie eng die beiden Linien der Vorhersage und der Origanlwerte über die Zeit auseinander liegen, lässt sich die Güte des Modells beobachten
+
+
+### (4.3) Visualisierung Vorhersage
+```{r}
+# Hintergrund erzeugen 
+ggplot(data = NULL) + 
+  
+  # Erste Linie hinzufuegen (keine Daten; X-Achse = Reihe von 1 bis laenge fitting Werten und Forecast Werten)
+  geom_line(data = NULL, aes(x=seq(1,length(c(fcast_marge_percent$fitted, fcast_marge_percent$mean)),1), 
+                             # Y-Achse = Kombination von fitting Werten und Forecast Werten
+                             y= c(as.numeric(fcast_marge_percent$fitted),as.numeric(fcast_marge_percent$mean)), 
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'forecast')) +
+  
+  # Zweite Linie hinzufuegen (Keine Daten; X-Achse = Reihe von 1 bis laenge Beobachtungen)
+  geom_line(data = NULL, aes(x=seq(1,length(fcast_marge_percent$x),1), 
+                             # Y-Achse = Beobachtungen
+                             y= as.numeric(fcast_marge_percent$x),
+                             # Beschriftung fuer Farbe festlegen
+                             colour = 'original')) + 
+  
+  # Umbenennung der x- und y-Achsen
+  labs(y="prozentuale Marge 3PL", x="Periode")
+  
+  # Farben fuer Beschriftungen festlegen
+  scale_colour_manual(breaks = c("forecast", "original"), values = c("red", "blue"))
+```
+
+
+
+
+
+
+### Aufgabe B
+***Vorhersagemodelle***
+Das Ziel dieser Aufgabe ist die Erstellung von Prognosemodellen zur Abschätzung der Unternehmensmarge. 
+Erstellen Sie zu diesem Zweck zunächst ein Modell basierend auf multivariater Regression, welches die Marge einer Buchung/ eines Shipments in Abhängigkeit relevanter Einflussfaktoren vorhersagt. Das Modell soll systematisch erstellt werden, indem mehrere Kombinationen von erklärenden Variablen gegeneinander getestet werden und eine begründete Empfehlung für das beste Modell gegeben wird. Als Art der Modellierung wird hierbei die multivariate Lineare Regression vorgeschlagen. Überlegen Sie, wie dieses Modell in die Unternehmensprozesse eingebunden werden kann. *Das Modell soll eher eine Erklärungs- als eine Vorhersagefunktion erfüllen*.Erstellen Sie weiterhin ein Modell, welches für die Vorhersage der zukünftigen Entwicklung der Unternehmensmarge genutzt werden kann. Hierbei sind mehrere Lösungen denkbar. 
+Achten Sie hier besonders auf die Realisierbarkeit bezüglich des Modelleinsatzes im Unternehmen.
+Folgende Daten stehen Ihnen zur Erstellung der Modelle zur Verfügung:
+Unternehmensinterne Daten
+Sie erhalten zwei Datensätzen von Instafreight, welche im beigefügten PDF näher beschrieben werden. Der eine Datensatz beschreibt die Shipments der letzten 3 Jahre, der andere Datensatz beschreibt die wöchentliche Marge in dem Zeitraum.
+Weitere Daten für die Bearbeitung der Fallstudie
+Sie können weitere Variablen recherchieren, die einen Einfluss auf die Unternehmensmarge haben und die Modellergebnisse entsprechend verbessern können. Folgende Variablen könnten beispielsweise verwendet werden:
+• Wetterdaten
+• Entwicklung der Kaufkraft, Bevölkerungszuwachs
+• Feriendaten, Feiertags-Daten, Event-Daten
+Diese Beispiele sind lediglich ein Vorschlag. Sie können weitere Variablen verwenden, die aus Ihrer Sicht für die Erstellung des Modelles relevant sind. Die Auswahl muss nachvollziehbar begründet werden.
+
+
+*Prognosemodell*
+ >> Eventuell zwei Vorhersagen machen zu: Interne Daten und Externe Daten
+ >> Multivariater Regression also schauen, wenn Korrelation über 80%, dann eine Variable einfach rausnehmen
+ >> Mehrere Kombinationen gegeneinander testen
+ >> Bestes Model am Ende analysieren und Aussagen treffen zur vorherigen Erkenntnissen
+ 
+ >> Verwendete Variablen fuer Korrelation im Vorhersagemodell:
+    >> Dieselkraffstoff
+    >> ... weitere Daten fehlen
+    >> ...
+    >> ...
+  
+
+SCA – WiSe 20/21 Aufgabenstellung zur Case Study
+Bitte achten Sie bei der Auswahl der beschreibenden Variablen auf die Verlässlichkeit der verwendeten Datenquelle. Empfohlene Datenquellen für die Auswahl der Variablen sind bei- spielsweise:
+• Statistische Agenturen der verschiedenen Länder (z.B. Statistisches Bundesamt2 für Deutschland - https://www.destatis.de/DE/Home/_inhalt.html)
+• Eurostat (https://ec.europa.eu/eurostat/de/home)
+• Statista (https://de.statista.com/)
+• Relevante wissenschaftliche Literatur
+• UN Databank für statistische Daten (http://w3.unece.org/pxweb/Dialog/)
+
+Zu B: Das erste Modell soll hauptsächlich eine erklärende Funktion erfüllen. Dabei wird die Frage beantwortet: „Welchen Einfluss haben gewisse Faktoren auf die Marge eines Shipments?“. Die Ergebnisse davon sollten in A einfließen. Das zweite Modell soll ein nutzbares Modell sein, welches dem Unternehmen eine Vorhersage über die zukünf- tige Entwicklung der Marge ermöglicht. Hier können Shipments beispielsweise auf Tage, Wochen oder Monate aggregiert werden. Achten Sie bei der Modellierung da- rauf, dass die notwendigen Daten zum Vorhersagezeitpunkt zugänglich sein müssen. Die Erkenntnisse aus dem ersten Modell sind hierbei sicherlich sinnvoll einzubringen.
+• Falls Ihre vorgeschlagene Gesamtlösung Modellierungen enthält, die über die in A und B entwickelten Lösungen hinausgeht, müssen Sie diese nicht implementieren. Es ge- nügt ein Ausblick.
+
+
+
+
+
+
+***Aufgabe C: Dashboard***
+Die Aufbereitung von vorhandenen Analyseergebnissen, welche dem Nutzer eine nachvoll- ziehbare Entscheidungsgrundlage bieten soll, stellt eine wichtige Rolle in der Entwicklung von Analytics-Lösungen dar. Aus diesem Grund werden Sie in dieser Aufgabe gebeten, eine Visu- alisierung Ihrer Ergebnisse aus B (und A) in Form eines Dashboards zu erstellen. Das Dash- board soll eine Implementierung des in B entwickelten Prognosemodells sein, welches ein möglichst nutzerfreundliches und anwendungsbezogenes Design vorweist. Überlegen Sie, welche relevanten Informationen dem Nutzer bereitgestellt werden müssen. Nutzen Sie dazu auch Ihre Erkenntnisse aus A. Achten Sie bei der Gestaltung des Dashboards unbedingt auf den zukünftigen Nutzer/Prozess.
+Beachten Sie dabei, dass der Entwurf ausschließlich die aus Ihrer Sicht relevanten Informati- onen beinhalten sollte. Überlegen Sie sich, welche Form der Visualisierung von einzelnen Kennzahlen / Variablen / Statistiken dem Nutzer die Entscheidungsfindung erleichtern könnte. Bitte achten Sie auf die Nachvollziehbarkeit der Entscheidungen, die zu Ihrem Entwurf geführt haben. Das Dashboard muss nicht funktional umgesetzt werden, es handelt sich lediglich um die konzeptionelle Gestaltung einer visuellen Entscheidungsgrundlage (Mock-Up!).
