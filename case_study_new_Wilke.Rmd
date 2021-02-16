@@ -1833,17 +1833,22 @@ transport_cost_assigned	-0.352095327
 #Modell erstellen, 1. Iteration
  
   m_LKWMaut = shipments_weekTraining %>% lm(total_margin ~ Lkw.Maut.Fahrleistungsindex, .)
-  m_OTD = shipments_weekTraining %>% lm(total_margin ~ OTD, .)
-  m_costAssigned = shipments_weekTraining %>% lm(total_margin ~ transport_cost_assigned, .)
-  m_totalCost = shipments_weekTraining %>% lm(total_margin ~ total_cost, .)
-  m_totalCost = shipments_weekTraining %>% lm(total_margin ~ total_cost, .) 
-  m_TAuslastung = shipments_weekTraining %>% lm(total_margin ~ Auslastung_Transportmartkt, .)
-  
   evaluation = evaluation_function(evaluation, m_LKWMaut)
+
+  m_OTD = shipments_weekTraining %>% lm(total_margin ~ OTD, .)
   evaluation = evaluation_function(evaluation, m_OTD)
+  
+  m_costAssigned = shipments_weekTraining %>% lm(total_margin ~ transport_cost_assigned, .)
   evaluation = evaluation_function(evaluation, m_costAssigned)
+  
+  m_totalCost = shipments_weekTraining %>% lm(total_margin ~ total_cost, .)
   evaluation = evaluation_function(evaluation, m_totalCost)
+  
+  m_TAuslastung = shipments_weekTraining %>% lm(total_margin ~ Auslastung_Transportmartkt, .)
   evaluation = evaluation_function(evaluation, m_TAuslastung)
+  
+  
+  
   
   evaluation
   
@@ -1863,15 +1868,16 @@ transport_cost_assigned	-0.352095327
 #Modell erstellen, 2. Iteration
  
   m_LKWMaut_OTD = shipments_weekTraining %>% lm(total_margin ~ Lkw.Maut.Fahrleistungsindex + OTD, .)
-  m_LKWMaut_costAssigned = shipments_weekTraining %>% lm(total_margin ~ transport_cost_assigned + OTD, .)
-  m_LKWMaut_totalCost = shipments_weekTraining %>% lm(total_margin ~ transport_cost_assigned + total_cost, .)
- 
-  
   evaluation = evaluation_function(evaluation, m_LKWMaut_OTD)
+
+  m_LKWMaut_costAssigned = shipments_weekTraining %>% lm(total_margin ~ Lkw.Maut.Fahrleistungsindex + transport_cost_assigned, .)
   evaluation = evaluation_function(evaluation, m_LKWMaut_costAssigned)
+  
+  m_LKWMaut_totalCost = shipments_weekTraining %>% lm(total_margin ~ Lkw.Maut.Fahrleistungsindex + total_cost, .)
   evaluation = evaluation_function(evaluation, m_LKWMaut_totalCost)
   
-  
+  m_LKWMaut_TAuslastung = shipments_weekTraining %>% lm(total_margin ~ Lkw.Maut.Fahrleistungsindex + Auslastung_Transportmartkt, .)
+  evaluation = evaluation_function(evaluation, m_LKWMaut_TAuslastung)
   
   evaluation
   
