@@ -1556,7 +1556,7 @@ shipments <- shipments %>%
 #156 Wochen haben wir
 
 shipments_week = NULL
-regression_data = shipments[shipments$year >= 2018 & shipments$year <= 2020 & shipments$lane_domain == "national" & shipments$total_revenue > 0 & shipments$total_cost > 0,]
+regression_data = shipments[shipments$year >= 2018 & shipments$year <= 2020 & shipments$lane_domain == "national",]
 
 # shipments_week
   shipments_week = regression_data[c("CalenderWeek","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin","OTD")] %>% aggregate(. ~ CalenderWeek, ., mean)
