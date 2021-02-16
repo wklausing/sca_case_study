@@ -985,8 +985,13 @@ Erkenntnis: Mehr Marge mit Customrate (Contract) als mit spot (Marktpreis)
 
 ### (2.12) Vorhandene Vorhersage aus Margin visualisieren
 ```{r}
-#TODO Vorhersage Daten existieren schon, deshalb nur visualieren. Erst in Teil B neue Vorhersage machen.
+#margin in Euro fuer 3PL custom_rate shipments
+margin$forecasted_margin_3pl_Euro = round( (margin$forecasted_revenue_3pl*(margin$forecasted_margin_3pl/100)),2)
 
+#Visualisierung des vorgegebenen Forecast 
+plot_ly(data = margin,x= ~first_stop_requested_arrival_to_week,   
+        y= ~forecasted_margin_3pl_Euro,type = "scatter", mode = "lines", name = "Prognostizierte Marge", line = list(color = "#3b5998")) %>%  
+        layout(title = "Instafreight: Prognostizierte Marge (2018-2020)",titlefont = list(size = 15), xaxis = list(title = 'Kalenderwoche', dtick= 10), yaxis = list(title = 'Euro', tickformat = "3f")) 
 
 ```
 
