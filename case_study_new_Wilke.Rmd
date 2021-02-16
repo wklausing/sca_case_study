@@ -51,66 +51,6 @@ theme_standard =    theme(
   )
 ```
 
-***Aufgabe A: Erkenntnisgewinn***
-Ziel der Aufgabe ist der Bericht von etwaigen Erkenntnissen über die Daten, 
-die Sie im Laufe der Projektbearbeitung erlangt haben. 
-Zudem soll gezielt über die in der Fallstudienbeschreibung geforderten Punkte berichtet werden. 
-Die Daten sollen angemessen aufbereitet und visualisiert werden. 
-Wenn möglich sollen Handlungsempfehlungen aus den Erkenntnissen abgeleitet werden. [...]
-Versuchen Sie einen möglichst guten Überblick über die Shipment-Daten zu generieren. 
-Gehen Sie dabei schon gezielt auf die *Marge* ein (sowohl die *zeitliche Entwicklung* als auch identifizierte Zusammenhänge). Achten Sie bei Ihren Interpretationen auf die Gültigkeit von Aussagen über Kausalitäten.
-Der Lösungsraum dieser Teilaufgabe geht ins Unermessliche. 
-Beschränken Sie sich in Ihrer Präsentation daher auf eine Auswahl an Inhalten, die Ihnen besonders wichtig und präsentationswürdig erscheinen. Bereiten Sie gegebenenfalls ein Portfolio im *Back-Up* Ihrer Präsentation vor, um auf Anschlussfragen reagieren zu können. Sie sollten bei Ihrer Vorstellung dieser Teilaufgabe versuchen Zusammenhänge zu interpretieren und Implikationen abzuleiten, selbst wenn Ihre erarbeiteten Inhalte durch experimentelle Untersuchungen entstanden sind.
-
-
-### Aufgabe A
-• *(1) Datenformatierung & (2) Visuelle Exploration*
-Vorgehen bei der Präsentation am 15.02
-- Erste Ueberblick anhand Grafiken                                                          # Anny
-- Datenbereinigung > ueberpruefen/Grafik erstellen                                          # Anny 
-- Grafik Cost, Revenue & Margin > Trend (Zeitreihenanalyse) > Cancellation Reasons          # Dinh
-- Grafik zu transport_price_booked + transport_cost_assigned > Begruendung                  # Anny
-- Grafik Cancellation_reason und evlt. mit                                                  # Dinh
-  transport_state/transport_stage/business_model/business_strategy miteinander untersuchen
-- PowerPoint Präsentation Inhalt schon mal vorbereiten                                      # Anny
-  
-• *(3) Descriptive Statistik*  
-- Times Series (Noch ausstehend)                                                            # Toke   
-- Saisonalitaeten Begruendung
-  
-• *(4) Korrelationen* 
-- Externe Korrelation > Benzin, ...(Hier fehlen weitere 3-4 Daten)                          # Wilke
-- Interne Korrelation > Kosten/Umsatz/Margin/Stops_Count                                    # Wilke
-
-
-    >>> Korrelation Daten 2017-2020 suchen <<<
-      # Nutzung von Computern und dem Internet durch Beschäftigte
-      https://ec.europa.eu/eurostat/databrowser/view/isoc_ci_cm_pn2/default/table?lang=de
-    
-    >>> Import & Export Korrelation
-      a) Einzelhandel - monatliche Daten:
-      https://ec.europa.eu/eurostat/databrowser/view/EI_BSRT_M_R2__custom_560747/default/table?lang=de
-      b) Euro area 19 international trade - monthly data:
-      https://ec.europa.eu/eurostat/databrowser/view/ei_etea19_m/default/table?lang=en
-    
-    >>> Weitere Externen Daten suchen #Alle
-      # Grippe oder generell Gesundheit von Menschen
-      # Diesel #erledigt
-      # Verkehrsunfälle
-      # Anzahl der Suchanfrage von "Instafreight" in Google-Trends. Erkenntnis: Schlechtes Marketing
-      https://trends.google.com/trends/explore?date=today%205-y&geo=DE&q=InstaFreight
-      # Transportpreis
-      # Konjunktur von Volkswirtschaft oder BIP(?)
-      # BIP und Hauptkomponenten - ausgewählte internationale Jahresdaten
-         https://ec.europa.eu/eurostat/databrowser/view/naida_10_gdp/default/table?lang=de
-      # DSLV-Kostenindex: sämtliche Abwicklungskosten (Personal, Treibstoff  Maut und Sachkosten)
-      # Mautkosten
-      # Personalkosten (Fahrer, Lieferung)
-      # Notiz: Wetterdaten nicht nutzen, da sind nicht aufschlussreich
-  
-
-
-
 ***(1) Datenvorbereitung***
 ### (1.1) CSV Dateien einlesen und Formatierung
 ```{r eval=TRUE}
@@ -1623,7 +1563,7 @@ total_margin_cor = cor(shipments_week_cor,shipments_week_cor[c("total_margin")])
 total_margin_cor
 ```
 
-*Regression: Funktion um Modelle zu vergleichen*
+### (5.3) Regression: Funktion um Modelle zu vergleichen
 ```{r}
 #Funktion für Evaluation von Modellen  
 evaluation_function <- function(evaluation, model) {
@@ -1651,7 +1591,7 @@ evaluation_function <- function(evaluation, model) {
 }
 ```
 
-*Regression: Baseline und erster Eintrag in Evaluation Dataframe*
+### (5.4) Regression: Baseline und erster Eintrag in Evaluation Dataframe
 ```{r}
 #Baseline erstellen, durschnittliche Marge vom Monat.
 shipments_week$baseline = sum(shipments_week$total_margin)/156 
@@ -1681,7 +1621,7 @@ shipments_week$baseline = sum(shipments_week$total_margin)/156
 
 ```
 
-*Regression: Test und Trainingsdaten erzeugen*
+### (5.5) Regression: Test und Trainingsdaten erzeugen
 ```{r}  
 #Trainings und Testdaten erzeugen. (80/20)
   
@@ -1706,6 +1646,7 @@ shipments_week$baseline = sum(shipments_week$total_margin)/156
 
 ```
 
+### (5.6) Iterationen 1-4
 *1. Iteration*
 ```{r}
 #Modell erstellen, 1. Iteration
@@ -1798,7 +1739,7 @@ shipments_week$baseline = sum(shipments_week$total_margin)/156
 
 
 
-*Overfitting ueberpruefen*
+### (5.7) Overfitting ueberpruefen
 Zum Schluss vergleichen wir wie unser Modell sich schlägt wenn wir es mit 
 den Testdaten überprüfen. Damit wird einem Overfitting vorgebeugt, also das 
 unsere Modell zugenau auf die Trainingsdaten angepasst wurde. 
@@ -1834,7 +1775,7 @@ test_rbind
 # Unser bestes Modell, m_LKWMaut_TAuslastung_totalCost_OTD hat ähnliche Werte zu wie unser Test_Model, daher liegt kein Overfitting vor. 
 ```
 
-*Modell mit Baseline vergleichen*
+### (5.8) Bestes Modell und Original Modell mit Baseline vergleichen
 ```{r}
 #Modell
 modell_baseline = predict(m_LKWMaut_TAuslastung_totalCost_OTD, shipments_week) %>% as.data.frame()
@@ -1847,7 +1788,7 @@ modell_baseline = merge(modell_baseline, shipments_week_actual, by=c("period","p
 
 ggplot() + 
   geom_line(data = modell_baseline, aes(x = period, y = modell), color = "blue") +
-  geom_line(data = modell_baseline, aes(x = period, y = total_margin), color = "red") +
+  geom_line(data = modell_baseline, aes(x = period, y = total_margin), color = "darkgreen") +
   geom_line(data = modell_baseline, aes(x = period, y = baseline), color = "black") +
   xlab('Periode') +
   ylab('Marge pro Woche') + 
