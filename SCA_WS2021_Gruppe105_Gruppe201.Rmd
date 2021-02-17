@@ -7,7 +7,7 @@ output: html_document
 
 Library Packages
 ```{r eval=TRUE}
-#rm(list = ls())
+rm(list = ls())
 library("readr")
 library("dplyr") 
 library("zoo")
@@ -166,13 +166,8 @@ shipments = shipments[!is.na(shipments$shipment_reference), ]
 shipments <- shipments %>%
   separate(country_lane, c("origin_country","destination_country"), "-->>")
 
-#TODO OTD noch berechnen
 #Hinzufügen einer Spalte `OTD` unter der Bedingung das die Lieferung pünktlich war
 shipments$OTD = ifelse(shipments$last_stop_agreed_arrival_to >= shipments$last_stop_actual_arrival, TRUE, FALSE)
-
-#TODO Bereinigen der Ländercodes
-#subset(shipments_uncancelled %>%
-#  count(origin_country,destination_country), n < 3)
 
 # Dataframes abspeichern
 saveRDS(shipments, "data/shipments.rds")
@@ -1556,8 +1551,7 @@ ggplot(data = NULL) +
   )+
   # Farben fuer Beschriftungen festlegen
   scale_colour_manual(breaks = c("forecast", "original"), values = c("firebrick2","dodgerblue2"))
-  
-  #TODO Periode in Jahr/Monat umwandeln
+
 ```
 
 ### (4.6.2) Visualisierung Vorhersage
@@ -1569,41 +1563,6 @@ Kontrakte_CalenderWeek = subset(shipments %>%
  colnames(Kontrakte_CalenderWeek)[2] = "Anzahl_Kontraktaufträge"
 
 ```
-
-```{r}
-
-# shipments_week
-  shipments_week = shipments[c("CalenderWeek","stops_count","transport_price_booked","transport_cost_assigned","total_revenue","total_cost","total_margin","OTD")] %>% aggregate(. ~ CalenderWeek, ., mean)
-
-# Vorhersage Einzelaufträge
-  Kontrakte_CalenderWeek = subset(shipments %>% count(CalenderWeek,custom_rate_shipment), custom_rate_shipment == "true") %>% select(-custom_rate_shipment)
-  colnames(Kontrakte_CalenderWeek)[2] = "Anzahl_Kontraktaufträge"
-  shipments_week = merge(shipments_week, Kontrakte_CalenderWeek, by=c("CalenderWeek","CalenderWeek")) 
-
-# Google Trends
-  google_data = read.csv("data/google_data.csv")
-  google_data$CalenderWeek = google_data$Woche %>% as.Date() %>% strftime(., format = "%Y-%V")# Wochen Spalte
-  google_data = google_data[c("CalenderWeek","Spedition...Deutschland.", "Transport...Deutschland.")] %>% aggregate(. ~ CalenderWeek , ., mean)
-  shipments_week = merge(shipments_week,google_data,by=c("CalenderWeek","CalenderWeek"))
-  
-# DAX
-  DAX = read_excel("data/Dax 2017 bis 2020.xlsx", sheet = 1)
-  DAX$daxDayMean = (DAX$Eröffnung + DAX$Schluss) / 2
-  DAX$CalenderWeek = DAX$Datum %>% as.Date() %>% strftime(., format = "%Y-%V")# Jahr-Monat Spalte
-  DAX = DAX[c("CalenderWeek","daxDayMean")] %>% aggregate(. ~ CalenderWeek , ., mean)
-  shipments_week = merge(shipments_week,DAX,by=c("CalenderWeek","CalenderWeek"),all.x = TRUE)
-
-#  
-  
-  
-  
-  shipments <- shipments %>%
-  # aus der Spalte ´first_stop_requested_arrival_to_date´ wird der Monat und das Jahr in eine neue Spalte eingetragen
-  mutate(first_stop_requested_arrival_to_YearMonth = format(first_stop_agreed_arrival_to, "%Y-%m")) %>%
- # die Kalenderwoche wird ebenfalls in eine neue Spalte eingetragen
-   mutate(CalenderWeek = format(first_stop_agreed_arrival_to, "%Y-%V"))
-```
-
 
 #### (4.7) Zeitreihenanalyse durchschnittliche transport Kosten assigned
 ```{r eval=TRUE}
@@ -1755,7 +1714,7 @@ regression_data = shipments[shipments$year >= 2018 & shipments$year <= 2020 & sh
 # Woche 53 rausnehmen  
   shipments_week = shipments_week[shipments_week$CalenderWeek != "2020-53",]
   
-# Google Trends #TODO Hier fehlt eine Woche, die letzte von 2020 
+# Google Trends 
   google_data = read.csv("data/Google_trends_spedition.csv", sep=";")
   google_data$CalenderWeek = google_data$Date %>% as.Date() %>% strftime(., format = "%Y-%V")# Jahr-KalenderWoche Spalte
   google_data = google_data[c("CalenderWeek","Spedition")] %>% aggregate(. ~ CalenderWeek , ., mean)
@@ -1824,10 +1783,10 @@ shipments_week$baseline = sum(shipments_week$total_margin)/156
   # sMAPE berechnen 
   evaluation[evaluation$Model == "Baseline",]$sMAPE = smape(shipments_week$total_margin, shipments_week$baseline) %>% round(4)
   
-  # R berechnen # R berechnen.TODO Richtig Berechnung einfügen
+  # R berechnen # R berechnen.
   evaluation[evaluation$Model == "Baseline",]$r2 = NA
   
-  # R**2 berechnen # R**2 berechnen.TODO Richtig Berechnung einfügen
+  # R**2 berechnen # R**2 berechnen.
   evaluation[evaluation$Model == "Baseline",]$adj.r2 = NA
   
   evaluation
